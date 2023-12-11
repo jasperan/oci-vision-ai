@@ -59,15 +59,14 @@ def main():
     
     img = cv2.imread('../img/22WHITEGOD1-superJumbo-v2.jpg')
 
-    while True:
-        draw_result = draw_over_image(img, example, 'Dog')
-        print(type(draw_result))
-        cv2.imshow('Image', draw_result)
+    draw_result = draw_over_image(img, example, 'Dog')
+    print(type(draw_result))
+    cv2.imshow('Image', draw_result)
 
-        im_rgb = cv2.cvtColor(draw_result, cv2.COLOR_BGR2RGB)
-        pilImage = Image.fromarray(im_rgb)
-        pilImage.save('../img/output_object_detection_verify.png', 'PNG')
-        cv2.waitKey(1)
+    im_rgb = cv2.cvtColor(draw_result, cv2.COLOR_BGR2RGB)
+    pilImage = Image.fromarray(im_rgb)
+    pilImage.save('../img/output_object_detection_verify.png', 'PNG')
+    cv2.waitKey(1)
 
 
 if __name__ == '__main__':
