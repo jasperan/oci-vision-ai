@@ -1,0 +1,61 @@
+<!-- HTMX partial: renders analysis results inline -->
+
+{% if overlay_base64 %}
+<div class="mb-4">
+    <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Overlay</h3>
+    <img src="data:image/png;base64,{{ overlay_base64 }}"
+         class="w-full rounded-lg border border-slate-600" alt="Annotated image" />
+</div>
+{% endif %}
+
+{% if classification and classification.labels %}
+<div class="mb-4">
+    <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Classification</h3>
+    <div class="space-y-1">
+        {% for label in classification.labels[:10] %}
+        <div class="flex items-center justify-between text-sm">
+            <span>{{ label.name }}</span>
+            <span class="cyan-accent font-mono">{{ "%.1f"|format(label.confidence * 100) }}%</span>
+        </div>
+        <div class="w-full bg-slate-700 rounded-full h-1.5">
+            <div class="cyan-bg rounded-full h-1.5" style="width: {{ label.confidence * 100 }}%"></div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if detection and detection.objects %}
+<div class="mb-4">
+    <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Object Detection</h3>
+    <div class="space-y-2">
+        {% for obj in detection.objects %}
+        <div class="flex items-center justify-between text-sm bg-slate-800/50 rounded px-3 py-2">
+            <span class="font-medium">{{ obj.name }}</span>
+            <span class="cyan-accent font-mono">{{ "%.1f"|format(obj.confidence * 100) }}%</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if text and text.lines %}
+<div class="mb-4">
+    <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Text / OCR</h3>
+    <div class="bg-slate-800/50 rounded p-3 text-sm font-mono whitespace-pre-wrap">{{ text.full_text }}</div>
+</div>
+{% endif %}
+
+{% if faces and faces.faces %}
+<div class="mb-4">
+    <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Face Detection</h3>
+    <p class="text-sm">{{ faces.faces|length }} face(s) detected</p>
+</div>
+{% endif %}
+
+<div class="text-xs text-slate-500 mt-4">
+    Elapsed: {{ "%.3f"|format(elapsed_seconds) }}s
+    {% if available_features %}
+    &bull; Features: {{ available_features|join(", ") }}
+    {% endif %}
+</div>

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}OCI Vision Studio - Gallery{% endblock %}
+
+{% block content %}
+<div class="glass-card p-6 mb-6">
+    <h2 class="text-xl font-semibold cyan-accent mb-2">Demo Gallery</h2>
+    <p class="text-slate-400 text-sm">Curated images with pre-cached OCI Vision AI responses. Click any card to analyze.</p>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for img in images %}
+    <div class="glass-card overflow-hidden group hover:border-cyan-400/50 transition">
+        <div class="p-5">
+            <h3 class="font-semibold text-lg mb-1">{{ img.id }}</h3>
+            <p class="text-slate-400 text-sm mb-3">{{ img.description }}</p>
+
+            <!-- Feature badges -->
+            <div class="flex flex-wrap gap-2 mb-4">
+                {% for feat in img.features %}
+                <span class="text-xs px-2 py-1 rounded-full bg-cyan-900/50 text-cyan-300 border border-cyan-700/40">
+                    {{ feat }}
+                </span>
+                {% endfor %}
+            </div>
+
+            <!-- Analyze link -->
+            <a href="/?gallery_image={{ img.filename }}"
+               class="inline-block text-sm cyan-accent hover:text-cyan-300 transition font-medium">
+                Analyze this image &rarr;
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if demo %}
+<div class="mt-6 text-center">
+    <span class="inline-block bg-cyan-900/50 text-cyan-300 text-xs px-3 py-1 rounded-full">
+        Demo Mode &mdash; all responses served from cache
+    </span>
+</div>
+{% endif %}
+{% endblock %}

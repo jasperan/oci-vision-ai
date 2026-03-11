@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}OCI Vision Studio{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            border-radius: 0.75rem;
+        }
+        .cyan-accent {
+            color: #22d3ee;
+        }
+        .cyan-border {
+            border-color: #22d3ee;
+        }
+        .cyan-bg {
+            background-color: #22d3ee;
+        }
+        .cyan-bg-hover:hover {
+            background-color: #06b6d4;
+        }
+    </style>
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="h-full min-h-screen font-sans antialiased">
+    <!-- Navigation -->
+    <nav class="glass-card mb-6 mx-4 mt-4 px-6 py-4 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3 text-xl font-bold cyan-accent hover:text-cyan-300 transition">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            OCI Vision Studio
+        </a>
+        <div class="flex items-center gap-6">
+            <a href="/" class="text-slate-300 hover:text-cyan-400 transition font-medium">Analyzer</a>
+            <a href="/gallery" class="text-slate-300 hover:text-cyan-400 transition font-medium">Gallery</a>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="mx-4 mb-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center text-slate-500 text-sm pb-6">
+        OCI Vision Studio &mdash; Powered by Oracle Cloud Vision AI
+    </footer>
+
+    <script src="/static/app.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

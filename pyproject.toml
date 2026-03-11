@@ -35,4 +35,5 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
 markers = ["live: requires real OCI credentials (deselect with '-m not live')"]
