@@ -29,6 +29,29 @@ Analyse images with six OCI Vision features through a polished CLI, an interacti
 
 ## Quick Start
 
+<!-- one-command-install -->
+> **One-command install** — clone, configure, and run in a single step:
+>
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/jasperan/oci-vision-ai/main/install.sh | bash
+> ```
+>
+> <details><summary>Advanced options</summary>
+>
+> Override install location:
+> ```bash
+> PROJECT_DIR=/opt/myapp curl -fsSL https://raw.githubusercontent.com/jasperan/oci-vision-ai/main/install.sh | bash
+> ```
+>
+> Or install manually:
+> ```bash
+> git clone https://github.com/jasperan/oci-vision-ai.git
+> cd oci-vision-ai
+> # See below for setup instructions
+> ```
+> </details>
+
+
 ```bash
 pip install -e ".[all]"
 oci-vision analyze dog_closeup.jpg --demo
