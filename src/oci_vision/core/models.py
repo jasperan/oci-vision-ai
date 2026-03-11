@@ -16,6 +16,8 @@ class BoundingPolygon(BaseModel):
     @computed_field
     @property
     def center(self) -> tuple[float, float]:
+        if not self.normalized_vertices:
+            return (0.0, 0.0)
         xs = [v.x for v in self.normalized_vertices]
         ys = [v.y for v in self.normalized_vertices]
         return (sum(xs) / len(xs), sum(ys) / len(ys))

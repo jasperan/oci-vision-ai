@@ -15,9 +15,16 @@ from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
 from oci_vision.core.client import VisionClient
 from oci_vision.gallery import load_manifest
+
+
+class AnalyzeRequest(BaseModel):
+    """Request body for the /api/analyze endpoint."""
+    image: str
+    features: list[str] | str = "all"
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -83,16 +90,12 @@ def create_app(demo: bool = False) -> FastAPI:
         return JSONResponse({"images": manifest["images"]})
 
     @app.post("/api/analyze")
-    async def analyze_api(request: Request):
+    async def analyze_api(body: AnalyzeRequest):
         """Analyse a named image (JSON body).
 
         Expects ``{"image": "...", "features": [...]}``
         """
-        body = await request.json()
-        image = body.get("image", "")
-        features = body.get("features", "all")
-
-        report = client.analyze(image, features=features)
+        report = client.analyze(body.image, features=body.features)
         return JSONResponse(report.model_dump())
 
     @app.post("/api/analyze-upload")

@@ -5,8 +5,8 @@ Entry point registered in pyproject.toml as ``oci-vision``.
 
 from __future__ import annotations
 
+import html
 import json
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -55,14 +55,14 @@ def _output_report(
 
 def _output_html(report: AnalysisReport) -> None:
     """Generate a self-contained HTML report and write it to disk."""
-    data = report.model_dump()
-    image_name = Path(report.image_path).stem
-    out_path = Path(f"{image_name}_report.html")
+    esc = html.escape
+    image_name = esc(Path(report.image_path).stem)
+    out_path = Path(f"{Path(report.image_path).stem}_report.html")
 
     features_html = []
     if report.classification:
         rows = "".join(
-            f"<tr><td>{l.name}</td><td>{l.confidence_pct:.1f}%</td></tr>"
+            f"<tr><td>{esc(l.name)}</td><td>{l.confidence_pct:.1f}%</td></tr>"
             for l in report.classification.labels
         )
         features_html.append(
@@ -72,7 +72,7 @@ def _output_html(report: AnalysisReport) -> None:
 
     if report.detection:
         rows = "".join(
-            f"<tr><td>{o.name}</td><td>{o.confidence_pct:.1f}%</td></tr>"
+            f"<tr><td>{esc(o.name)}</td><td>{o.confidence_pct:.1f}%</td></tr>"
             for o in report.detection.objects
         )
         features_html.append(
@@ -81,7 +81,10 @@ def _output_html(report: AnalysisReport) -> None:
         )
 
     if report.text:
-        lines = "".join(f"<p>&ldquo;{l.text}&rdquo; ({round(l.confidence*100,1)}%)</p>" for l in report.text.lines)
+        lines = "".join(
+            f"<p>&ldquo;{esc(l.text)}&rdquo; ({round(l.confidence*100,1)}%)</p>"
+            for l in report.text.lines
+        )
         features_html.append(f"<h2>Text / OCR</h2>{lines}")
 
     if report.faces:
@@ -91,14 +94,22 @@ def _output_html(report: AnalysisReport) -> None:
         )
 
     if report.document:
-        features_html.append(
+        doc_parts = [
             f"<h2>Document AI</h2><p>{len(report.document.fields)} fields, "
             f"{len(report.document.tables)} tables</p>"
-        )
+        ]
+        for field in report.document.fields:
+            doc_parts.append(
+                f"<p>{esc(field.field_type)}: {esc(field.label)} = {esc(field.value)}</p>"
+            )
+        features_html.append("\n".join(doc_parts))
 
     body = "\n".join(features_html) if features_html else "<p>No features analysed.</p>"
 
-    html = f"""<!DOCTYPE html>
+    safe_image_path = esc(report.image_path)
+    safe_features = esc(', '.join(report.available_features))
+
+    page = f"""<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><title>OCI Vision AI Report — {image_name}</title>
 <style>
@@ -110,13 +121,13 @@ h2 {{ color: #333; border-bottom: 1px solid #ddd; padding-bottom: 0.3em; }}
 </style></head>
 <body>
 <h1>OCI Vision AI Report</h1>
-<p><strong>Image:</strong> {report.image_path}<br>
+<p><strong>Image:</strong> {safe_image_path}<br>
 <strong>Elapsed:</strong> {report.elapsed_seconds:.3f}s<br>
-<strong>Features:</strong> {', '.join(report.available_features)}</p>
+<strong>Features:</strong> {safe_features}</p>
 {body}
 </body></html>"""
 
-    out_path.write_text(html)
+    out_path.write_text(page)
     console.print(f"[green]HTML report saved to:[/green] {out_path.absolute()}")
 
 
@@ -279,16 +290,17 @@ def web(
     host: str = typer.Option("0.0.0.0", "--host", help="Bind address"),
     port: int = typer.Option(8000, "--port", help="Port number"),
     demo: bool = typer.Option(False, "--demo", help="Start in demo mode"),
-    live: bool = typer.Option(False, "--live", help="Start in live mode (requires OCI credentials)"),
 ) -> None:
     """Launch the web dashboard."""
     try:
         import uvicorn
+        from oci_vision.web.app import create_app
+
         console.print(f"[bold cyan]Starting OCI Vision AI web dashboard[/bold cyan] on {host}:{port}")
         mode = "demo" if demo else "live"
         console.print(f"Mode: [bold]{mode}[/bold]")
         uvicorn.run(
-            "oci_vision.web:app",
+            create_app(demo=demo),
             host=host,
             port=port,
             reload=False,
