@@ -1,0 +1,10 @@
+{
+  "images": [
+    {
+      "id": "dog_closeup",
+      "filename": "dog_closeup.jpg",
+      "description": "Close-up photo of a white dog — ideal for classification and object detection",
+      "features": ["classification", "detection"]
+    }
+  ]
+}
