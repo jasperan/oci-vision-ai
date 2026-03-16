@@ -366,6 +366,7 @@ class VisionClient:
             return self._demo_client.classify(image, max_results=max_results)
 
         self._ensure_oci_client()
+        import oci.ai_vision.models as vm
 
         feature = self._build_classification_feature(
             max_results=max_results,
@@ -398,6 +399,7 @@ class VisionClient:
             )
 
         self._ensure_oci_client()
+        import oci.ai_vision.models as vm
 
         feature = self._build_detection_feature(
             max_results=max_results,
@@ -421,6 +423,7 @@ class VisionClient:
             return self._demo_client.detect_text(image)
 
         self._ensure_oci_client()
+        import oci.ai_vision.models as vm
 
         feature = self._build_text_feature()
         image_details = self._build_image_details(image)

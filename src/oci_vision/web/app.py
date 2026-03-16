@@ -102,6 +102,8 @@ def create_app(demo: bool = False) -> FastAPI:
             from oci_vision.gallery import get_gallery_path
 
             image_path = get_gallery_path() / "images" / Path(image_name).name
+            analysis_target = str(image_path) if image_path.exists() else image_name
+            report = client.analyze(analysis_target)
             img = Image.open(image_path)
             overlay = render_overlay(img, report)
             buf = io.BytesIO()

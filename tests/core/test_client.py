@@ -1,3 +1,7 @@
+import importlib
+import sys
+from types import SimpleNamespace
+
 import pytest
 from oci_vision.core.client import VisionClient
 from oci_vision.core.models import AnalysisReport, ClassificationResult, DetectionResult
@@ -17,6 +21,35 @@ def test_live_tests_enabled_with_env(monkeypatch):
     from tests.conftest import should_run_live_tests
 
     assert should_run_live_tests() is True
+
+
+def test_oracle_module_is_lazy_imported():
+    sys.modules.pop("oci_vision.oracle", None)
+    sys.modules.pop("oracledb", None)
+
+    importlib.import_module("oci_vision.oracle")
+
+    assert "oracledb" not in sys.modules
+
+
+def test_cli_module_does_not_force_oracle_import():
+    sys.modules.pop("oci_vision.oracle", None)
+    sys.modules.pop("oci_vision.cli.app", None)
+    sys.modules.pop("oracledb", None)
+
+    importlib.import_module("oci_vision.cli.app")
+
+    assert "oracledb" not in sys.modules
+
+
+def test_web_module_does_not_force_oracle_import():
+    sys.modules.pop("oci_vision.oracle", None)
+    sys.modules.pop("oci_vision.web.app", None)
+    sys.modules.pop("oracledb", None)
+
+    importlib.import_module("oci_vision.web.app")
+
+    assert "oracledb" not in sys.modules
 
 
 def test_client_demo_mode():
@@ -79,6 +112,85 @@ def test_build_text_feature_uses_image_text_detection_feature():
     feature = VisionClient._build_text_feature()
     assert type(feature).__name__ == "ImageTextDetectionFeature"
     assert feature.feature_type == "TEXT_DETECTION"
+
+
+def test_live_classify_uses_analyze_image_without_name_error(monkeypatch):
+    import oci.ai_vision.models as vm
+
+    client = VisionClient(demo=False, config={})
+    client._compartment_id = "ocid1.compartment.oc1..demo"
+
+    response = vm.AnalyzeImageResult(
+        labels=[vm.Label(name="Dog", confidence=0.99)],
+        image_classification_model_version="1.0.0",
+    )
+    client._oci_client = SimpleNamespace(analyze_image=lambda req: SimpleNamespace(data=response))
+    monkeypatch.setattr(client, "_ensure_oci_client", lambda: None)
+
+    result = client.classify("missing.jpg", model_id="ocid1.model.oc1..demo")
+
+    assert result is not None
+    assert result.labels[0].name == "Dog"
+
+
+def test_live_detect_uses_analyze_image_without_name_error(monkeypatch):
+    import oci.ai_vision.models as vm
+
+    client = VisionClient(demo=False, config={})
+    client._compartment_id = "ocid1.compartment.oc1..demo"
+
+    response = vm.AnalyzeImageResult(
+        image_objects=[
+            vm.ImageObject(
+                name="Dog",
+                confidence=0.98,
+                bounding_polygon=vm.BoundingPolygon(
+                    normalized_vertices=[
+                        vm.NormalizedVertex(x=0.1, y=0.1),
+                        vm.NormalizedVertex(x=0.4, y=0.1),
+                        vm.NormalizedVertex(x=0.4, y=0.4),
+                        vm.NormalizedVertex(x=0.1, y=0.4),
+                    ]
+                ),
+            )
+        ],
+        object_detection_model_version="1.0.0",
+    )
+    client._oci_client = SimpleNamespace(analyze_image=lambda req: SimpleNamespace(data=response))
+    monkeypatch.setattr(client, "_ensure_oci_client", lambda: None)
+
+    result = client.detect_objects("missing.jpg", model_id="ocid1.model.oc1..demo")
+
+    assert result is not None
+    assert result.objects[0].name == "Dog"
+
+
+def test_live_text_uses_analyze_image_without_name_error(monkeypatch):
+    import oci.ai_vision.models as vm
+
+    client = VisionClient(demo=False, config={})
+    client._compartment_id = "ocid1.compartment.oc1..demo"
+
+    vertices = [
+        vm.NormalizedVertex(x=0.1, y=0.1),
+        vm.NormalizedVertex(x=0.3, y=0.1),
+        vm.NormalizedVertex(x=0.3, y=0.2),
+        vm.NormalizedVertex(x=0.1, y=0.2),
+    ]
+    response = vm.AnalyzeImageResult(
+        image_text=vm.ImageText(
+            words=[vm.Word(text="STOP", confidence=0.99, bounding_polygon=vm.BoundingPolygon(normalized_vertices=vertices))],
+            lines=[vm.Line(text="STOP", confidence=0.97, bounding_polygon=vm.BoundingPolygon(normalized_vertices=vertices), word_indexes=[0])],
+        ),
+        text_detection_model_version="1.0.0",
+    )
+    client._oci_client = SimpleNamespace(analyze_image=lambda req: SimpleNamespace(data=response))
+    monkeypatch.setattr(client, "_ensure_oci_client", lambda: None)
+
+    result = client.detect_text("missing.jpg")
+
+    assert result is not None
+    assert result.full_text == "STOP"
 
 
 def test_client_demo_analyze():
