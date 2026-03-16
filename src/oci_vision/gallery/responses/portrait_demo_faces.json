@@ -1,0 +1,33 @@
+{
+  "detected_faces": [
+    {
+      "bounding_polygon": {
+        "normalized_vertices": [
+          {"x": 0.26, "y": 0.14},
+          {"x": 0.74, "y": 0.14},
+          {"x": 0.74, "y": 0.86},
+          {"x": 0.26, "y": 0.86}
+        ]
+      },
+      "confidence": 0.98,
+      "embeddings": null,
+      "landmarks": [
+        {"type": "LEFT_EYE", "x": 0.42, "y": 0.4},
+        {"type": "RIGHT_EYE", "x": 0.58, "y": 0.4},
+        {"type": "NOSE_TIP", "x": 0.5, "y": 0.54},
+        {"type": "LEFT_EDGE_OF_MOUTH", "x": 0.44, "y": 0.67},
+        {"type": "RIGHT_EDGE_OF_MOUTH", "x": 0.56, "y": 0.67}
+      ],
+      "quality_score": 0.95
+    }
+  ],
+  "errors": null,
+  "face_detection_model_version": "1.0.0",
+  "image_classification_model_version": null,
+  "image_objects": null,
+  "image_text": null,
+  "labels": null,
+  "object_detection_model_version": null,
+  "ontology_classes": null,
+  "text_detection_model_version": null
+}

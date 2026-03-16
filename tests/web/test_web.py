@@ -30,6 +30,24 @@ async def test_gallery_page(app):
 
 
 @pytest.mark.asyncio
+async def test_compare_page(app):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/compare")
+        assert resp.status_code == 200
+        assert "Compare" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_report_page_for_gallery_image(app):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/report/dog_closeup.jpg")
+        assert resp.status_code == 200
+        assert "OCI Vision Report" in resp.text
+
+
+@pytest.mark.asyncio
 async def test_analyze_endpoint(app):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -50,6 +68,16 @@ async def test_gallery_api(app):
         assert resp.status_code == 200
         data = resp.json()
         assert len(data["images"]) >= 1
+
+
+@pytest.mark.asyncio
+async def test_search_api_without_oracle_enabled(app, monkeypatch):
+    monkeypatch.delenv("OCI_VISION_ENABLE_ORACLE", raising=False)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/api/search", params={"query": "invoice"})
+        assert resp.status_code == 200
+        assert resp.json()["results"] == []
 
 
 @pytest.mark.asyncio
@@ -75,6 +103,7 @@ async def test_analyze_upload_endpoint(app):
         data = resp.json()
         assert "image_path" in data
         assert "classification" in data
+        assert "feature_overlays" in data
 
 
 @pytest.mark.asyncio

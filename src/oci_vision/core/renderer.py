@@ -197,14 +197,20 @@ def _draw_faces(
 # Public API
 # ---------------------------------------------------------------------------
 
-def render_overlay(image: Image.Image, report: AnalysisReport) -> Image.Image:
+def render_overlay(
+    image: Image.Image,
+    report: AnalysisReport,
+    selected_features: set[str] | None = None,
+) -> Image.Image:
     """Composite visual overlays onto *image* based on *report*.
 
     Returns a **new** RGB :class:`~PIL.Image.Image` – the original is
     never mutated.
     """
+    selected_features = selected_features or set(report.available_features)
+
     # Early-out: nothing to draw
-    if not report.available_features:
+    if not report.available_features or not selected_features:
         return image.convert("RGB")
 
     img_w, img_h = image.size
@@ -217,10 +223,14 @@ def render_overlay(image: Image.Image, report: AnalysisReport) -> Image.Image:
 
     # Layer order: text regions first (they have semi-transparent fill),
     # then detection boxes, faces, and finally classification tags on top.
-    _draw_text_regions(draw, report, img_w, img_h, font)
-    _draw_detections(draw, report, img_w, img_h, font)
-    _draw_faces(draw, report, img_w, img_h, font)
-    _draw_classification(draw, report, font)
+    if "text" in selected_features:
+        _draw_text_regions(draw, report, img_w, img_h, font)
+    if "detection" in selected_features:
+        _draw_detections(draw, report, img_w, img_h, font)
+    if "faces" in selected_features:
+        _draw_faces(draw, report, img_w, img_h, font)
+    if "classification" in selected_features:
+        _draw_classification(draw, report, font)
 
     composited = Image.alpha_composite(base, overlay)
     return composited.convert("RGB")

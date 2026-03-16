@@ -1,0 +1,79 @@
+{
+  "detected_faces": null,
+  "errors": null,
+  "face_detection_model_version": null,
+  "image_classification_model_version": null,
+  "image_objects": null,
+  "image_text": {
+    "lines": [
+      {
+        "bounding_polygon": {
+          "normalized_vertices": [
+            {"x": 0.16, "y": 0.14},
+            {"x": 0.48, "y": 0.14},
+            {"x": 0.48, "y": 0.28},
+            {"x": 0.16, "y": 0.28}
+          ]
+        },
+        "confidence": 0.99,
+        "text": "STOP",
+        "word_indexes": [0]
+      },
+      {
+        "bounding_polygon": {
+          "normalized_vertices": [
+            {"x": 0.1, "y": 0.46},
+            {"x": 0.72, "y": 0.46},
+            {"x": 0.72, "y": 0.58},
+            {"x": 0.1, "y": 0.58}
+          ]
+        },
+        "confidence": 0.97,
+        "text": "SCHOOL XING",
+        "word_indexes": [1, 2]
+      }
+    ],
+    "words": [
+      {
+        "bounding_polygon": {
+          "normalized_vertices": [
+            {"x": 0.16, "y": 0.14},
+            {"x": 0.48, "y": 0.14},
+            {"x": 0.48, "y": 0.28},
+            {"x": 0.16, "y": 0.28}
+          ]
+        },
+        "confidence": 0.99,
+        "text": "STOP"
+      },
+      {
+        "bounding_polygon": {
+          "normalized_vertices": [
+            {"x": 0.1, "y": 0.46},
+            {"x": 0.44, "y": 0.46},
+            {"x": 0.44, "y": 0.58},
+            {"x": 0.1, "y": 0.58}
+          ]
+        },
+        "confidence": 0.97,
+        "text": "SCHOOL"
+      },
+      {
+        "bounding_polygon": {
+          "normalized_vertices": [
+            {"x": 0.48, "y": 0.46},
+            {"x": 0.72, "y": 0.46},
+            {"x": 0.72, "y": 0.58},
+            {"x": 0.48, "y": 0.58}
+          ]
+        },
+        "confidence": 0.96,
+        "text": "XING"
+      }
+    ]
+  },
+  "labels": null,
+  "object_detection_model_version": null,
+  "ontology_classes": null,
+  "text_detection_model_version": "1.0.0"
+}

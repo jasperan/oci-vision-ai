@@ -5,6 +5,24 @@
       "filename": "dog_closeup.jpg",
       "description": "Close-up photo of a white dog — ideal for classification and object detection",
       "features": ["classification", "detection"]
+    },
+    {
+      "id": "sign_board",
+      "filename": "sign_board.png",
+      "description": "Synthetic roadside sign fixture for OCR and text overlay demos",
+      "features": ["text"]
+    },
+    {
+      "id": "portrait_demo",
+      "filename": "portrait_demo.png",
+      "description": "Synthetic portrait fixture for face-detection and landmark demos",
+      "features": ["faces"]
+    },
+    {
+      "id": "invoice_demo",
+      "filename": "invoice_demo.png",
+      "description": "Synthetic invoice fixture for document extraction demos",
+      "features": ["document"]
     }
   ]
 }

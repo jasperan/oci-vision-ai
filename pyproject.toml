@@ -24,7 +24,8 @@ dependencies = [
 [project.optional-dependencies]
 notebooks = ["matplotlib>=3.8", "jupyter>=1.0", "pandas>=2.0"]
 dev = ["pytest>=7.4", "pytest-asyncio>=0.23", "pytest-cov>=4.1", "httpx>=0.25"]
-all = ["oci-vision-ai[notebooks,dev]"]
+oracle = ["oracledb>=2.4.0"]
+all = ["oci-vision-ai[notebooks,dev,oracle]"]
 
 [project.scripts]
 oci-vision = "oci_vision.cli.app:app"
@@ -35,4 +36,8 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
-markers = ["live: requires real OCI credentials (deselect with '-m not live')"]
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "live: requires explicit OCI opt-in via OCI_VISION_RUN_LIVE=1",
+    "oracle: requires Oracle Database 26ai integration env via OCI_VISION_RUN_ORACLE=1",
+]

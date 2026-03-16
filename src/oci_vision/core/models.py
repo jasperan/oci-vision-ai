@@ -134,6 +134,8 @@ class DocumentResult(BaseModel):
     model_version: str
     fields: list[DocumentField] = []
     tables: list[DocumentTable] = []
+    full_text: str = ""
+    page_count: int = 0
 
 
 class AnalysisReport(BaseModel):

@@ -28,9 +28,9 @@ If you're unhappy with the set of elements being recognized in OCI Vision, or yo
 - Custom Object Detection: build models to detect custom objects with bounding box coordinates.
 - Custom Image Classification: create models to identify specific objects and scene-based features.
 
-## Document AI
+## Document AI / Document Understanding
 
-> **Note**: Document AI features are available until January 1, 2024. Post that, they will be available in another OCI service called OCI Document Understanding.
+> **Note**: Oracle's document-processing capabilities now live under **OCI Document Understanding**. Older OCI Vision material often refers to these features as "Document AI". In practice, teams evaluating OCR, key-value extraction, table extraction, or searchable-PDF workflows should treat Document Understanding as the current home for that capability set.
 
 There are lots of things that we can extract from a document: information from receipts (prices, dates, employees...), tabular data (if the document has tables/spreadsheets on it), or simply text contained in a document.
 

@@ -1,5 +1,12 @@
 from oci_vision.core.demo import DemoClient
-from oci_vision.core.models import AnalysisReport, ClassificationResult, DetectionResult
+from oci_vision.core.models import (
+    AnalysisReport,
+    ClassificationResult,
+    DetectionResult,
+    DocumentResult,
+    FaceDetectionResult,
+    TextDetectionResult,
+)
 
 
 def test_demo_client_classify():
@@ -15,6 +22,33 @@ def test_demo_client_detect_objects():
     result = client.detect_objects("dog_closeup.jpg")
     assert isinstance(result, DetectionResult)
     assert len(result.objects) > 0
+
+
+def test_demo_client_detect_text():
+    client = DemoClient()
+    result = client.detect_text("sign_board.png")
+    assert isinstance(result, TextDetectionResult)
+    assert result.full_text == "STOP\nSCHOOL XING"
+    assert len(result.lines) == 2
+    assert result.lines[0].words[0].text == "STOP"
+
+
+def test_demo_client_detect_faces():
+    client = DemoClient()
+    result = client.detect_faces("portrait_demo.png")
+    assert isinstance(result, FaceDetectionResult)
+    assert len(result.faces) == 1
+    assert result.faces[0].landmarks[0].type == "LEFT_EYE"
+
+
+def test_demo_client_analyze_document():
+    client = DemoClient()
+    result = client.analyze_document("invoice_demo.png")
+    assert isinstance(result, DocumentResult)
+    assert result.page_count == 1
+    assert result.full_text.startswith("INVOICE")
+    assert result.fields[0].label == "Invoice Number"
+    assert result.tables[0].body_rows[0] == ["Widget", "2", "$10.00"]
 
 
 def test_demo_client_analyze_all():
