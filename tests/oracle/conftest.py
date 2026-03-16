@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+pytest.importorskip('oracledb')
+
 from oci_vision.oracle.config import OracleConfig
 from oci_vision.oracle.connection import connect
 from oci_vision.oracle.schema import init_schema, reset_schema

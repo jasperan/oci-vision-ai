@@ -52,6 +52,19 @@ def test_web_module_does_not_force_oracle_import():
     assert "oracledb" not in sys.modules
 
 
+def test_oracle_helpers_skip_import_when_disabled(monkeypatch):
+    sys.modules.pop("oci_vision.oracle", None)
+    sys.modules.pop("oci_vision.oracle.store", None)
+    sys.modules.pop("oracledb", None)
+    monkeypatch.delenv("OCI_VISION_ENABLE_ORACLE", raising=False)
+
+    oracle = importlib.import_module("oci_vision.oracle")
+
+    assert oracle.search_if_enabled("invoice") == []
+    assert oracle.store_report_if_enabled(AnalysisReport(image_path="demo.png")) is None
+    assert "oracledb" not in sys.modules
+
+
 def test_client_demo_mode():
     client = VisionClient(demo=True)
     assert client.is_demo

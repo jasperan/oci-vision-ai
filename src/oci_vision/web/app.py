@@ -92,33 +92,33 @@ def create_app(demo: bool = False) -> FastAPI:
     @app.get("/report/{image_name}", response_class=HTMLResponse)
     async def report_page(request: Request, image_name: str):
         """Static report page for a gallery image."""
-        report = client.analyze(image_name)
+        from oci_vision.gallery import get_gallery_path
+
+        image_path = get_gallery_path() / "images" / Path(image_name).name
+        analysis_target = str(image_path) if image_path.exists() else image_name
+        report = client.analyze(analysis_target)
         overlay_base64 = None
-        image_path = None
 
-        try:
-            from PIL import Image
-            from oci_vision.core.renderer import render_overlay
-            from oci_vision.gallery import get_gallery_path
+        if image_path.exists():
+            try:
+                from PIL import Image
+                from oci_vision.core.renderer import render_overlay
 
-            image_path = get_gallery_path() / "images" / Path(image_name).name
-            analysis_target = str(image_path) if image_path.exists() else image_name
-            report = client.analyze(analysis_target)
-            img = Image.open(image_path)
-            overlay = render_overlay(img, report)
-            buf = io.BytesIO()
-            overlay.save(buf, format="PNG")
-            buf.seek(0)
-            overlay_base64 = base64.b64encode(buf.read()).decode()
-        except Exception:
-            overlay_base64 = None
+                img = Image.open(image_path)
+                overlay = render_overlay(img, report)
+                buf = io.BytesIO()
+                overlay.save(buf, format="PNG")
+                buf.seek(0)
+                overlay_base64 = base64.b64encode(buf.read()).decode()
+            except Exception:
+                overlay_base64 = None
 
         return templates.TemplateResponse(request, "report.html", {
             "report": report,
             "overlay_base64": overlay_base64,
             "image_name": image_name,
             "demo": client.is_demo,
-            "image_path": str(image_path) if image_path else None,
+            "image_path": str(image_path) if image_path.exists() else None,
         })
 
     # ------------------------------------------------------------------
