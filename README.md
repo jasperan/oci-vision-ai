@@ -19,11 +19,17 @@ Analyse images with six OCI Vision features through a polished CLI, an interacti
 
 **Delivery surfaces**
 
-- **CLI** (`oci-vision`) -- Rich-formatted terminal output, JSON, or HTML reports
-- **Web Dashboard** -- FastAPI + drag-and-drop upload with toggleable feature overlays
+- **CLI** (`oci-vision`) -- Rich-formatted terminal output, JSON, HTML reports, eval commands, workflow packs, and demo recording
+- **Web Dashboard** -- FastAPI + drag-and-drop upload with toggleable feature overlays, compare page, API playground, and report pages
 - **Jupyter Notebooks** -- seven guided walkthroughs with inline visualisations
 
-**Demo mode** -- cached real API responses, one `--demo` flag, works completely offline.
+**Platform extras**
+
+- **Evaluation Lab** -- detection metrics, OCR similarity, and document diffing
+- **Workflow Packs** -- receipt intake, shelf audit, inspection, and archive search
+- **Oracle Database 26ai Integration** -- optional run storage and semantic search with local Oracle Database Free
+
+**Demo mode** -- fixture-backed cached responses, one `--demo` flag, works completely offline.
 
 ---
 
@@ -78,6 +84,19 @@ oci-vision document invoice.pdf --demo
 # Browse the demo gallery
 oci-vision gallery
 
+# Evaluation lab
+oci-vision eval detection pred.json truth.json --output-format json
+
+# Workflow packs
+oci-vision workflow receipt invoice_demo.png --demo
+oci-vision workflow shelf dog_closeup.jpg --demo
+
+# Record a new fixture into the demo gallery
+oci-vision record-demo ./sample.png --feature text --response-json ./response.json
+
+# Optional Oracle-backed semantic search
+oci-vision search-runs "invoice number"
+
 # JSON output
 oci-vision analyze photo.jpg --demo --output-format json
 
@@ -95,7 +114,7 @@ Run `oci-vision --help` for the full option reference.
 oci-vision web --demo
 ```
 
-Opens at **http://localhost:8000**. Drag and drop an image or pick one from the built-in gallery, toggle individual feature overlays, and inspect results in real time.
+Opens at **http://localhost:8000**. Drag and drop an image or pick one from the built-in gallery, toggle feature-specific overlays, inspect normalized JSON in the API playground, open shareable report pages, and use the compare surface for side-by-side review.
 
 ---
 
@@ -122,7 +141,7 @@ jupyter notebook notebooks/
 
 ## Demo Mode
 
-Demo mode serves cached responses recorded from the live OCI Vision API. It is enabled with a single boolean flag and requires no network access:
+Demo mode serves fixture-backed cached responses that match the OCI Vision response shapes. Fixtures can be recorded into the gallery with `oci-vision record-demo ...`. Demo mode is enabled with a single boolean flag and requires no network access:
 
 ```python
 from oci_vision import VisionClient
@@ -177,6 +196,36 @@ Key model classes: `AnalysisReport`, `ClassificationResult`, `DetectionResult`, 
 
 ---
 
+## Oracle Database 26ai Free
+
+Oracle-backed storage is optional and off by default.
+
+Start the local Oracle Database Free container:
+
+```bash
+docker compose -f docker-compose.oracle.yml up -d
+```
+
+Enable Oracle integration for the current shell:
+
+```bash
+export OCI_VISION_ENABLE_ORACLE=1
+export OCI_VISION_ORACLE_USER=system
+export OCI_VISION_ORACLE_PASSWORD=VisionAI2026
+export OCI_VISION_ORACLE_HOST=localhost
+export OCI_VISION_ORACLE_PORT=1524
+export OCI_VISION_ORACLE_SERVICE=FREEPDB1
+```
+
+Then analyses can be stored automatically and searched from the CLI:
+
+```bash
+oci-vision analyze invoice_demo.png --demo
+oci-vision search-runs "INV-1001"
+```
+
+---
+
 ## Project Structure
 
 ```
@@ -187,23 +236,39 @@ src/oci_vision/
         client.py          # VisionClient -- unified demo/live API
         demo.py            # DemoClient -- offline cached responses
         models.py          # Pydantic v2 response models
+        recording.py       # Demo fixture recording helpers
         renderer.py        # Overlay image rendering (PIL/OpenCV)
     cli/
         __init__.py
         app.py             # Typer CLI application
         formatters.py      # Rich console output formatters
+    eval/
+        detection.py       # IoU / precision / recall helpers
+        text.py            # OCR similarity helpers
+        document.py        # Document field/table diffing
+        reports.py         # HTML evaluation reports
     gallery/
         __init__.py        # Gallery manifest loader
         manifest.json      # Curated demo image metadata
         images/            # Sample images
         responses/         # Cached OCI Vision API responses
+    oracle/
+        config.py          # Optional Oracle env/config loader
+        connection.py      # python-oracledb connection helper
+        schema.py          # Oracle 26ai schema bootstrap
+        store.py           # Run ingest + vector search helpers
     web/
         __init__.py        # Default FastAPI app instance
         app.py             # FastAPI web dashboard
         static/            # JavaScript and CSS
         templates/         # Jinja2 HTML templates
+    workflows/
+        receipts.py        # Receipt / invoice workflow pack
+        shelf_audit.py     # Shelf-audit workflow pack
+        inspection.py      # Inspection workflow pack
+        archive_search.py  # Archive-search workflow pack
 notebooks/                 # 7 guided Jupyter notebooks
-tests/                     # pytest suite (98+ tests)
+tests/                     # pytest suite (130+ tests)
 ```
 
 ---

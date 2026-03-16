@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}OCI Vision Studio - Report{% endblock %}
+
+{% block content %}
+<div class="glass-card p-6 mb-6">
+    <h2 class="text-xl font-semibold cyan-accent mb-2">OCI Vision Report</h2>
+    <p class="text-slate-400 text-sm">Image: {{ image_name }}{% if demo %} · demo mode{% endif %}</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="glass-card p-6">
+        <h3 class="text-lg font-semibold mb-4">Overlay</h3>
+        {% if overlay_base64 %}
+        <img src="data:image/png;base64,{{ overlay_base64 }}" class="w-full rounded-lg border border-slate-700" alt="Overlay" />
+        {% else %}
+        <p class="text-slate-500">Overlay unavailable for this report.</p>
+        {% endif %}
+    </div>
+
+    <div class="glass-card p-6">
+        <h3 class="text-lg font-semibold mb-4">Summary</h3>
+        <p class="text-sm text-slate-400 mb-4">Available features: {{ report.available_features | join(', ') }}</p>
+
+        {% if report.classification %}
+        <div class="mb-4">
+            <h4 class="font-semibold mb-2">Classification</h4>
+            <ul class="text-sm space-y-1">
+                {% for label in report.classification.labels[:5] %}
+                <li>{{ label.name }} — {{ label.confidence_pct }}%</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if report.detection %}
+        <div class="mb-4">
+            <h4 class="font-semibold mb-2">Detection</h4>
+            <p class="text-sm">{{ report.detection.objects | length }} object(s)</p>
+        </div>
+        {% endif %}
+
+        {% if report.text %}
+        <div class="mb-4">
+            <h4 class="font-semibold mb-2">Text</h4>
+            <pre class="text-sm whitespace-pre-wrap text-slate-300">{{ report.text.full_text }}</pre>
+        </div>
+        {% endif %}
+
+        {% if report.faces %}
+        <div class="mb-4">
+            <h4 class="font-semibold mb-2">Faces</h4>
+            <p class="text-sm">{{ report.faces.faces | length }} face(s)</p>
+        </div>
+        {% endif %}
+
+        {% if report.document %}
+        <div class="mb-4">
+            <h4 class="font-semibold mb-2">Document</h4>
+            <p class="text-sm">{{ report.document.fields | length }} field(s), {{ report.document.tables | length }} table(s)</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

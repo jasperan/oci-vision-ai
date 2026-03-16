@@ -171,3 +171,6 @@ progress.md
 
 # Dogfood
 dogfood-output/
+
+# Local agent artifacts
+.pi/

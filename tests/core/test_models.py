@@ -334,6 +334,8 @@ class TestDocumentResult:
         result = DocumentResult(model_version="1.0")
         assert result.fields == []
         assert result.tables == []
+        assert result.full_text == ""
+        assert result.page_count == 0
 
 
 # ---------------------------------------------------------------------------

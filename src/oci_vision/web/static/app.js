@@ -109,11 +109,19 @@
     function renderResults(data) {
         let html = "";
 
-        // Overlay image
+        // Overlay image + toggle buttons
         if (data.overlay_base64) {
             html += '<div class="mb-4">';
             html += '<h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Overlay</h3>';
-            html += '<img src="data:image/png;base64,' + data.overlay_base64 + '" class="w-full rounded-lg border border-slate-600" alt="Annotated" />';
+            html += '<img id="analysis-overlay" src="data:image/png;base64,' + data.overlay_base64 + '" class="w-full rounded-lg border border-slate-600 mb-3" alt="Annotated" />';
+            if (data.feature_overlays && Object.keys(data.feature_overlays).length) {
+                html += '<div class="flex flex-wrap gap-2">';
+                html += '<button type="button" class="text-xs px-3 py-1 rounded-full bg-cyan-900/50 text-cyan-300 border border-cyan-700/40" onclick="window.__ociVisionSetOverlay(\'' + data.overlay_base64 + '\')">All</button>';
+                Object.keys(data.feature_overlays).forEach(function (featureName) {
+                    html += '<button type="button" class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-200 border border-slate-700" onclick="window.__ociVisionSetOverlay(\'' + data.feature_overlays[featureName] + '\')">' + escHtml(featureName) + '</button>';
+                });
+                html += '</div>';
+            }
             html += "</div>";
         }
 
@@ -158,6 +166,28 @@
             html += "</div>";
         }
 
+        // Document
+        if (data.document) {
+            html += '<div class="mb-4">';
+            html += '<h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Document AI</h3>';
+            if (data.document.fields && data.document.fields.length) {
+                html += '<div class="space-y-2">';
+                data.document.fields.forEach(function (field) {
+                    html += '<div class="text-sm bg-slate-800/50 rounded px-3 py-2"><span class="font-medium">' + escHtml(field.label) + '</span>: ' + escHtml(field.value) + '</div>';
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+        }
+
+        // API playground
+        html += '<details class="mt-4 rounded-lg border border-slate-700 bg-slate-900/50">';
+        html += '<summary class="cursor-pointer px-4 py-3 text-sm font-semibold text-slate-300">API Playground</summary>';
+        html += '<div class="px-4 pb-4">';
+        html += '<p class="text-xs text-slate-500 mb-2">Raw normalized JSON response</p>';
+        html += '<pre class="overflow-x-auto whitespace-pre-wrap text-xs text-slate-200">' + escHtml(JSON.stringify(data, null, 2)) + '</pre>';
+        html += '</div></details>';
+
         // Footer
         html += '<div class="text-xs text-slate-500 mt-4">';
         html += "Elapsed: " + (data.elapsed_seconds || 0).toFixed(3) + "s";
@@ -168,6 +198,13 @@
 
         return html || '<p class="text-slate-500">No results returned.</p>';
     }
+
+    window.__ociVisionSetOverlay = function (base64Payload) {
+        const img = document.getElementById("analysis-overlay");
+        if (img) {
+            img.src = "data:image/png;base64," + base64Payload;
+        }
+    };
 
     function escHtml(str) {
         var div = document.createElement("div");

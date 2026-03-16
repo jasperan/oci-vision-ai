@@ -1,0 +1,466 @@
+{
+  "detected_document_types": null,
+  "detected_languages": null,
+  "document_classification_model_version": null,
+  "document_metadata": null,
+  "errors": null,
+  "key_value_detection_model_version": "1.0.0",
+  "language_classification_model_version": null,
+  "pages": [
+    {
+      "detected_document_types": null,
+      "detected_languages": null,
+      "dimensions": null,
+      "document_fields": [
+        {
+          "field_label": {
+            "confidence": 0.98,
+            "name": "Invoice Number"
+          },
+          "field_name": null,
+          "field_type": "KEY_VALUE",
+          "field_value": {
+            "bounding_polygon": {
+              "normalized_vertices": [
+                {
+                  "x": 0.08,
+                  "y": 0.18
+                },
+                {
+                  "x": 0.45,
+                  "y": 0.18
+                },
+                {
+                  "x": 0.45,
+                  "y": 0.24
+                },
+                {
+                  "x": 0.08,
+                  "y": 0.24
+                }
+              ]
+            },
+            "confidence": 0.97,
+            "text": "INV-1001",
+            "value": "INV-1001",
+            "value_type": "STRING",
+            "word_indexes": [
+              3
+            ]
+          }
+        },
+        {
+          "field_label": {
+            "confidence": 0.97,
+            "name": "Total Due"
+          },
+          "field_name": null,
+          "field_type": "KEY_VALUE",
+          "field_value": {
+            "bounding_polygon": {
+              "normalized_vertices": [
+                {
+                  "x": 0.08,
+                  "y": 0.18
+                },
+                {
+                  "x": 0.45,
+                  "y": 0.18
+                },
+                {
+                  "x": 0.45,
+                  "y": 0.24
+                },
+                {
+                  "x": 0.08,
+                  "y": 0.24
+                }
+              ]
+            },
+            "confidence": 0.96,
+            "text": "$10.00",
+            "value": "$10.00",
+            "value_type": "STRING",
+            "word_indexes": [
+              3
+            ]
+          }
+        }
+      ],
+      "lines": [
+        {
+          "bounding_polygon": {
+            "normalized_vertices": [
+              {
+                "x": 0.08,
+                "y": 0.07
+              },
+              {
+                "x": 0.32,
+                "y": 0.07
+              },
+              {
+                "x": 0.32,
+                "y": 0.13
+              },
+              {
+                "x": 0.08,
+                "y": 0.13
+              }
+            ]
+          },
+          "confidence": 0.99,
+          "text": "INVOICE",
+          "word_indexes": [
+            0
+          ]
+        },
+        {
+          "bounding_polygon": {
+            "normalized_vertices": [
+              {
+                "x": 0.08,
+                "y": 0.18
+              },
+              {
+                "x": 0.45,
+                "y": 0.18
+              },
+              {
+                "x": 0.45,
+                "y": 0.24
+              },
+              {
+                "x": 0.08,
+                "y": 0.24
+              }
+            ]
+          },
+          "confidence": 0.98,
+          "text": "Invoice Number: INV-1001",
+          "word_indexes": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "page_number": 1,
+      "tables": [
+        {
+          "body_rows": [
+            {
+              "cells": [
+                {
+                  "bounding_polygon": {
+                    "normalized_vertices": [
+                      {
+                        "x": 0.08,
+                        "y": 0.4
+                      },
+                      {
+                        "x": 0.92,
+                        "y": 0.4
+                      },
+                      {
+                        "x": 0.92,
+                        "y": 0.72
+                      },
+                      {
+                        "x": 0.08,
+                        "y": 0.72
+                      }
+                    ]
+                  },
+                  "column_index": 0,
+                  "confidence": 0.98,
+                  "row_index": 1,
+                  "text": "Widget",
+                  "word_indexes": [
+                    0
+                  ]
+                },
+                {
+                  "bounding_polygon": {
+                    "normalized_vertices": [
+                      {
+                        "x": 0.08,
+                        "y": 0.4
+                      },
+                      {
+                        "x": 0.92,
+                        "y": 0.4
+                      },
+                      {
+                        "x": 0.92,
+                        "y": 0.72
+                      },
+                      {
+                        "x": 0.08,
+                        "y": 0.72
+                      }
+                    ]
+                  },
+                  "column_index": 1,
+                  "confidence": 0.98,
+                  "row_index": 1,
+                  "text": "2",
+                  "word_indexes": [
+                    0
+                  ]
+                },
+                {
+                  "bounding_polygon": {
+                    "normalized_vertices": [
+                      {
+                        "x": 0.08,
+                        "y": 0.4
+                      },
+                      {
+                        "x": 0.92,
+                        "y": 0.4
+                      },
+                      {
+                        "x": 0.92,
+                        "y": 0.72
+                      },
+                      {
+                        "x": 0.08,
+                        "y": 0.72
+                      }
+                    ]
+                  },
+                  "column_index": 2,
+                  "confidence": 0.98,
+                  "row_index": 1,
+                  "text": "$10.00",
+                  "word_indexes": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ],
+          "bounding_polygon": {
+            "normalized_vertices": [
+              {
+                "x": 0.08,
+                "y": 0.4
+              },
+              {
+                "x": 0.92,
+                "y": 0.4
+              },
+              {
+                "x": 0.92,
+                "y": 0.72
+              },
+              {
+                "x": 0.08,
+                "y": 0.72
+              }
+            ]
+          },
+          "column_count": 3,
+          "confidence": 0.96,
+          "footer_rows": [],
+          "header_rows": [
+            {
+              "cells": [
+                {
+                  "bounding_polygon": {
+                    "normalized_vertices": [
+                      {
+                        "x": 0.08,
+                        "y": 0.4
+                      },
+                      {
+                        "x": 0.92,
+                        "y": 0.4
+                      },
+                      {
+                        "x": 0.92,
+                        "y": 0.72
+                      },
+                      {
+                        "x": 0.08,
+                        "y": 0.72
+                      }
+                    ]
+                  },
+                  "column_index": 0,
+                  "confidence": 0.99,
+                  "row_index": 0,
+                  "text": "Item",
+                  "word_indexes": [
+                    0
+                  ]
+                },
+                {
+                  "bounding_polygon": {
+                    "normalized_vertices": [
+                      {
+                        "x": 0.08,
+                        "y": 0.4
+                      },
+                      {
+                        "x": 0.92,
+                        "y": 0.4
+                      },
+                      {
+                        "x": 0.92,
+                        "y": 0.72
+                      },
+                      {
+                        "x": 0.08,
+                        "y": 0.72
+                      }
+                    ]
+                  },
+                  "column_index": 1,
+                  "confidence": 0.99,
+                  "row_index": 0,
+                  "text": "Qty",
+                  "word_indexes": [
+                    0
+                  ]
+                },
+                {
+                  "bounding_polygon": {
+                    "normalized_vertices": [
+                      {
+                        "x": 0.08,
+                        "y": 0.4
+                      },
+                      {
+                        "x": 0.92,
+                        "y": 0.4
+                      },
+                      {
+                        "x": 0.92,
+                        "y": 0.72
+                      },
+                      {
+                        "x": 0.08,
+                        "y": 0.72
+                      }
+                    ]
+                  },
+                  "column_index": 2,
+                  "confidence": 0.99,
+                  "row_index": 0,
+                  "text": "Price",
+                  "word_indexes": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ],
+          "row_count": 2
+        }
+      ],
+      "words": [
+        {
+          "bounding_polygon": {
+            "normalized_vertices": [
+              {
+                "x": 0.08,
+                "y": 0.07
+              },
+              {
+                "x": 0.32,
+                "y": 0.07
+              },
+              {
+                "x": 0.32,
+                "y": 0.13
+              },
+              {
+                "x": 0.08,
+                "y": 0.13
+              }
+            ]
+          },
+          "confidence": 0.99,
+          "text": "INVOICE"
+        },
+        {
+          "bounding_polygon": {
+            "normalized_vertices": [
+              {
+                "x": 0.08,
+                "y": 0.18
+              },
+              {
+                "x": 0.45,
+                "y": 0.18
+              },
+              {
+                "x": 0.45,
+                "y": 0.24
+              },
+              {
+                "x": 0.08,
+                "y": 0.24
+              }
+            ]
+          },
+          "confidence": 0.98,
+          "text": "Invoice"
+        },
+        {
+          "bounding_polygon": {
+            "normalized_vertices": [
+              {
+                "x": 0.08,
+                "y": 0.18
+              },
+              {
+                "x": 0.45,
+                "y": 0.18
+              },
+              {
+                "x": 0.45,
+                "y": 0.24
+              },
+              {
+                "x": 0.08,
+                "y": 0.24
+              }
+            ]
+          },
+          "confidence": 0.98,
+          "text": "Number:"
+        },
+        {
+          "bounding_polygon": {
+            "normalized_vertices": [
+              {
+                "x": 0.08,
+                "y": 0.18
+              },
+              {
+                "x": 0.45,
+                "y": 0.18
+              },
+              {
+                "x": 0.45,
+                "y": 0.24
+              },
+              {
+                "x": 0.08,
+                "y": 0.24
+              }
+            ]
+          },
+          "confidence": 0.97,
+          "text": "INV-1001"
+        }
+      ]
+    }
+  ],
+  "searchable_pdf": null,
+  "table_detection_model_version": "1.0.0",
+  "text_detection_model_version": "1.0.0"
+}

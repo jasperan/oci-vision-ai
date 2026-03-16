@@ -17,11 +17,15 @@ from oci_vision.core.models import (
     BoundingPolygon,
     ClassificationLabel,
     ClassificationResult,
+    DetectedFace,
     DetectedObject,
     DetectionResult,
     DocumentResult,
     FaceDetectionResult,
+    FaceLandmark,
     TextDetectionResult,
+    TextLine,
+    TextWord,
     Vertex,
 )
 
@@ -120,6 +124,24 @@ class VisionClient:
             data=info["data"],
         )
 
+    def _build_document_details(self, image: str):
+        """Build the OCI SDK document-details object for *image*."""
+        import oci.ai_vision.models as vm  # noqa: delayed import
+
+        kind, info = self._parse_image_source(image)
+        if kind == "object_storage":
+            namespace = self._get_namespace()
+            return vm.ObjectStorageDocumentDetails(
+                source="OBJECT_STORAGE",
+                namespace_name=namespace,
+                bucket_name=info["bucket"],
+                object_name=info["object_name"],
+            )
+        return vm.InlineDocumentDetails(
+            source="INLINE",
+            data=info["data"],
+        )
+
     def _get_namespace(self) -> str:
         """Fetch the Object Storage namespace for the current tenancy."""
         import oci  # noqa: delayed import
@@ -131,6 +153,32 @@ class VisionClient:
     # ------------------------------------------------------------------
     # Live response parsing
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _build_classification_feature(*, max_results: int = 25, model_id: str | None = None):
+        import oci.ai_vision.models as vm
+
+        return vm.ImageClassificationFeature(
+            feature_type="IMAGE_CLASSIFICATION",
+            max_results=max_results,
+            model_id=model_id,
+        )
+
+    @staticmethod
+    def _build_detection_feature(*, max_results: int = 25, model_id: str | None = None):
+        import oci.ai_vision.models as vm
+
+        return vm.ImageObjectDetectionFeature(
+            feature_type="OBJECT_DETECTION",
+            max_results=max_results,
+            model_id=model_id,
+        )
+
+    @staticmethod
+    def _build_text_feature():
+        import oci.ai_vision.models as vm
+
+        return vm.ImageTextDetectionFeature(feature_type="TEXT_DETECTION")
 
     @staticmethod
     def _parse_classification(resp) -> ClassificationResult:
@@ -165,26 +213,150 @@ class VisionClient:
 
     @staticmethod
     def _parse_text(resp) -> TextDetectionResult | None:
-        """Parse text detection from a live response.
+        """Parse text detection from a live OCI response."""
+        if resp.image_text is None:
+            return None
 
-        Returns *None* until response parsing is fully confirmed.
-        """
-        return None
+        words = [
+            TextWord(
+                text=word.text,
+                confidence=word.confidence,
+                bounding_polygon=BoundingPolygon(
+                    normalized_vertices=[
+                        Vertex(x=vertex.x, y=vertex.y)
+                        for vertex in word.bounding_polygon.normalized_vertices
+                    ]
+                ),
+            )
+            for word in (resp.image_text.words or [])
+        ]
+
+        lines = []
+        for line in resp.image_text.lines or []:
+            lines.append(
+                TextLine(
+                    text=line.text,
+                    confidence=line.confidence,
+                    bounding_polygon=BoundingPolygon(
+                        normalized_vertices=[
+                            Vertex(x=vertex.x, y=vertex.y)
+                            for vertex in line.bounding_polygon.normalized_vertices
+                        ]
+                    ),
+                    words=[
+                        words[index]
+                        for index in (line.word_indexes or [])
+                        if 0 <= index < len(words)
+                    ],
+                )
+            )
+
+        return TextDetectionResult(
+            model_version=resp.text_detection_model_version or "live",
+            lines=lines,
+        )
 
     @staticmethod
     def _parse_faces(resp) -> FaceDetectionResult | None:
-        """Parse face detection from a live response.
+        """Parse face detection from a live OCI response."""
+        if not resp.detected_faces:
+            return None
 
-        Returns *None* until response parsing is fully confirmed.
-        """
-        return None
+        faces = []
+        for face in resp.detected_faces:
+            faces.append(
+                DetectedFace(
+                    confidence=face.confidence,
+                    bounding_polygon=BoundingPolygon(
+                        normalized_vertices=[
+                            Vertex(x=vertex.x, y=vertex.y)
+                            for vertex in face.bounding_polygon.normalized_vertices
+                        ]
+                    ),
+                    landmarks=[
+                        FaceLandmark(type=landmark.type, x=landmark.x, y=landmark.y)
+                        for landmark in (face.landmarks or [])
+                    ],
+                )
+            )
+
+        return FaceDetectionResult(
+            model_version=resp.face_detection_model_version or "live",
+            faces=faces,
+        )
+
+    @staticmethod
+    def _parse_document_result(resp) -> DocumentResult | None:
+        """Parse document analysis from a live OCI response."""
+        if not resp.pages:
+            return None
+
+        fields = []
+        tables = []
+        text_lines = []
+
+        for page in resp.pages or []:
+            text_lines.extend(line.text for line in (page.lines or []) if line.text)
+
+            for field in page.document_fields or []:
+                label = None
+                if getattr(field, "field_label", None) is not None:
+                    label = field.field_label.name
+                elif getattr(field, "field_name", None) is not None:
+                    label = getattr(field.field_name, "name", None)
+
+                value = getattr(field.field_value, "text", "") if field.field_value else ""
+                confidence = getattr(field.field_value, "confidence", 0.0) if field.field_value else 0.0
+                fields.append(
+                    {
+                        "field_type": field.field_type,
+                        "label": label or "Unknown",
+                        "value": value,
+                        "confidence": confidence,
+                    }
+                )
+
+            for table in page.tables or []:
+                header_rows = []
+                if table.header_rows:
+                    header_rows = [cell.text for cell in table.header_rows[0].cells]
+
+                body_rows = [
+                    [cell.text for cell in row.cells]
+                    for row in (table.body_rows or [])
+                ]
+
+                tables.append(
+                    {
+                        "row_count": table.row_count,
+                        "column_count": table.column_count,
+                        "header_rows": header_rows,
+                        "body_rows": body_rows,
+                        "confidence": table.confidence,
+                    }
+                )
+
+        model_version = (
+            resp.key_value_detection_model_version
+            or resp.table_detection_model_version
+            or resp.text_detection_model_version
+            or "live"
+        )
+
+        return DocumentResult(
+            model_version=model_version,
+            fields=fields,
+            tables=tables,
+            full_text="\n".join(text_lines),
+            page_count=len(resp.pages or []),
+        )
 
     # ------------------------------------------------------------------
     # Public API — individual features
     # ------------------------------------------------------------------
 
     def classify(
-        self, image: str, *, max_results: int = 25
+        self, image: str, *, max_results: int = 25, model_id: str | None = None
     ) -> ClassificationResult | None:
         """Run image classification on *image*.
 
@@ -194,11 +366,10 @@ class VisionClient:
             return self._demo_client.classify(image, max_results=max_results)
 
         self._ensure_oci_client()
-        import oci.ai_vision.models as vm
 
-        feature = vm.ImageClassificationFeature(
-            feature_type="IMAGE_CLASSIFICATION",
+        feature = self._build_classification_feature(
             max_results=max_results,
+            model_id=model_id,
         )
         image_details = self._build_image_details(image)
         req = vm.AnalyzeImageDetails(
@@ -210,7 +381,12 @@ class VisionClient:
         return self._parse_classification(resp)
 
     def detect_objects(
-        self, image: str, *, max_results: int = 25, threshold: float = 0.0
+        self,
+        image: str,
+        *,
+        max_results: int = 25,
+        threshold: float = 0.0,
+        model_id: str | None = None,
     ) -> DetectionResult | None:
         """Run object detection on *image*.
 
@@ -222,11 +398,10 @@ class VisionClient:
             )
 
         self._ensure_oci_client()
-        import oci.ai_vision.models as vm
 
-        feature = vm.ObjectDetectionFeature(
-            feature_type="OBJECT_DETECTION",
+        feature = self._build_detection_feature(
             max_results=max_results,
+            model_id=model_id,
         )
         image_details = self._build_image_details(image)
         req = vm.AnalyzeImageDetails(
@@ -246,9 +421,8 @@ class VisionClient:
             return self._demo_client.detect_text(image)
 
         self._ensure_oci_client()
-        import oci.ai_vision.models as vm
 
-        feature = vm.TextDetectionFeature(feature_type="TEXT_DETECTION")
+        feature = self._build_text_feature()
         image_details = self._build_image_details(image)
         req = vm.AnalyzeImageDetails(
             features=[feature],
@@ -280,13 +454,24 @@ class VisionClient:
         return self._parse_faces(resp)
 
     def analyze_document(self, image: str) -> DocumentResult | None:
-        """Run document AI on *image*.
-
-        Uses a separate OCI service; returns *None* for now.
-        """
+        """Run document analysis on *image*."""
         if self._demo:
             return self._demo_client.analyze_document(image)
-        return None
+
+        self._ensure_oci_client()
+        import oci.ai_vision.models as vm
+
+        req = vm.AnalyzeDocumentDetails(
+            features=[
+                vm.DocumentTextDetectionFeature(feature_type="TEXT_DETECTION"),
+                vm.DocumentKeyValueDetectionFeature(feature_type="KEY_VALUE_DETECTION"),
+                vm.DocumentTableDetectionFeature(feature_type="TABLE_DETECTION"),
+            ],
+            document=self._build_document_details(image),
+            compartment_id=self._compartment_id,
+        )
+        resp = self._oci_client.analyze_document(req).data
+        return self._parse_document_result(resp)
 
     # ------------------------------------------------------------------
     # Public API — multi-feature analysis
@@ -296,6 +481,8 @@ class VisionClient:
         self,
         image: str,
         features: list[str] | str = "all",
+        *,
+        model_id: str | None = None,
     ) -> AnalysisReport:
         """Run one or more vision features and return a unified report.
 
@@ -317,8 +504,16 @@ class VisionClient:
         else:
             run_features = [f for f in features if f in all_features]
 
-        classification = self.classify(image) if "classification" in run_features else None
-        detection = self.detect_objects(image) if "detection" in run_features else None
+        classification = (
+            self.classify(image, model_id=model_id)
+            if "classification" in run_features
+            else None
+        )
+        detection = (
+            self.detect_objects(image, model_id=model_id)
+            if "detection" in run_features
+            else None
+        )
         text = self.detect_text(image) if "text" in run_features else None
         faces = self.detect_faces(image) if "faces" in run_features else None
         document = self.analyze_document(image) if "document" in run_features else None

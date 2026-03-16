@@ -17,8 +17,23 @@ from rich.table import Table
 
 from oci_vision.cli.formatters import format_report
 from oci_vision.core.client import VisionClient
-from oci_vision.core.models import AnalysisReport
+from oci_vision.core.models import AnalysisReport, DetectionResult, DocumentResult, TextDetectionResult
+from oci_vision.core.recording import record_fixture, serialize_feature_result
+from oci_vision.eval import (
+    evaluate_detection_result,
+    evaluate_document_result,
+    line_accuracy,
+    render_eval_report,
+    text_similarity,
+)
 from oci_vision.gallery import load_manifest
+from oci_vision.oracle import search_if_enabled, store_report_if_enabled
+from oci_vision.workflows import (
+    archive_search_workflow,
+    inspection_workflow,
+    receipt_workflow,
+    shelf_audit_workflow,
+)
 
 console = Console()
 
@@ -131,6 +146,17 @@ h2 {{ color: #333; border-bottom: 1px solid #ddd; padding-bottom: 0.3em; }}
     console.print(f"[green]HTML report saved to:[/green] {out_path.absolute()}")
 
 
+def _load_eval_payload(kind: str, path: str):
+    payload = Path(path).read_text()
+    if kind == "detection":
+        return DetectionResult.model_validate_json(payload)
+    if kind == "text":
+        return TextDetectionResult.model_validate_json(payload)
+    if kind == "document":
+        return DocumentResult.model_validate_json(payload)
+    raise typer.BadParameter(f"Unsupported eval kind: {kind}")
+
+
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
@@ -140,6 +166,7 @@ def analyze(
     image: str = typer.Argument(..., help="Image path or gallery name (e.g. dog_closeup.jpg)"),
     demo: bool = typer.Option(False, "--demo", help="Use demo mode (no OCI credentials needed)"),
     features: Optional[str] = typer.Option(None, "--features", help="Comma-separated features: classification,detection,text,faces,document"),
+    model_id: Optional[str] = typer.Option(None, "--model-id", help="Optional OCI custom model OCID for classification/detection"),
     output_format: str = typer.Option("rich", "--output-format", help="Output format: rich, json, or html"),
     save_overlay: Optional[str] = typer.Option(None, "--save-overlay", help="Save annotated image to this path"),
 ) -> None:
@@ -150,8 +177,11 @@ def analyze(
     if features:
         feat_list = [f.strip() for f in features.split(",")]
 
-    report = client.analyze(image, features=feat_list)
+    report = client.analyze(image, features=feat_list, model_id=model_id)
     _output_report(report, output_format, demo)
+    stored_run_id = store_report_if_enabled(report)
+    if stored_run_id and output_format not in {"json", "html"}:
+        console.print(f"[dim]Stored run in Oracle:[/dim] {stored_run_id}")
 
     if save_overlay:
         _save_overlay(report, image, save_overlay)
@@ -161,11 +191,12 @@ def analyze(
 def classify(
     image: str = typer.Argument(..., help="Image path or gallery name"),
     demo: bool = typer.Option(False, "--demo", help="Use demo mode"),
+    model_id: Optional[str] = typer.Option(None, "--model-id", help="Optional OCI custom model OCID"),
     output_format: str = typer.Option("rich", "--output-format", help="Output format: rich, json, or html"),
 ) -> None:
     """Run image classification only."""
     client = _build_client(demo)
-    result = client.classify(image)
+    result = client.classify(image, model_id=model_id)
     report = AnalysisReport(image_path=image, classification=result)
     _output_report(report, output_format, demo)
 
@@ -174,11 +205,12 @@ def classify(
 def detect(
     image: str = typer.Argument(..., help="Image path or gallery name"),
     demo: bool = typer.Option(False, "--demo", help="Use demo mode"),
+    model_id: Optional[str] = typer.Option(None, "--model-id", help="Optional OCI custom model OCID"),
     output_format: str = typer.Option("rich", "--output-format", help="Output format: rich, json, or html"),
 ) -> None:
     """Run object detection only."""
     client = _build_client(demo)
-    result = client.detect_objects(image)
+    result = client.detect_objects(image, model_id=model_id)
     report = AnalysisReport(image_path=image, detection=result)
     _output_report(report, output_format, demo)
 
@@ -220,6 +252,144 @@ def document(
     result = client.analyze_document(image)
     report = AnalysisReport(image_path=image, document=result)
     _output_report(report, output_format, demo)
+
+
+@app.command("eval")
+def eval_results(
+    kind: str = typer.Argument(..., help="Result kind: detection, text, or document"),
+    prediction_json: str = typer.Argument(..., help="Prediction result JSON path"),
+    truth_json: str = typer.Argument(..., help="Ground-truth result JSON path"),
+    output_format: str = typer.Option("rich", "--output-format", help="Output format: rich, json, or html"),
+    iou_threshold: float = typer.Option(0.5, "--iou-threshold", help="IoU threshold for detection metrics"),
+    html_out: Optional[str] = typer.Option(None, "--html-out", help="Optional HTML output path"),
+) -> None:
+    """Evaluate normalized prediction results against ground truth."""
+    kind = kind.strip().lower()
+    prediction = _load_eval_payload(kind, prediction_json)
+    truth = _load_eval_payload(kind, truth_json)
+
+    if kind == "detection":
+        metrics = evaluate_detection_result(prediction, truth, iou_threshold=iou_threshold)
+    elif kind == "text":
+        metrics = {
+            "text_similarity": text_similarity(prediction, truth),
+            "line_accuracy": line_accuracy(prediction, truth),
+        }
+    elif kind == "document":
+        metrics = evaluate_document_result(prediction, truth)
+    else:
+        raise typer.BadParameter(f"Unsupported eval kind: {kind}")
+
+    if output_format == "json":
+        print(json.dumps(metrics, indent=2))
+        return
+
+    if output_format == "html":
+        html_text = render_eval_report(kind, metrics)
+        out_path = Path(html_out or f"eval_{kind}.html")
+        out_path.write_text(html_text)
+        console.print(f"[green]Evaluation report saved to:[/green] {out_path}")
+        return
+
+    console.print(Panel.fit(f"OCI Vision eval: {kind}", border_style="cyan"))
+    for key, value in metrics.items():
+        console.print(f"[bold]{key}:[/bold] {value}")
+
+
+@app.command("search-runs")
+def search_runs_command(
+    query: str = typer.Argument(..., help="Semantic search query"),
+    limit: int = typer.Option(5, "--limit", help="Maximum number of results"),
+) -> None:
+    """Search Oracle-backed stored runs when Oracle integration is enabled."""
+    results = search_if_enabled(query, limit=limit)
+    if not results:
+        console.print("[]")
+        return
+    console.print(json.dumps(results, indent=2))
+
+
+@app.command("workflow")
+def workflow_command(
+    kind: str = typer.Argument(..., help="Workflow kind: receipt, shelf, inspection, archive-search"),
+    image: str = typer.Argument(..., help="Image path or comma-separated image list for archive-search"),
+    demo: bool = typer.Option(False, "--demo", help="Use demo mode"),
+    query: Optional[str] = typer.Option(None, "--query", help="Archive-search query"),
+) -> None:
+    """Run an opinionated workflow pack."""
+    client = _build_client(demo)
+    kind = kind.strip().lower()
+
+    if kind == "receipt":
+        summary = receipt_workflow(client, image)
+    elif kind == "shelf":
+        summary = shelf_audit_workflow(client, image)
+    elif kind == "inspection":
+        summary = inspection_workflow(client, image)
+    elif kind == "archive-search":
+        if not query:
+            raise typer.BadParameter("--query is required for archive-search")
+        summary = archive_search_workflow(client, [part.strip() for part in image.split(",") if part.strip()], query=query)
+    else:
+        raise typer.BadParameter(f"Unsupported workflow kind: {kind}")
+
+    console.print(json.dumps(summary, indent=2))
+
+
+@app.command("record-demo")
+def record_demo(
+    image: str = typer.Argument(..., help="Image path to register in the gallery"),
+    feature: str = typer.Option(..., "--feature", help="Feature name: classification, detection, text, faces, or document"),
+    response_json: Optional[str] = typer.Option(None, "--response-json", help="Existing JSON response file to import instead of calling OCI"),
+    image_id: Optional[str] = typer.Option(None, "--image-id", help="Gallery image id (defaults to file stem)"),
+    description: Optional[str] = typer.Option(None, "--description", help="Gallery description"),
+    gallery_root: Optional[str] = typer.Option(None, "--gallery-root", help="Override gallery root for writing fixtures"),
+) -> None:
+    """Record a new demo fixture into the gallery."""
+    image_path = Path(image)
+    if not image_path.is_file():
+        console.print(f"[red]Error:[/red] image not found: {image}")
+        raise typer.Exit(code=1)
+
+    feature = feature.strip().lower()
+    if feature not in {"classification", "detection", "text", "faces", "document"}:
+        console.print(f"[red]Error:[/red] unsupported feature: {feature}")
+        raise typer.Exit(code=1)
+
+    if response_json:
+        response_payload = json.loads(Path(response_json).read_text())
+    else:
+        client = VisionClient(demo=False)
+        if feature == "classification":
+            result = client.classify(str(image_path))
+        elif feature == "detection":
+            result = client.detect_objects(str(image_path))
+        elif feature == "text":
+            result = client.detect_text(str(image_path))
+        elif feature == "faces":
+            result = client.detect_faces(str(image_path))
+        else:
+            result = client.analyze_document(str(image_path))
+
+        if result is None:
+            console.print(f"[red]Error:[/red] OCI returned no result for feature: {feature}")
+            raise typer.Exit(code=1)
+
+        response_payload = serialize_feature_result(feature, result)
+
+    entry = record_fixture(
+        image_path=image_path,
+        feature=feature,
+        response_payload=response_payload,
+        gallery_root=Path(gallery_root) if gallery_root else None,
+        image_id=image_id,
+        description=description,
+    )
+
+    console.print(
+        f"[green]Recorded fixture[/green] [bold]{entry['id']}[/bold] "
+        f"for feature [bold]{feature}[/bold]"
+    )
 
 
 @app.command()

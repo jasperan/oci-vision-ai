@@ -19,6 +19,7 @@ from pydantic import BaseModel
 
 from oci_vision.core.client import VisionClient
 from oci_vision.gallery import load_manifest
+from oci_vision.oracle import search_if_enabled, store_report_if_enabled
 
 
 class AnalyzeRequest(BaseModel):
@@ -79,6 +80,45 @@ def create_app(demo: bool = False) -> FastAPI:
             "demo": client.is_demo,
         })
 
+    @app.get("/compare", response_class=HTMLResponse)
+    async def compare_page(request: Request):
+        """Comparison page for side-by-side gallery inspection."""
+        manifest = load_manifest()
+        return templates.TemplateResponse(request, "compare.html", {
+            "images": manifest["images"],
+            "demo": client.is_demo,
+        })
+
+    @app.get("/report/{image_name}", response_class=HTMLResponse)
+    async def report_page(request: Request, image_name: str):
+        """Static report page for a gallery image."""
+        report = client.analyze(image_name)
+        overlay_base64 = None
+        image_path = None
+
+        try:
+            from PIL import Image
+            from oci_vision.core.renderer import render_overlay
+            from oci_vision.gallery import get_gallery_path
+
+            image_path = get_gallery_path() / "images" / Path(image_name).name
+            img = Image.open(image_path)
+            overlay = render_overlay(img, report)
+            buf = io.BytesIO()
+            overlay.save(buf, format="PNG")
+            buf.seek(0)
+            overlay_base64 = base64.b64encode(buf.read()).decode()
+        except Exception:
+            overlay_base64 = None
+
+        return templates.TemplateResponse(request, "report.html", {
+            "report": report,
+            "overlay_base64": overlay_base64,
+            "image_name": image_name,
+            "demo": client.is_demo,
+            "image_path": str(image_path) if image_path else None,
+        })
+
     # ------------------------------------------------------------------
     # API routes
     # ------------------------------------------------------------------
@@ -89,6 +129,11 @@ def create_app(demo: bool = False) -> FastAPI:
         manifest = load_manifest()
         return JSONResponse({"images": manifest["images"]})
 
+    @app.get("/api/search")
+    async def search_api(query: str, limit: int = 5):
+        """Search Oracle-backed stored runs when enabled."""
+        return JSONResponse({"results": search_if_enabled(query, limit=limit)})
+
     @app.post("/api/analyze")
     async def analyze_api(body: AnalyzeRequest):
         """Analyse a named image (JSON body).
@@ -96,7 +141,11 @@ def create_app(demo: bool = False) -> FastAPI:
         Expects ``{"image": "...", "features": [...]}``
         """
         report = client.analyze(body.image, features=body.features)
-        return JSONResponse(report.model_dump())
+        result = report.model_dump()
+        stored_run_id = store_report_if_enabled(report)
+        if stored_run_id:
+            result["stored_run_id"] = stored_run_id
+        return JSONResponse(result)
 
     @app.post("/api/analyze-upload")
     async def analyze_upload(
@@ -139,9 +188,26 @@ def create_app(demo: bool = False) -> FastAPI:
             overlay.save(buf, format="PNG")
             buf.seek(0)
             result["overlay_base64"] = base64.b64encode(buf.read()).decode()
+
+            feature_overlays = {}
+            for feature_name in [
+                feature for feature in report.available_features
+                if feature in {"classification", "detection", "text", "faces"}
+            ]:
+                feature_img = render_overlay(img, report, selected_features={feature_name})
+                feature_buf = io.BytesIO()
+                feature_img.save(feature_buf, format="PNG")
+                feature_buf.seek(0)
+                feature_overlays[feature_name] = base64.b64encode(feature_buf.read()).decode()
+            result["feature_overlays"] = feature_overlays
         except Exception:
             # Overlay generation is best-effort
             result["overlay_base64"] = None
+            result["feature_overlays"] = {}
+
+        stored_run_id = store_report_if_enabled(report)
+        if stored_run_id:
+            result["stored_run_id"] = stored_run_id
 
         # Clean up temp file
         try:
