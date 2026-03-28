@@ -70,8 +70,6 @@ oci-vision cockpit --demo
 oci-vision web --demo
 ```
 
-See `docs/security/dependency-audit.md` for the base dependency audit policy and the one currently allowlisted unresolved advisory.
-
 **Install options**
 
 - `pip install -e .` — demo CLI, cockpit, and web dashboard
