@@ -1,5 +1,7 @@
 # OCI Vision AI
 
+[![build-install-smoke](https://github.com/jasperan/oci-vision-ai/actions/workflows/build-install-smoke.yml/badge.svg)](https://github.com/jasperan/oci-vision-ai/actions/workflows/build-install-smoke.yml)
+
 The definitive Oracle Cloud Infrastructure Vision AI showcase.
 
 Analyse images with six OCI Vision features through a polished CLI, an interactive web dashboard, or hands-on Jupyter notebooks -- all runnable offline in demo mode with zero cloud credentials.
