@@ -5,7 +5,6 @@ Entry point registered in pyproject.toml as ``oci-vision``.
 
 from __future__ import annotations
 
-import html
 import json
 from pathlib import Path
 from typing import Optional
@@ -17,6 +16,7 @@ from rich.table import Table
 
 from oci_vision.cli.formatters import format_report
 from oci_vision.core.client import VisionClient
+from oci_vision.core.exports import save_overlay_image, write_html_report
 from oci_vision.core.models import AnalysisReport, DetectionResult, DocumentResult, TextDetectionResult
 from oci_vision.core.recording import record_fixture, serialize_feature_result
 from oci_vision.eval import (
@@ -70,79 +70,7 @@ def _output_report(
 
 def _output_html(report: AnalysisReport) -> None:
     """Generate a self-contained HTML report and write it to disk."""
-    esc = html.escape
-    image_name = esc(Path(report.image_path).stem)
-    out_path = Path(f"{Path(report.image_path).stem}_report.html")
-
-    features_html = []
-    if report.classification:
-        rows = "".join(
-            f"<tr><td>{esc(l.name)}</td><td>{l.confidence_pct:.1f}%</td></tr>"
-            for l in report.classification.labels
-        )
-        features_html.append(
-            f"<h2>Classification</h2><table border='1' cellpadding='4'>"
-            f"<tr><th>Label</th><th>Confidence</th></tr>{rows}</table>"
-        )
-
-    if report.detection:
-        rows = "".join(
-            f"<tr><td>{esc(o.name)}</td><td>{o.confidence_pct:.1f}%</td></tr>"
-            for o in report.detection.objects
-        )
-        features_html.append(
-            f"<h2>Object Detection</h2><table border='1' cellpadding='4'>"
-            f"<tr><th>Object</th><th>Confidence</th></tr>{rows}</table>"
-        )
-
-    if report.text:
-        lines = "".join(
-            f"<p>&ldquo;{esc(l.text)}&rdquo; ({round(l.confidence*100,1)}%)</p>"
-            for l in report.text.lines
-        )
-        features_html.append(f"<h2>Text / OCR</h2>{lines}")
-
-    if report.faces:
-        features_html.append(
-            f"<h2>Face Detection</h2><p>{len(report.faces.faces)} face(s), "
-            f"{sum(len(f.landmarks) for f in report.faces.faces)} landmarks</p>"
-        )
-
-    if report.document:
-        doc_parts = [
-            f"<h2>Document AI</h2><p>{len(report.document.fields)} fields, "
-            f"{len(report.document.tables)} tables</p>"
-        ]
-        for field in report.document.fields:
-            doc_parts.append(
-                f"<p>{esc(field.field_type)}: {esc(field.label)} = {esc(field.value)}</p>"
-            )
-        features_html.append("\n".join(doc_parts))
-
-    body = "\n".join(features_html) if features_html else "<p>No features analysed.</p>"
-
-    safe_image_path = esc(report.image_path)
-    safe_features = esc(', '.join(report.available_features))
-
-    page = f"""<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>OCI Vision AI Report — {image_name}</title>
-<style>
-body {{ font-family: system-ui, sans-serif; max-width: 900px; margin: 2em auto; padding: 0 1em; }}
-table {{ border-collapse: collapse; margin: 1em 0; }}
-th {{ background: #f0f0f0; }}
-h1 {{ color: #1a73e8; }}
-h2 {{ color: #333; border-bottom: 1px solid #ddd; padding-bottom: 0.3em; }}
-</style></head>
-<body>
-<h1>OCI Vision AI Report</h1>
-<p><strong>Image:</strong> {safe_image_path}<br>
-<strong>Elapsed:</strong> {report.elapsed_seconds:.3f}s<br>
-<strong>Features:</strong> {safe_features}</p>
-{body}
-</body></html>"""
-
-    out_path.write_text(page)
+    out_path = write_html_report(report)
     console.print(f"[green]HTML report saved to:[/green] {out_path.absolute()}")
 
 
@@ -480,6 +408,68 @@ def web(
         raise typer.Exit(code=1)
 
 
+@app.command()
+def cockpit(
+    demo: bool = typer.Option(False, "--demo", help="Start the cockpit in demo mode"),
+    image: Optional[str] = typer.Option(None, "--image", help="Optional initial image or gallery filename"),
+    features: Optional[str] = typer.Option(None, "--features", help="Optional comma-separated feature selection"),
+    workflow: Optional[str] = typer.Option(None, "--workflow", help="Optional workflow to auto-run: receipt, shelf, inspection, archive-search"),
+    query: Optional[str] = typer.Option(None, "--query", help="Archive-search query or initial workflow query"),
+    screenshot: Optional[str] = typer.Option(None, "--screenshot", help="Write a deterministic SVG cockpit screenshot and exit"),
+) -> None:
+    """Launch the interactive demo cockpit or capture a deterministic screenshot."""
+    if screenshot and Path(screenshot).suffix.lower() != ".svg":
+        raise typer.BadParameter("Textual screenshots are SVG files. Please use a .svg output path.")
+
+    if workflow and workflow.strip().lower() == "archive-search" and not query:
+        raise typer.BadParameter("--query is required for archive-search")
+
+    try:
+        from oci_vision.tui.app import CockpitConfig, VisionCockpitApp, capture_cockpit_screenshot
+        from oci_vision.tui.services import ALL_FEATURES, WORKFLOW_NAMES
+    except ImportError as exc:
+        console.print(
+            "[red]Error:[/red] cockpit mode requires the [bold]textual[/bold] dependency. "
+            "Install with: [dim]python -m pip install -e '.[all]'[/dim]"
+        )
+        raise typer.Exit(code=1) from exc
+
+    parsed_features = [part.strip() for part in features.split(",") if part.strip()] if features else None
+    if parsed_features is not None:
+        invalid_features = [feature for feature in parsed_features if feature not in ALL_FEATURES]
+        if invalid_features:
+            raise typer.BadParameter(
+                f"Unsupported feature(s): {', '.join(invalid_features)}. Valid choices: {', '.join(ALL_FEATURES)}"
+            )
+        if not parsed_features:
+            raise typer.BadParameter("--features must include at least one valid feature")
+
+    if workflow and workflow.strip().lower() not in WORKFLOW_NAMES:
+        raise typer.BadParameter(
+            f"Unsupported workflow: {workflow}. Valid choices: {', '.join(WORKFLOW_NAMES)}"
+        )
+
+    config = CockpitConfig(
+        demo=demo,
+        image=image,
+        features=parsed_features,
+        workflow=workflow,
+        query=query,
+        screenshot_path=screenshot,
+    )
+
+    try:
+        if screenshot:
+            out_path = capture_cockpit_screenshot(config)
+            console.print(f"[green]Cockpit screenshot saved to:[/green] {out_path}")
+            return
+
+        VisionCockpitApp(config).run()
+    except ValueError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1)
+
+
 # ---------------------------------------------------------------------------
 # Overlay saving helper
 # ---------------------------------------------------------------------------
@@ -487,21 +477,7 @@ def web(
 def _save_overlay(report: AnalysisReport, image_path: str, output_path: str) -> None:
     """Save annotated image with visual overlays."""
     try:
-        from PIL import Image
-        from oci_vision.core.renderer import render_overlay
-
-        img_path = Path(image_path)
-        if not img_path.is_file():
-            # Try gallery path
-            from oci_vision.gallery import get_gallery_path
-            img_path = get_gallery_path() / "images" / Path(image_path).name
-            if not img_path.is_file():
-                console.print(f"[yellow]Warning:[/yellow] Cannot find image file for overlay: {image_path}")
-                return
-
-        img = Image.open(img_path)
-        result = render_overlay(img, report)
-        result.save(output_path)
-        console.print(f"[green]Overlay saved to:[/green] {output_path}")
+        out_path = save_overlay_image(report, image_path, output_path)
+        console.print(f"[green]Overlay saved to:[/green] {out_path}")
     except Exception as exc:
         console.print(f"[yellow]Warning:[/yellow] Could not save overlay: {exc}")

@@ -1,0 +1,114 @@
+from __future__ import annotations
+
+from typing import Sequence
+
+from oci_vision.core.models import AnalysisReport
+
+
+def summarize_report(report: AnalysisReport) -> dict[str, object]:
+    classification = report.classification.labels[0].name if report.classification and report.classification.labels else "—"
+    detection_count = len(report.detection.objects) if report.detection else 0
+    ocr_line_count = len(report.text.lines) if report.text else 0
+    face_count = len(report.faces.faces) if report.faces else 0
+    field_count = len(report.document.fields) if report.document else 0
+    table_count = len(report.document.tables) if report.document else 0
+
+    return {
+        "image": report.image_path,
+        "feature_count": len(report.available_features),
+        "features": list(report.available_features),
+        "elapsed_seconds": report.elapsed_seconds,
+        "top_label": classification,
+        "object_count": detection_count,
+        "ocr_line_count": ocr_line_count,
+        "face_count": face_count,
+        "document_field_count": field_count,
+        "document_table_count": table_count,
+    }
+
+
+def compare_reports(current: AnalysisReport, previous: AnalysisReport | None) -> dict[str, object]:
+    if previous is None:
+        return {
+            "has_previous": False,
+            "summary": "Run another analysis to unlock compare mode.",
+            "top_label_delta": "—",
+            "object_count_delta": "0",
+            "ocr_line_delta": "0",
+            "document_field_delta": "0",
+        }
+
+    current_summary = summarize_report(current)
+    previous_summary = summarize_report(previous)
+
+    object_delta = int(current_summary["object_count"]) - int(previous_summary["object_count"])
+    ocr_delta = int(current_summary["ocr_line_count"]) - int(previous_summary["ocr_line_count"])
+    field_delta = int(current_summary["document_field_count"]) - int(previous_summary["document_field_count"])
+
+    return {
+        "has_previous": True,
+        "summary": f"Previous run: {previous.image_path}",
+        "top_label_delta": f"{previous_summary['top_label']} → {current_summary['top_label']}",
+        "object_count_delta": _signed_delta(object_delta),
+        "ocr_line_delta": _signed_delta(ocr_delta),
+        "document_field_delta": _signed_delta(field_delta),
+    }
+
+
+def summarize_workflow_result(workflow_name: str, payload: dict) -> str:
+    workflow_name = workflow_name.strip().lower()
+    if workflow_name == "receipt":
+        fields = payload.get("fields", {})
+        lines = ["Receipt workflow", f"Fields: {payload.get('field_count', 0)}", f"Tables: {payload.get('table_count', 0)}"]
+        for key, value in list(fields.items())[:5]:
+            lines.append(f"- {key}: {value}")
+        return "\n".join(lines)
+
+    if workflow_name == "shelf":
+        lines = ["Shelf audit workflow", f"Objects: {payload.get('object_count', 0)}"]
+        for key, value in payload.get("objects", {}).items():
+            lines.append(f"- {key}: {value}")
+        return "\n".join(lines)
+
+    if workflow_name == "inspection":
+        lines = ["Inspection workflow"]
+        labels = payload.get("classification", [])
+        if labels:
+            lines.append("Labels: " + ", ".join(labels))
+        detections = payload.get("detection", {})
+        if detections:
+            lines.append("Detections: " + ", ".join(f"{key}={value}" for key, value in detections.items()))
+        text = payload.get("text", "")
+        if text:
+            lines.append(f"OCR: {text[:80]}")
+        return "\n".join(lines)
+
+    if workflow_name == "archive-search":
+        lines = ["Archive search workflow", f"Matches: {payload.get('match_count', 0)}"]
+        for match in payload.get("matches", [])[:5]:
+            lines.append(f"- {match.get('image')} ({match.get('field_count', 0)} fields)")
+        return "\n".join(lines)
+
+    return f"{workflow_name}: {payload}"
+
+
+def push_history(
+    history: Sequence[AnalysisReport],
+    report: AnalysisReport,
+    *,
+    limit: int = 5,
+) -> list[AnalysisReport]:
+    return [report, *list(history)][:limit]
+
+
+def history_lines(history: Sequence[AnalysisReport]) -> list[str]:
+    return [
+        f"{report.image_path} · {', '.join(report.available_features)} · {report.elapsed_seconds:.3f}s"
+        for report in history
+    ]
+
+
+def _signed_delta(value: int) -> str:
+    if value > 0:
+        return f"+{value}"
+    return str(value)

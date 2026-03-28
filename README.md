@@ -19,7 +19,7 @@ Analyse images with six OCI Vision features through a polished CLI, an interacti
 
 **Delivery surfaces**
 
-- **CLI** (`oci-vision`) -- Rich-formatted terminal output, JSON, HTML reports, eval commands, workflow packs, and demo recording
+- **CLI** (`oci-vision`) -- Rich-formatted terminal output, JSON, HTML reports, eval commands, workflow packs, demo recording, and the new Textual cockpit
 - **Web Dashboard** -- FastAPI + drag-and-drop upload with toggleable feature overlays, compare page, API playground, and report pages
 - **Jupyter Notebooks** -- seven guided walkthroughs with inline visualisations
 
@@ -61,10 +61,49 @@ Analyse images with six OCI Vision features through a polished CLI, an interacti
 ```bash
 pip install -e ".[all]"
 oci-vision analyze dog_closeup.jpg --demo
+oci-vision cockpit --demo
 oci-vision web --demo
 ```
 
 ---
+
+## TUI / Demo Cockpit
+
+The cockpit is a polished terminal control room for the project. It gives you gallery browsing, feature toggles, workflow launchers, run history, lightweight compare mode, and export actions in one screen.
+
+```bash
+# Launch the interactive cockpit
+oci-vision cockpit --demo
+
+# Start on a specific gallery image with preselected features
+oci-vision cockpit --demo --image dog_closeup.jpg --features classification,detection
+
+# Generate a deterministic SVG screenshot for docs or demos
+oci-vision cockpit --demo \
+  --image dog_closeup.jpg \
+  --features classification,detection \
+  --screenshot cockpit.svg
+```
+
+### Cockpit highlights
+
+- **Gallery-first flow** -- jump between bundled demo fixtures without typing commands
+- **Feature toggles** -- turn OCR, detection, faces, document AI, or classification on and off live
+- **Workflow rail** -- launch receipt, shelf-audit, inspection, and archive-search runs from the same screen
+- **Compare panel** -- see lightweight deltas against the previous run
+- **Export actions** -- write JSON, HTML, and overlay artifacts from the cockpit
+
+### Cockpit screenshots
+
+**Overview**
+
+![OCI Vision AI cockpit overview](https://raw.githubusercontent.com/jasperan/oci-vision-ai/main/docs/images/tui-cockpit-overview.png)
+
+**Workflow panel**
+
+![OCI Vision AI cockpit workflow view](https://raw.githubusercontent.com/jasperan/oci-vision-ai/main/docs/images/tui-cockpit-workflow.png)
+
+A companion HTML slide deck lives at [docs/slides/oci-vision-demo-cockpit.html](https://github.com/jasperan/oci-vision-ai/blob/main/docs/slides/oci-vision-demo-cockpit.html).
 
 ## CLI Usage
 
@@ -242,6 +281,12 @@ src/oci_vision/
         __init__.py
         app.py             # Typer CLI application
         formatters.py      # Rich console output formatters
+    tui/
+        __init__.py        # Cockpit exports
+        app.py             # Textual demo cockpit
+        services.py        # Gallery/workflow/export adapters
+        insights.py        # Summary + compare helpers
+        cockpit.tcss       # Cockpit styling
     eval/
         detection.py       # IoU / precision / recall helpers
         text.py            # OCR similarity helpers

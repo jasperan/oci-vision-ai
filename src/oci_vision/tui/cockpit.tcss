@@ -1,0 +1,128 @@
+Screen {
+    background: #07131f;
+    color: #e8f0ff;
+}
+
+#cockpit-root {
+    layout: grid;
+    grid-size: 3;
+    grid-columns: 30 1fr 34;
+    grid-gutter: 1;
+    padding: 1;
+    height: 1fr;
+}
+
+#left-rail,
+#main-column,
+#right-rail {
+    height: 1fr;
+}
+
+.panel {
+    border: round #2a8ccf;
+    background: #0d1d2d;
+    padding: 1;
+    margin-bottom: 1;
+}
+
+#brand-block {
+    content-align: center middle;
+    text-style: bold;
+    height: 5;
+    background: #12304d;
+    border: round #5ec2ff;
+    margin-bottom: 1;
+}
+
+.section-title {
+    text-style: bold;
+    color: #9dd9ff;
+    margin-bottom: 1;
+}
+
+#gallery-list {
+    height: 1fr;
+    margin-bottom: 1;
+    border: round #1f5e8f;
+}
+
+#workflow-actions {
+    height: auto;
+    margin-bottom: 1;
+}
+
+.workflow-button {
+    width: 100%;
+    margin-bottom: 1;
+}
+
+#help-block {
+    color: #9fb8d1;
+    height: auto;
+}
+
+#feature-row {
+    height: auto;
+    content-align: left middle;
+}
+
+#feature-row Checkbox {
+    margin-right: 2;
+}
+
+#action-row {
+    height: auto;
+}
+
+#action-row Button {
+    margin-right: 1;
+}
+
+#summary-panel {
+    height: 8;
+}
+
+#results-tabs {
+    height: 1fr;
+    border: round #1f5e8f;
+    background: #091421;
+}
+
+.result-output {
+    padding: 1;
+}
+
+#right-rail .panel {
+    height: auto;
+}
+
+#workflow-panel,
+#compare-panel,
+#history-panel,
+#status-panel {
+    min-height: 8;
+}
+
+#status-panel {
+    border: round #2cb67d;
+}
+
+Input {
+    background: #10283d;
+    color: #eef7ff;
+}
+
+Button {
+    background: #17456a;
+    color: #eef7ff;
+}
+
+Button.-primary {
+    background: #2a8ccf;
+    color: #07131f;
+    text-style: bold;
+}
+
+Footer {
+    background: #0d1d2d;
+}

@@ -1,19 +1,20 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
+requires = ["setuptools>=77.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "oci-vision-ai"
-version = "0.1.0"
+version = "0.2.0"
 description = "The definitive OCI Vision AI showcase — CLI, web dashboard, and notebooks"
 readme = "README.md"
-license = {text = "GPL-3.0"}
+license = "GPL-3.0-only"
 requires-python = ">=3.10"
 dependencies = [
     "oci>=2.110.0",
     "pydantic>=2.0",
     "typer>=0.9.0",
     "rich>=13.0",
+    "textual>=0.70.0",
     "fastapi>=0.104.0",
     "uvicorn>=0.24.0",
     "jinja2>=3.1.0",
@@ -30,8 +31,21 @@ all = ["oci-vision-ai[notebooks,dev,oracle]"]
 [project.scripts]
 oci-vision = "oci_vision.cli.app:app"
 
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+oci_vision = [
+    "gallery/manifest.json",
+    "gallery/images/*",
+    "gallery/responses/*.json",
+    "tui/*.tcss",
+    "web/templates/*.html",
+    "web/static/*",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
