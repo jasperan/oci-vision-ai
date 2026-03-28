@@ -626,7 +626,7 @@ def cockpit(
     except ImportError as exc:
         console.print(
             "[red]Error:[/red] cockpit mode requires the [bold]textual[/bold] dependency. "
-            "Install with: [dim]python -m pip install -e '.[all]'[/dim]"
+            "Install with: [dim]python -m pip install -e .[/dim]"
         )
         raise typer.Exit(code=1) from exc
 

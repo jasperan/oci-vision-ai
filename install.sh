@@ -16,6 +16,7 @@ REPO_URL="${REPO_URL:-https://github.com/jasperan/oci-vision-ai.git}"
 PROJECT="${PROJECT:-oci-vision-ai}"
 BRANCH="${BRANCH:-main}"
 INSTALL_DIR="${PROJECT_DIR:-$(pwd)/$PROJECT}"
+INSTALL_EXTRAS="${INSTALL_EXTRAS:-}"
 
 # ── Colors ──────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -87,7 +88,14 @@ install_deps() {
 
     info "Installing dependencies..."
     pip install --upgrade pip -q
-    pip install -e ".[dev]" -q 2>/dev/null || pip install -e . -q || {
+
+    install_target="."
+    if [ -n "$INSTALL_EXTRAS" ]; then
+        install_target=".[${INSTALL_EXTRAS}]"
+        info "Using extras: $INSTALL_EXTRAS"
+    fi
+
+    pip install -e "$install_target" -q || {
         if [ -f requirements.txt ]; then
             pip install -r requirements.txt -q
         else
@@ -114,6 +122,7 @@ print_done() {
     echo -e "  ${BOLD}Location:${NC}  $INSTALL_DIR"
     echo -e "  ${BOLD}Activate:${NC}  source $INSTALL_DIR/.venv/bin/activate"
     echo -e "  ${BOLD}Commands:${NC}  oci-vision"
+    echo -e "  ${BOLD}Extras:${NC}    INSTALL_EXTRAS=live bash install.sh  # add OCI live-mode deps"
     echo ""
 }
 

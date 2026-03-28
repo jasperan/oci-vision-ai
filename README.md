@@ -61,13 +61,20 @@ Analyse images with six OCI Vision features through a polished CLI, an interacti
 
 
 ```bash
-pip install -e ".[all]"
+pip install -e .
 oci-vision analyze dog_closeup.jpg --demo
 oci-vision compare dog_closeup.jpg sign_board.png --demo --output-format json
 oci-vision batch dog_closeup.jpg sign_board.png invoice_demo.png --demo --output-format json
 oci-vision cockpit --demo
 oci-vision web --demo
 ```
+
+**Install options**
+
+- `pip install -e .` — demo CLI, cockpit, and web dashboard
+- `pip install -e ".[live]"` — add OCI SDK for live mode
+- `pip install -e ".[notebooks]"` — add notebook tooling
+- `pip install -e ".[all]"` — everything
 
 ---
 
@@ -225,7 +232,13 @@ Live mode is required for arbitrary uploads and arbitrary local filenames.
 
 ## Live Mode (OCI Credentials)
 
-To call the real OCI Vision service, configure an API key following the [OCI SDK setup guide](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm), then:
+Install the live extra first:
+
+```bash
+pip install -e ".[live]"
+```
+
+Then configure an API key following the [OCI SDK setup guide](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm), then:
 
 ```python
 from oci_vision import VisionClient
@@ -267,6 +280,12 @@ Key model classes: `AnalysisReport`, `ClassificationResult`, `DetectionResult`, 
 ## Oracle Database 26ai Free
 
 Oracle-backed storage is optional and off by default.
+
+Install the Oracle extra if you want local run storage and semantic search:
+
+```bash
+pip install -e ".[oracle]"
+```
 
 Pick a local password for the container, then start Oracle Database Free:
 

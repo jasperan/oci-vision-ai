@@ -191,7 +191,7 @@ Targeted `pip-audit` on the project dependency set surfaced:
 - `pyopenssl 25.3.0` with published fixes available in `26.0.0`.
 - `pygments 2.19.2` with a published advisory and no fix version listed by `pip-audit`.
 
-These are transitive in the current environment, not direct imports in this repo. I’m flagging them for discussion rather than forcing a speculative pin mid-audit.
+These were transitive in the current environment, not direct imports in this repo. I flagged them for follow-up rather than forcing a speculative pin mid-audit.
 
 ### Still needs discussion
 
@@ -314,6 +314,35 @@ It returns per-image summaries plus aggregate label/object/feature coverage coun
 ### Verification
 
 - Full suite after innovation work: **202 passed, 3 skipped**.
+
+## Follow-up Pass: Dependencies
+
+### What I changed
+
+- Moved `oci` out of base runtime dependencies and into a new optional `live` extra in `pyproject.toml`.
+- Kept `oci` available in `dev` so the repo's live-path tests and local development flow still work.
+- Switched the default installer path in `install.sh` to install the base package instead of the heavier dev stack.
+- Added `INSTALL_EXTRAS=live` support in `install.sh` so live-mode installs stay one command away.
+- Updated `README.md` to document:
+  - base demo install
+  - `.[live]`
+  - `.[notebooks]`
+  - `.[all]`
+- Added packaging tests to lock in the lighter default dependency surface.
+
+### Dependency audit result after the change
+
+Targeted `pip-audit` on base runtime dependencies now reports only:
+
+- `pygments 2.19.2` with a published advisory and no fix version listed by `pip-audit`.
+
+So the follow-up pass removed the fixable `pyOpenSSL` exposure from the default install path by making OCI live mode opt-in.
+
+### Verification
+
+- `python -m pytest tests -q` → passed
+- `bash scripts/ci_smoke_test.sh` → passed
+- fresh base install smoke run → passed
 
 ## Phase 8: Onboarding Verify
 
