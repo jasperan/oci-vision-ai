@@ -354,4 +354,11 @@ I simulated a fresh setup from a clean working-tree copy and followed the README
 
 ## Phase 9: Final Gate
 
-Pending.
+### Final verification
+
+- `python -m pytest tests -q` → **202 passed, 3 skipped**
+- `bash scripts/ci_smoke_test.sh` → **passed**
+
+### Merge state
+
+Green.
