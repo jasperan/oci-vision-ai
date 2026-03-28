@@ -102,6 +102,21 @@ def _run_vision_call(action, *, label: str = "request"):
         raise typer.Exit(code=1) from exc
 
 
+def _run_single_feature_command(
+    *,
+    image: str,
+    demo: bool,
+    output_format: str,
+    field_name: str,
+    label: str,
+    action,
+) -> None:
+    client = _build_client(demo)
+    result = _run_vision_call(lambda: action(client), label=label)
+    report = AnalysisReport(image_path=image, **{field_name: result})
+    _output_report(report, output_format, demo)
+
+
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
@@ -143,13 +158,14 @@ def classify(
     output_format: str = typer.Option("rich", "--output-format", help="Output format: rich, json, or html"),
 ) -> None:
     """Run image classification only."""
-    client = _build_client(demo)
-    result = _run_vision_call(
-        lambda: client.classify(image, model_id=model_id),
+    _run_single_feature_command(
+        image=image,
+        demo=demo,
+        output_format=output_format,
+        field_name="classification",
         label="classification",
+        action=lambda client: client.classify(image, model_id=model_id),
     )
-    report = AnalysisReport(image_path=image, classification=result)
-    _output_report(report, output_format, demo)
 
 
 @app.command()
@@ -160,13 +176,14 @@ def detect(
     output_format: str = typer.Option("rich", "--output-format", help="Output format: rich, json, or html"),
 ) -> None:
     """Run object detection only."""
-    client = _build_client(demo)
-    result = _run_vision_call(
-        lambda: client.detect_objects(image, model_id=model_id),
+    _run_single_feature_command(
+        image=image,
+        demo=demo,
+        output_format=output_format,
+        field_name="detection",
         label="detection",
+        action=lambda client: client.detect_objects(image, model_id=model_id),
     )
-    report = AnalysisReport(image_path=image, detection=result)
-    _output_report(report, output_format, demo)
 
 
 @app.command()
@@ -176,10 +193,14 @@ def ocr(
     output_format: str = typer.Option("rich", "--output-format", help="Output format: rich, json, or html"),
 ) -> None:
     """Run text / OCR extraction only."""
-    client = _build_client(demo)
-    result = _run_vision_call(lambda: client.detect_text(image), label="text detection")
-    report = AnalysisReport(image_path=image, text=result)
-    _output_report(report, output_format, demo)
+    _run_single_feature_command(
+        image=image,
+        demo=demo,
+        output_format=output_format,
+        field_name="text",
+        label="text detection",
+        action=lambda client: client.detect_text(image),
+    )
 
 
 @app.command()
@@ -189,10 +210,14 @@ def faces(
     output_format: str = typer.Option("rich", "--output-format", help="Output format: rich, json, or html"),
 ) -> None:
     """Run face detection only."""
-    client = _build_client(demo)
-    result = _run_vision_call(lambda: client.detect_faces(image), label="face detection")
-    report = AnalysisReport(image_path=image, faces=result)
-    _output_report(report, output_format, demo)
+    _run_single_feature_command(
+        image=image,
+        demo=demo,
+        output_format=output_format,
+        field_name="faces",
+        label="face detection",
+        action=lambda client: client.detect_faces(image),
+    )
 
 
 @app.command()
@@ -202,13 +227,14 @@ def document(
     output_format: str = typer.Option("rich", "--output-format", help="Output format: rich, json, or html"),
 ) -> None:
     """Run document AI analysis only."""
-    client = _build_client(demo)
-    result = _run_vision_call(
-        lambda: client.analyze_document(image),
+    _run_single_feature_command(
+        image=image,
+        demo=demo,
+        output_format=output_format,
+        field_name="document",
         label="document analysis",
+        action=lambda client: client.analyze_document(image),
     )
-    report = AnalysisReport(image_path=image, document=result)
-    _output_report(report, output_format, demo)
 
 
 @app.command("eval")

@@ -244,7 +244,26 @@ Average wall-clock time across 5 runs on this machine:
 
 ## Phase 6: Ruthless Simplification
 
-Pending.
+### What I stripped out
+
+1. **Removed dead Oracle wrapper code.**
+   - Deleted `src/oci_vision/oracle/search.py`.
+   - It was an unused one-function wrapper with no inbound references.
+
+2. **Collapsed repetitive single-feature CLI command logic.**
+   - Added `_run_single_feature_command()` in `src/oci_vision/cli/app.py`.
+   - `classify`, `detect`, `ocr`, `faces`, and `document` now share one path for client creation, guarded execution, report construction, and output dispatch.
+
+### Why these changes earned their place
+
+- Less dead surface area.
+- Fewer places for the single-feature commands to drift apart.
+- Easier future maintenance now that the error-handling and reporting flow only lives in one place.
+
+### Verification
+
+- Ran focused CLI tests after the command refactor.
+- Full suite after simplification: **195 passed, 3 skipped**.
 
 ## Phase 7: Innovation
 
