@@ -4,7 +4,7 @@
 
 The definitive Oracle Cloud Infrastructure Vision AI showcase.
 
-Analyse images with six OCI Vision features through a polished CLI, an interactive web dashboard, or hands-on Jupyter notebooks. Demo mode runs without OCI credentials and stays offline-friendly for the CLI, cockpit, and notebooks.
+Analyse images with six OCI Vision features through a polished CLI, an interactive web dashboard, or hands-on Jupyter notebooks. Demo mode runs without OCI credentials and stays offline-friendly across the shipped CLI, cockpit, notebooks, and web UI.
 
 ---
 
@@ -178,7 +178,7 @@ Opens at **http://localhost:8000**. Drag and drop an image or pick one from the 
 
 **Demo-mode upload note:** the browser can only return honest demo results for the bundled fixture names (`dog_closeup.jpg`, `sign_board.png`, `portrait_demo.png`, `invoice_demo.png`). Arbitrary uploads require live mode.
 
-**Offline note:** the browser UI still pulls Tailwind and HTMX from public CDNs today, so the web dashboard itself is not fully air-gapped even though the demo analysis path is credential-free.
+**Offline note:** the web dashboard now serves its own CSS and HTMX bundle from local static assets, so demo mode no longer depends on public CDNs.
 
 ---
 

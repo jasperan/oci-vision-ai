@@ -27,6 +27,10 @@ async def test_index(app):
         resp = await client.get("/")
         assert resp.status_code == 200
         assert "OCI Vision" in resp.text
+        assert "cdn.tailwindcss.com" not in resp.text
+        assert "unpkg.com/htmx.org" not in resp.text
+        assert "/static/styles.css" in resp.text
+        assert "/static/htmx-2.0.0.min.js" in resp.text
 
 
 @pytest.mark.asyncio
@@ -267,3 +271,11 @@ async def test_static_files(app):
         resp = await client.get("/static/app.js")
         assert resp.status_code == 200
         assert "text/javascript" in resp.headers.get("content-type", "")
+
+        styles = await client.get("/static/styles.css")
+        assert styles.status_code == 200
+        assert "text/css" in styles.headers.get("content-type", "")
+
+        htmx = await client.get("/static/htmx-2.0.0.min.js")
+        assert htmx.status_code == 200
+        assert "javascript" in htmx.headers.get("content-type", "")

@@ -344,6 +344,23 @@ So the follow-up pass removed the fixable `pyOpenSSL` exposure from the default 
 - `bash scripts/ci_smoke_test.sh` → passed
 - fresh base install smoke run → passed
 
+## Follow-up Pass: CDN Removal
+
+### What I changed
+
+- Removed the Tailwind CDN script from `src/oci_vision/web/templates/base.html`.
+- Removed the HTMX CDN script from `src/oci_vision/web/templates/base.html`.
+- Added a local stylesheet at `src/oci_vision/web/static/styles.css` that covers the utility classes used by the shipped templates and dynamic result cards.
+- Vendored `htmx-2.0.0.min.js` into `src/oci_vision/web/static/`.
+- Added tests that assert the index page no longer references public CDN URLs and that the local CSS/HTMX assets are served.
+- Updated the README offline note to match the new behavior.
+
+### Verification
+
+- `python -m pytest tests/web/test_web.py -q` → passed
+- `python -m pytest tests -q` → passed
+- `bash scripts/ci_smoke_test.sh` → passed
+
 ## Phase 8: Onboarding Verify
 
 ### What I did

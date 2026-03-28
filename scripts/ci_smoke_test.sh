@@ -44,7 +44,7 @@ cd "$ARTIFACT_DIR"
 import json
 from pathlib import Path
 from oci_vision.gallery import load_manifest
-from oci_vision.web.app import create_app
+from oci_vision.web.app import _STATIC_DIR, _TEMPLATE_DIR, create_app
 
 payload = json.loads(Path('analyze.json').read_text())
 assert payload['classification']['labels'][0]['name'] == 'Dog', payload
@@ -64,5 +64,14 @@ app = create_app(demo=True)
 manifest = load_manifest()
 assert app.title == 'OCI Vision Studio', app.title
 assert manifest['images'][0]['filename'] == 'dog_closeup.jpg', manifest['images'][0]
+base_template = Path(_TEMPLATE_DIR) / 'base.html'
+base_html = base_template.read_text(encoding='utf-8')
+assert '/static/styles.css' in base_html, base_html[:200]
+assert '/static/htmx-2.0.0.min.js' in base_html, base_html[:200]
+assert 'cdn.tailwindcss.com' not in base_html, base_html[:200]
+assert 'unpkg.com/htmx.org' not in base_html, base_html[:200]
+static_dir = Path(_STATIC_DIR)
+assert (static_dir / 'styles.css').exists(), static_dir
+assert (static_dir / 'htmx-2.0.0.min.js').exists(), static_dir
 print('Smoke test passed')
 PY
