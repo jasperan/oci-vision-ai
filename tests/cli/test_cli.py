@@ -1,6 +1,7 @@
 """CLI tests using Typer's CliRunner — all in demo mode (no OCI creds)."""
 
 import json
+from pathlib import Path
 
 from typer.testing import CliRunner
 
@@ -64,6 +65,37 @@ def test_cli_analyze_json_output():
     assert result.exit_code == 0
     data = json.loads(result.output)
     assert "classification" in data
+
+
+def test_cli_analyze_html_output_creates_report():
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            app, ["analyze", "dog_closeup.jpg", "--demo", "--output-format", "html"]
+        )
+        report_path = Path("dog_closeup_report.html")
+
+        assert result.exit_code == 0
+        assert report_path.exists()
+        assert "HTML report saved to" in result.output
+
+
+def test_cli_analyze_save_overlay_creates_png():
+    with runner.isolated_filesystem():
+        overlay_path = Path("demo-overlay.png")
+        result = runner.invoke(
+            app,
+            [
+                "analyze",
+                "dog_closeup.jpg",
+                "--demo",
+                "--save-overlay",
+                str(overlay_path),
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert overlay_path.exists()
+        assert "Overlay saved to" in result.output
 
 
 def test_cli_gallery():

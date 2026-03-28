@@ -133,7 +133,8 @@ class VisionCockpitApp(App[None]):
                 yield Static(id="compare-panel", classes="panel")
                 yield Static(id="history-panel", classes="panel")
                 yield Static(id="status-panel", classes="panel")
-        yield Footer()
+        if not self.config.screenshot_path:
+            yield Footer()
 
     def on_mount(self) -> None:
         self.query_one("#archive-query", Input).value = self.config.query or ""
@@ -198,7 +199,13 @@ class VisionCockpitApp(App[None]):
         if self.config.workflow:
             self._run_workflow(self.config.workflow)
         if self.config.screenshot_path:
-            self.set_timer(0.1, self._capture_screenshot_and_exit)
+            self._schedule_screenshot_capture()
+
+    def _schedule_screenshot_capture(self) -> None:
+        self.call_after_refresh(self._capture_screenshot_after_settle)
+
+    def _capture_screenshot_after_settle(self) -> None:
+        self.call_after_refresh(self._capture_screenshot_and_exit)
 
     def _capture_screenshot_and_exit(self) -> None:
         screenshot_path = Path(self.config.screenshot_path or "cockpit.svg")
@@ -404,9 +411,13 @@ class VisionCockpitApp(App[None]):
 
 async def _capture_with_headless_test(config: CockpitConfig) -> Path:
     app = VisionCockpitApp(config)
-    async with app.run_test(size=(160, 48)) as pilot:
-        await pilot.pause(0.6)
     path = Path(config.screenshot_path or "cockpit.svg")
+    async with app.run_test(size=(160, 48)) as pilot:
+        for _ in range(60):
+            await pilot.pause(0.05)
+            if path.exists():
+                await pilot.pause(0.05)
+                break
     if not path.exists():
         raise RuntimeError(f"Cockpit screenshot was not created: {path}")
     return path

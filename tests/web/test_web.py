@@ -48,6 +48,20 @@ async def test_report_page_for_gallery_image(app):
 
 
 @pytest.mark.asyncio
+async def test_report_page_tolerates_overlay_failure(app, monkeypatch):
+    def explode(*args, **kwargs):
+        raise RuntimeError("overlay boom")
+
+    monkeypatch.setattr("oci_vision.core.renderer.render_overlay", explode)
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/report/dog_closeup.jpg")
+        assert resp.status_code == 200
+        assert "Overlay unavailable" in resp.text
+
+
+@pytest.mark.asyncio
 async def test_analyze_endpoint(app):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -104,6 +118,34 @@ async def test_analyze_upload_endpoint(app):
         assert "image_path" in data
         assert "classification" in data
         assert "feature_overlays" in data
+
+
+@pytest.mark.asyncio
+async def test_analyze_upload_endpoint_tolerates_overlay_failure(app, monkeypatch):
+    from io import BytesIO
+    from PIL import Image
+
+    def explode(*args, **kwargs):
+        raise RuntimeError("overlay boom")
+
+    monkeypatch.setattr("oci_vision.core.renderer.render_overlay", explode)
+
+    img = Image.new("RGB", (10, 10), color=(255, 0, 0))
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post(
+            "/api/analyze-upload",
+            files={"file": ("test.png", buf, "image/png")},
+            data={"features": "classification"},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["overlay_base64"] is None
+        assert data["feature_overlays"] == {}
 
 
 @pytest.mark.asyncio

@@ -11,6 +11,11 @@ def test_normalized_edit_distance_identical_strings():
     assert normalized_edit_distance("STOP", "STOP") == 0.0
 
 
+def test_normalized_edit_distance_handles_empty_strings():
+    assert normalized_edit_distance("", "") == 0.0
+    assert normalized_edit_distance("STOP", "") == 1.0
+
+
 def test_text_similarity_uses_full_text():
     prediction = TextDetectionResult(
         model_version="1.0",
@@ -41,3 +46,15 @@ def test_line_accuracy_partial_match():
     )
 
     assert line_accuracy(prediction, truth) == 0.5
+
+
+def test_line_accuracy_handles_empty_truth():
+    empty_prediction = TextDetectionResult(model_version="1.0", lines=[])
+    empty_truth = TextDetectionResult(model_version="1.0", lines=[])
+    non_empty_prediction = TextDetectionResult(
+        model_version="1.0",
+        lines=[TextLine(text="STOP", confidence=0.99, bounding_polygon=BOX)],
+    )
+
+    assert line_accuracy(empty_prediction, empty_truth) == 1.0
+    assert line_accuracy(non_empty_prediction, empty_truth) == 0.0

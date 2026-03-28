@@ -63,7 +63,42 @@ I read the project top to bottom before changing behavior.
 
 ## Phase 2: Test Sweep
 
-Pending.
+### Baseline
+
+- Full suite before fixes: **1 failed, 174 passed, 3 skipped**.
+- The failure was a flaky deterministic-screenshot test for the Textual cockpit.
+- Baseline coverage: **78.54%** (`79%` displayed by pytest-cov).
+
+### What I changed
+
+1. **Stabilized cockpit screenshot generation.**
+   - Screenshot mode now omits the live footer bar and waits for the headless capture file in a tighter loop.
+   - That removed a race where the footer sometimes rendered before capture and sometimes didn't.
+
+2. **Added CLI coverage for critical export paths.**
+   - Added tests for HTML report generation.
+   - Added tests for overlay export output.
+
+3. **Added web coverage for best-effort rendering paths.**
+   - Added a report-page test that forces overlay rendering to fail and verifies the page still responds cleanly.
+   - Added an upload-endpoint test that forces overlay rendering to fail and verifies the JSON fallback payload stays well-formed.
+
+4. **Added evaluation coverage for OCR edge cases.**
+   - Covered empty-string edit distance.
+   - Covered `line_accuracy()` behavior when ground truth is empty.
+
+### Result
+
+- Full suite after fixes: **181 passed, 3 skipped**.
+- Coverage after fixes: **79.93%** (`80%` displayed by pytest-cov).
+- Coverage delta: **+1.39 percentage points**.
+
+### Critical paths still under-covered after this sweep
+
+- `src/oci_vision/core/client.py` error handling and live-path validation.
+- `src/oci_vision/cli/app.py` live-mode and failure branches.
+- Oracle storage/search modules.
+- `src/oci_vision/core/recording.py` serialization branches.
 
 ## Phase 3: Battle Hardening
 
