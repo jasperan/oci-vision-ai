@@ -16,7 +16,7 @@ from rich.table import Table
 
 from oci_vision.cli.formatters import format_report
 from oci_vision.core.client import VisionClient
-from oci_vision.core.exports import save_overlay_image, write_html_report
+from oci_vision.core.exports import build_json_report_payload, save_overlay_image, write_html_report
 from oci_vision.core.insights import compare_reports, summarize_batch
 from oci_vision.core.models import AnalysisReport, DetectionResult, DocumentResult, TextDetectionResult
 from oci_vision.core.recording import record_fixture, serialize_feature_result
@@ -62,7 +62,7 @@ def _output_report(
 ) -> None:
     """Dispatch the report to the chosen output format."""
     if output_format == "json":
-        print(report.model_dump_json(indent=2))
+        print(json.dumps(build_json_report_payload(report), indent=2))
     elif output_format == "html":
         _output_html(report)
     else:

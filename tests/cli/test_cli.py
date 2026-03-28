@@ -65,6 +65,7 @@ def test_cli_analyze_json_output():
     assert result.exit_code == 0
     data = json.loads(result.output)
     assert "classification" in data
+    assert data["insights"]
 
 
 def test_cli_analyze_html_output_creates_report():

@@ -3,7 +3,7 @@ services:
     image: container-registry.oracle.com/database/free:latest-lite
     container_name: oci-vision-ai-oracle
     environment:
-      ORACLE_PWD: ${OCI_VISION_ORACLE_PASSWORD:-VisionAI2026}
+      ORACLE_PWD: ${OCI_VISION_ORACLE_PASSWORD:?Set OCI_VISION_ORACLE_PASSWORD}
       ORACLE_CHARACTERSET: AL32UTF8
     ports:
       - "${OCI_VISION_ORACLE_PORT:-1524}:1521"
@@ -15,7 +15,7 @@ services:
           "CMD",
           "sqlplus",
           "-L",
-          "sys/${OCI_VISION_ORACLE_PASSWORD:-VisionAI2026}@//localhost:1521/FREEPDB1 as sysdba",
+          "sys/${OCI_VISION_ORACLE_PASSWORD:?Set OCI_VISION_ORACLE_PASSWORD}@//localhost:1521/FREEPDB1 as sysdba",
           "@/dev/null"
         ]
       interval: 30s

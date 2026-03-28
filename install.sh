@@ -12,9 +12,9 @@ set -euo pipefail
 #   PROJECT_DIR=/opt/myapp curl -fsSL ... | bash
 # ============================================================
 
-REPO_URL="https://github.com/jasperan/oci-vision-ai.git"
-PROJECT="oci-vision-ai"
-BRANCH="main"
+REPO_URL="${REPO_URL:-https://github.com/jasperan/oci-vision-ai.git}"
+PROJECT="${PROJECT:-oci-vision-ai}"
+BRANCH="${BRANCH:-main}"
 INSTALL_DIR="${PROJECT_DIR:-$(pwd)/$PROJECT}"
 
 # ── Colors ──────────────────────────────────────────────────

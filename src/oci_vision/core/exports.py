@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import json
 from pathlib import Path
 
 from PIL import Image
@@ -97,6 +98,12 @@ def write_html_report(
     return out_path
 
 
+def build_json_report_payload(report: AnalysisReport) -> dict:
+    payload = report.model_dump()
+    payload["insights"] = report_insights(report)
+    return payload
+
+
 def write_json_report(
     report: AnalysisReport,
     output_path: str | Path | None = None,
@@ -104,7 +111,7 @@ def write_json_report(
     """Write the normalized JSON report to disk and return the path."""
     out_path = Path(output_path or f"{Path(report.image_path).stem}_report.json")
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
+    out_path.write_text(json.dumps(build_json_report_payload(report), indent=2), encoding="utf-8")
     return out_path
 
 

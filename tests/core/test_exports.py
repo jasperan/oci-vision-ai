@@ -85,7 +85,9 @@ def test_write_json_report_creates_file(tmp_path: Path):
 
     assert written == output
     assert output.exists()
-    assert '"classification"' in output.read_text()
+    payload = output.read_text()
+    assert '"classification"' in payload
+    assert '"insights"' in payload
 
 
 def test_save_overlay_image_creates_png(tmp_path: Path):

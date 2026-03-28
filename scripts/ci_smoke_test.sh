@@ -36,6 +36,8 @@ cd "$ARTIFACT_DIR"
 
 "$INSTALL_VENV/bin/oci-vision" --help >/dev/null
 "$INSTALL_VENV/bin/oci-vision" analyze dog_closeup.jpg --demo --output-format json > analyze.json
+"$INSTALL_VENV/bin/oci-vision" compare dog_closeup.jpg sign_board.png --demo --output-format json > compare.json
+"$INSTALL_VENV/bin/oci-vision" batch dog_closeup.jpg sign_board.png invoice_demo.png --demo --output-format json > batch.json
 "$INSTALL_VENV/bin/oci-vision" cockpit --demo --image dog_closeup.jpg --features classification,detection --screenshot cockpit.svg >/dev/null
 
 "$INSTALL_VENV/bin/python" - <<'PY'
@@ -47,6 +49,13 @@ from oci_vision.web.app import create_app
 payload = json.loads(Path('analyze.json').read_text())
 assert payload['classification']['labels'][0]['name'] == 'Dog', payload
 assert payload['available_features'] == ['classification', 'detection'], payload['available_features']
+assert payload['insights'], 'analyze insights missing'
+comparison = json.loads(Path('compare.json').read_text())
+assert 'classification' in comparison['left_only_features'], comparison
+assert 'text' in comparison['right_only_features'], comparison
+batch = json.loads(Path('batch.json').read_text())
+assert batch['report_count'] == 3, batch
+assert batch['feature_coverage']['classification'] >= 1, batch['feature_coverage']
 svg = Path('cockpit.svg')
 assert svg.exists(), 'cockpit.svg was not created'
 text = svg.read_text(encoding='utf-8')

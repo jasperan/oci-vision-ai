@@ -317,7 +317,40 @@ It returns per-image summaries plus aggregate label/object/feature coverage coun
 
 ## Phase 8: Onboarding Verify
 
-Pending.
+### What I did
+
+I simulated a fresh setup from a clean working-tree copy and followed the README flow:
+
+1. Created a fresh copy of the repo.
+2. Created a new virtualenv.
+3. Ran `pip install -e '.[all]'`.
+4. Ran:
+   - `oci-vision analyze dog_closeup.jpg --demo --output-format json`
+   - `oci-vision compare dog_closeup.jpg sign_board.png --demo --output-format json`
+   - `oci-vision batch dog_closeup.jpg sign_board.png invoice_demo.png --demo --output-format json`
+   - `oci-vision cockpit --demo --image dog_closeup.jpg --features classification,detection --screenshot cockpit.svg`
+5. Ran `bash scripts/ci_smoke_test.sh`.
+6. Ran `docker compose -f docker-compose.oracle.yml config` with an explicit password to validate the compose file.
+
+### Friction I fixed
+
+- README demo commands now use real bundled fixture names instead of fake generic filenames.
+- README now documents the new compare and batch commands.
+- README now explains that arbitrary uploads require live mode even when the dashboard is started in demo mode.
+- README now calls out that the browser UI still pulls Tailwind and HTMX from CDNs.
+- README report-page wording now matches the shipped gallery-backed report behavior.
+- README Oracle setup now requires an explicit local password instead of a checked-in sample secret.
+- README Oracle section now warns that `system` is only acceptable for quick local-only demos.
+- Project structure docs now include the new `core/insights.py` module and the higher test count.
+- `install.sh` now supports `REPO_URL`, `PROJECT`, and `BRANCH` overrides, which makes local and fork testing much easier.
+- `docker-compose.oracle.yml` now requires `OCI_VISION_ORACLE_PASSWORD` instead of silently defaulting to a known password.
+- `scripts/ci_smoke_test.sh` now covers compare, batch, and insight output so the README workflow stays exercised in CI.
+
+### Verification
+
+- Fresh working-tree setup succeeded.
+- Smoke test script passed end to end.
+- `docker compose config` validated successfully with an explicit password.
 
 ## Phase 9: Final Gate
 

@@ -4,7 +4,7 @@
 
 The definitive Oracle Cloud Infrastructure Vision AI showcase.
 
-Analyse images with six OCI Vision features through a polished CLI, an interactive web dashboard, or hands-on Jupyter notebooks -- all runnable offline in demo mode with zero cloud credentials.
+Analyse images with six OCI Vision features through a polished CLI, an interactive web dashboard, or hands-on Jupyter notebooks. Demo mode runs without OCI credentials and stays offline-friendly for the CLI, cockpit, and notebooks.
 
 ---
 
@@ -21,8 +21,8 @@ Analyse images with six OCI Vision features through a polished CLI, an interacti
 
 **Delivery surfaces**
 
-- **CLI** (`oci-vision`) -- Rich-formatted terminal output, JSON and HTML reports, workflow packs, demo recording, and the new Textual demo cockpit
-- **Web Dashboard** -- FastAPI + drag-and-drop upload with toggleable feature overlays, compare page, API playground, and report pages
+- **CLI** (`oci-vision`) -- Rich-formatted terminal output, JSON and HTML reports, compare and batch analysis commands, workflow packs, demo recording, and the Textual demo cockpit
+- **Web Dashboard** -- FastAPI + drag-and-drop upload with toggleable feature overlays, a real compare page, API playground, and report pages with generated insight cards
 - **Jupyter Notebooks** -- seven guided walkthroughs with inline visualisations
 
 **Platform extras**
@@ -31,7 +31,7 @@ Analyse images with six OCI Vision features through a polished CLI, an interacti
 - **Workflow Packs** -- receipt intake, shelf audit, inspection, and archive search
 - **Oracle Database 26ai Integration** -- optional run storage and semantic search with local Oracle Database Free
 
-**Demo mode** -- fixture-backed cached responses, one `--demo` flag, works completely offline.
+**Demo mode** -- fixture-backed cached responses, one `--demo` flag, and honest failure for unsupported demo assets instead of silent fallback.
 
 ---
 
@@ -63,6 +63,8 @@ Analyse images with six OCI Vision features through a polished CLI, an interacti
 ```bash
 pip install -e ".[all]"
 oci-vision analyze dog_closeup.jpg --demo
+oci-vision compare dog_closeup.jpg sign_board.png --demo --output-format json
+oci-vision batch dog_closeup.jpg sign_board.png invoice_demo.png --demo --output-format json
 oci-vision cockpit --demo
 oci-vision web --demo
 ```
@@ -114,15 +116,23 @@ A companion HTML slide deck lives at [docs/slides/oci-vision-demo-cockpit.html](
 Every command accepts `--demo` to run without OCI credentials.
 
 ```bash
-# Full analysis (all features)
-oci-vision analyze photo.jpg --demo
+# Full analysis (all features available for the fixture)
+oci-vision analyze dog_closeup.jpg --demo
+oci-vision analyze sign_board.png --demo
+oci-vision analyze invoice_demo.png --demo
 
 # Individual features
-oci-vision classify photo.jpg --demo
-oci-vision detect photo.jpg --demo
-oci-vision ocr document.pdf --demo
-oci-vision faces group.jpg --demo
-oci-vision document invoice.pdf --demo
+oci-vision classify dog_closeup.jpg --demo
+oci-vision detect dog_closeup.jpg --demo
+oci-vision ocr sign_board.png --demo
+oci-vision faces portrait_demo.png --demo
+oci-vision document invoice_demo.png --demo
+
+# Compare two reports
+oci-vision compare dog_closeup.jpg sign_board.png --demo --output-format json
+
+# Batch summary across multiple fixtures
+oci-vision batch dog_closeup.jpg sign_board.png invoice_demo.png --demo --output-format json
 
 # Browse the demo gallery
 oci-vision gallery
@@ -141,10 +151,10 @@ oci-vision record-demo ./sample.png --feature text --response-json ./response.js
 oci-vision search-runs "invoice number"
 
 # JSON output
-oci-vision analyze photo.jpg --demo --output-format json
+oci-vision analyze dog_closeup.jpg --demo --output-format json
 
 # Save annotated overlay image
-oci-vision analyze photo.jpg --demo --save-overlay annotated.png
+oci-vision analyze dog_closeup.jpg --demo --save-overlay annotated.png
 ```
 
 Run `oci-vision --help` for the full option reference.
@@ -157,7 +167,11 @@ Run `oci-vision --help` for the full option reference.
 oci-vision web --demo
 ```
 
-Opens at **http://localhost:8000**. Drag and drop an image or pick one from the built-in gallery, toggle feature-specific overlays, inspect normalized JSON in the API playground, open shareable report pages, and use the compare surface for side-by-side review.
+Opens at **http://localhost:8000**. Drag and drop an image or pick one from the built-in gallery, toggle feature-specific overlays, inspect normalized JSON in the API playground, open gallery-backed report pages, and use the compare surface for side-by-side review.
+
+**Demo-mode upload note:** the browser can only return honest demo results for the bundled fixture names (`dog_closeup.jpg`, `sign_board.png`, `portrait_demo.png`, `invoice_demo.png`). Arbitrary uploads require live mode.
+
+**Offline note:** the browser UI still pulls Tailwind and HTMX from public CDNs today, so the web dashboard itself is not fully air-gapped even though the demo analysis path is credential-free.
 
 ---
 
@@ -184,7 +198,16 @@ jupyter notebook notebooks/
 
 ## Demo Mode
 
-Demo mode serves fixture-backed cached responses that match the OCI Vision response shapes. Fixtures can be recorded into the gallery with `oci-vision record-demo ...`. Demo mode is enabled with a single boolean flag and requires no network access:
+Demo mode serves fixture-backed cached responses that match the OCI Vision response shapes. Fixtures can be recorded into the gallery with `oci-vision record-demo ...`. Demo mode is enabled with a single boolean flag.
+
+Use one of the bundled fixtures in demo mode:
+
+- `dog_closeup.jpg`
+- `sign_board.png`
+- `portrait_demo.png`
+- `invoice_demo.png`
+
+Unsupported demo assets now fail clearly instead of silently falling back to another image.
 
 ```python
 from oci_vision import VisionClient
@@ -194,7 +217,9 @@ report = client.analyze("dog_closeup.jpg")
 print(report.available_features)  # ['classification', 'detection', ...]
 ```
 
-On the CLI, pass `--demo`. In the web dashboard, pass `--demo` to the `web` command. Notebooks default to demo mode.
+For the CLI, pass `--demo`. For the web dashboard, pass `--demo` to the `web` command. Notebooks default to demo mode.
+
+Live mode is required for arbitrary uploads and arbitrary local filenames.
 
 ---
 
@@ -222,17 +247,17 @@ from oci_vision import VisionClient, AnalysisReport
 client = VisionClient(demo=True)
 
 # Full analysis
-report: AnalysisReport = client.analyze("photo.jpg")
+report: AnalysisReport = client.analyze("dog_closeup.jpg")
 
 # Individual features
-classification = client.classify("photo.jpg")
-detection      = client.detect_objects("photo.jpg")
-text           = client.detect_text("photo.jpg")
-faces          = client.detect_faces("photo.jpg")
-document       = client.analyze_document("invoice.pdf")
+classification = client.classify("dog_closeup.jpg")
+detection      = client.detect_objects("dog_closeup.jpg")
+text           = client.detect_text("sign_board.png")
+faces          = client.detect_faces("portrait_demo.png")
+document       = client.analyze_document("invoice_demo.png")
 
 # Selective features
-report = client.analyze("photo.jpg", features=["classification", "detection"])
+report = client.analyze("dog_closeup.jpg", features=["classification", "detection"])
 ```
 
 Key model classes: `AnalysisReport`, `ClassificationResult`, `DetectionResult`, `TextDetectionResult`, `FaceDetectionResult`, `DocumentResult`.
@@ -243,18 +268,19 @@ Key model classes: `AnalysisReport`, `ClassificationResult`, `DetectionResult`, 
 
 Oracle-backed storage is optional and off by default.
 
-Start the local Oracle Database Free container:
+Pick a local password for the container, then start Oracle Database Free:
 
 ```bash
+export OCI_VISION_ORACLE_PASSWORD='replace-with-a-local-dev-password'
 docker compose -f docker-compose.oracle.yml up -d
 ```
 
-Enable Oracle integration for the current shell:
+Enable Oracle integration for the current shell. For a quick local-only demo you can use `system`; for anything beyond that, create a dedicated app user and use that instead.
 
 ```bash
 export OCI_VISION_ENABLE_ORACLE=1
 export OCI_VISION_ORACLE_USER=system
-export OCI_VISION_ORACLE_PASSWORD=VisionAI2026
+export OCI_VISION_ORACLE_PASSWORD='replace-with-a-local-dev-password'
 export OCI_VISION_ORACLE_HOST=localhost
 export OCI_VISION_ORACLE_PORT=1524
 export OCI_VISION_ORACLE_SERVICE=FREEPDB1
@@ -279,6 +305,7 @@ src/oci_vision/
         client.py          # VisionClient -- unified demo/live API
         demo.py            # DemoClient -- offline cached responses
         models.py          # Pydantic v2 response models
+        insights.py        # Shared summaries, compare logic, and batch aggregation
         recording.py       # Demo fixture recording helpers
         renderer.py        # Overlay image rendering (PIL/OpenCV)
     cli/
@@ -317,7 +344,7 @@ src/oci_vision/
         inspection.py      # Inspection workflow pack
         archive_search.py  # Archive-search workflow pack
 notebooks/                 # 7 guided Jupyter notebooks
-tests/                     # pytest suite (130+ tests)
+tests/                     # pytest suite (200+ tests)
 ```
 
 ---
