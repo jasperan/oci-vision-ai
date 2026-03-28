@@ -81,6 +81,17 @@ See `docs/security/dependency-audit.md` for the base dependency audit policy and
 
 ---
 
+## CI and Security
+
+This repo ships with 2 guardrails in GitHub Actions:
+
+- [`build-install-smoke`](https://github.com/jasperan/oci-vision-ai/actions/workflows/build-install-smoke.yml) checks the package build, install flow, demo CLI paths, compare/batch commands, cockpit screenshot generation, and the shipped web assets.
+- [`dependency-audit`](https://github.com/jasperan/oci-vision-ai/actions/workflows/dependency-audit.yml) audits the **base install path** (`pip install -e .`) and uploads a markdown report artifact on every run.
+
+If you want the policy details, current allowlist, and the still-unresolved `pygments` advisory, read [`docs/security/dependency-audit.md`](docs/security/dependency-audit.md).
+
+---
+
 ## Textual Demo Cockpit
 
 The cockpit is a polished terminal control room for the project. It gives you gallery browsing, feature toggles, workflow launchers, run history, lightweight compare mode, and export actions in one screen.
