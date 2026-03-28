@@ -40,7 +40,7 @@ I read the project top to bottom before changing behavior.
    - That's a real security and expectation mismatch.
 
 8. **Oracle defaults are too privileged for a showcase.**
-   - `src/oci_vision/oracle/config.py` defaults to `system` / `VisionAI2026`.
+   - `src/oci_vision/oracle/config.py` defaults to `system` plus a checked-in sample password.
    - `docker-compose.oracle.yml` and the README repeat the same credentials.
    - `src/oci_vision/oracle/schema.py` creates app tables in `SYSAUX`.
    - For a local demo, this is rough.
@@ -165,7 +165,7 @@ I read the project top to bottom before changing behavior.
    - This matches the README claim and reduces accidental LAN exposure.
 
 2. **Oracle integration now fails secure when credentials are missing.**
-   - `OracleConfig` no longer defaults to `system` / `VisionAI2026`.
+   - `OracleConfig` no longer defaults to `system` plus a checked-in sample password.
    - Enabling Oracle mode without explicit credentials now stays disabled instead of quietly reaching for privileged defaults.
 
 3. **Oracle schema bootstrap no longer forces `SYSAUX`.**
