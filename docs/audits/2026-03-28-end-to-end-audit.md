@@ -1,0 +1,94 @@
+# 2026-03-28 End-to-End Audit
+
+## Phase 1: Fresh Eyes
+
+I read the project top to bottom before changing behavior.
+
+### Findings
+
+1. **Demo mode silently analyzes the wrong image.**
+   - `src/oci_vision/core/demo.py` falls back to the first gallery asset when it can't match the requested image.
+   - `README.md` shows generic filenames like `photo.jpg`, `document.pdf`, and `group.jpg`, but the shipped gallery only contains `dog_closeup.jpg`, `sign_board.png`, `portrait_demo.png`, and `invoice_demo.png`.
+   - Result: typos and many README demo commands appear to work while actually returning dog-fixture data.
+
+2. **Web uploads can return believable results for a different image in demo mode.**
+   - `src/oci_vision/web/app.py` writes uploads to a temp file and sends that path into the same demo resolver.
+   - When the filename is unknown, the backend analyzes the dog fixture while rendering overlays on the real uploaded bytes.
+   - That is a nasty trust break.
+
+3. **The compare page is a placeholder, not a compare tool.**
+   - `src/oci_vision/web/templates/compare.html` renders two static copies of the gallery list.
+   - There are no selectors, no outputs, and no comparison logic.
+   - The README sells a compare surface that doesn't actually exist.
+
+4. **The web dashboard isn't fully offline.**
+   - `src/oci_vision/web/templates/base.html` pulls Tailwind and HTMX from public CDNs.
+   - The README says the project runs fully offline in demo mode. That's true for the CLI, not for the browser UI.
+
+5. **Live mode doesn't fail fast on bad local paths.**
+   - `src/oci_vision/core/client.py` turns a missing local file into an empty inline OCI payload instead of raising `FileNotFoundError`.
+   - A local typo becomes an opaque service-side failure.
+
+6. **The web feature picker lies when everything is unchecked.**
+   - The frontend sends an empty feature string.
+   - The backend treats that as falsy and runs `all` features anyway.
+   - The UI says one thing, the server does another.
+
+7. **The docs and server binding disagree.**
+   - `README.md` says the dashboard opens at `http://localhost:8000`.
+   - `src/oci_vision/cli/app.py` binds `oci-vision web` to `0.0.0.0` by default.
+   - That's a real security and expectation mismatch.
+
+8. **Oracle defaults are too privileged for a showcase.**
+   - `src/oci_vision/oracle/config.py` defaults to `system` / `VisionAI2026`.
+   - `docker-compose.oracle.yml` and the README repeat the same credentials.
+   - `src/oci_vision/oracle/schema.py` creates app tables in `SYSAUX`.
+   - For a local demo, this is rough.
+
+9. **The custom-model story overclaims offline coverage.**
+   - The custom-model notebook says demo mode exercises the `model_id` hooks.
+   - In practice, `model_id` is ignored in demo mode for classification and detection.
+
+10. **Several broad exception handlers hide useful failure signals.**
+    - `src/oci_vision/web/app.py`, `src/oci_vision/tui/app.py`, and `src/oci_vision/cli/app.py` swallow generic exceptions in user-facing paths.
+    - That makes debugging harder and risks masking broken behavior as a soft warning.
+
+### Priority order before deeper audit work
+
+1. Fix demo-mode trust breaks.
+2. Make web/offline/docs claims true.
+3. Lock down Oracle defaults and web exposure.
+4. Tighten input validation and error handling.
+5. Turn placeholder surfaces into real features or tone down the docs.
+
+## Phase 2: Test Sweep
+
+Pending.
+
+## Phase 3: Battle Hardening
+
+Pending.
+
+## Phase 4: Security Audit
+
+Pending.
+
+## Phase 5: Performance
+
+Pending.
+
+## Phase 6: Ruthless Simplification
+
+Pending.
+
+## Phase 7: Innovation
+
+Pending.
+
+## Phase 8: Onboarding Verify
+
+Pending.
+
+## Phase 9: Final Gate
+
+Pending.
