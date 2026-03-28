@@ -1,7 +1,6 @@
 """Tests for the OCI Vision AI web dashboard (FastAPI + HTMX)."""
 
 from io import BytesIO
-from pathlib import Path
 
 import pytest
 from httpx import AsyncClient, ASGITransport

@@ -22,7 +22,7 @@ def init_schema(conn) -> None:
             features_json CLOB CHECK (features_json IS JSON),
             report_json   CLOB CHECK (report_json IS JSON),
             created_at    TIMESTAMP DEFAULT SYSTIMESTAMP
-        ) TABLESPACE SYSAUX
+        )
         """,
     )
     _safe_execute(
@@ -35,7 +35,7 @@ def init_schema(conn) -> None:
             chunk_text     CLOB,
             embedding      VECTOR(16, FLOAT32) NOT NULL,
             created_at     TIMESTAMP DEFAULT SYSTIMESTAMP
-        ) TABLESPACE SYSAUX
+        )
         """,
     )
     conn.commit()

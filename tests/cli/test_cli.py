@@ -117,6 +117,21 @@ def test_cli_analyze_timeout_returns_user_error(monkeypatch):
     assert "network stalled" in result.output
 
 
+def test_cli_web_defaults_to_localhost(monkeypatch):
+    captured = {}
+
+    def fake_run(app_obj, *, host, port, reload):
+        captured.update(host=host, port=port, reload=reload)
+
+    monkeypatch.setattr("uvicorn.run", fake_run)
+    result = runner.invoke(app, ["web", "--demo"])
+
+    assert result.exit_code == 0
+    assert captured["host"] == "127.0.0.1"
+    assert captured["port"] == 8000
+    assert captured["reload"] is False
+
+
 def test_cli_gallery():
     result = runner.invoke(app, ["gallery"])
     assert result.exit_code == 0

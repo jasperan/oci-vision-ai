@@ -6,8 +6,8 @@ from dataclasses import dataclass
 
 @dataclass(slots=True)
 class OracleConfig:
-    user: str = "system"
-    password: str = "VisionAI2026"
+    user: str = ""
+    password: str = ""
     host: str = "localhost"
     port: int = 1524
     service: str = "FREEPDB1"
@@ -17,8 +17,8 @@ class OracleConfig:
     @classmethod
     def from_env(cls) -> "OracleConfig":
         return cls(
-            user=os.getenv("OCI_VISION_ORACLE_USER", "system"),
-            password=os.getenv("OCI_VISION_ORACLE_PASSWORD", "VisionAI2026"),
+            user=os.getenv("OCI_VISION_ORACLE_USER", "").strip(),
+            password=os.getenv("OCI_VISION_ORACLE_PASSWORD", "").strip(),
             host=os.getenv("OCI_VISION_ORACLE_HOST", "localhost"),
             port=int(os.getenv("OCI_VISION_ORACLE_PORT", "1524")),
             service=os.getenv("OCI_VISION_ORACLE_SERVICE", "FREEPDB1"),

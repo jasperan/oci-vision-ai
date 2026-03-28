@@ -150,7 +150,53 @@ I read the project top to bottom before changing behavior.
 
 ## Phase 4: Security Audit
 
-Pending.
+### What I checked
+
+- Insecure defaults and hardcoded credentials.
+- Web exposure and network defaults.
+- Security misconfiguration around Oracle integration.
+- Basic OWASP-style input handling in upload and analyze paths.
+- Dependency risk with a targeted `pip-audit` pass over the project dependency set.
+
+### Fixes shipped
+
+1. **Local web server now defaults to localhost, not all interfaces.**
+   - `oci-vision web` now binds to `127.0.0.1` by default.
+   - This matches the README claim and reduces accidental LAN exposure.
+
+2. **Oracle integration now fails secure when credentials are missing.**
+   - `OracleConfig` no longer defaults to `system` / `VisionAI2026`.
+   - Enabling Oracle mode without explicit credentials now stays disabled instead of quietly reaching for privileged defaults.
+
+3. **Oracle schema bootstrap no longer forces `SYSAUX`.**
+   - Table creation now uses the default tablespace instead of pinning app data into a privileged system tablespace.
+
+4. **Upload and API hardening from Phase 3 double as OWASP fixes.**
+   - Empty feature selections now fail closed.
+   - Non-image and oversized uploads are rejected server-side.
+   - Unknown demo uploads and unknown demo report pages no longer produce misleading results.
+
+### Proof via tests
+
+- Added tests for localhost web binding.
+- Added tests proving Oracle config is fail-secure without credentials.
+- Added tests proving Oracle config enables only with explicit credentials.
+- Added tests proving schema initialization no longer injects `SYSAUX`.
+- Added API/upload validation tests in Phase 3 that cover the hardened request handling.
+
+### Dependency-risk findings
+
+Targeted `pip-audit` on the project dependency set surfaced:
+
+- `pyopenssl 25.3.0` with published fixes available in `26.0.0`.
+- `pygments 2.19.2` with a published advisory and no fix version listed by `pip-audit`.
+
+These are transitive in the current environment, not direct imports in this repo. I’m flagging them for discussion rather than forcing a speculative pin mid-audit.
+
+### Still needs discussion
+
+- `docker-compose.oracle.yml` and `README.md` still document the old sample Oracle credentials and privileged user flow. I’ll clean that up in the onboarding/docs phase so the code and docs land together.
+- The web dashboard intentionally has no authentication. That’s reasonable for a localhost demo, not for a shared deployment.
 
 ## Phase 5: Performance
 
