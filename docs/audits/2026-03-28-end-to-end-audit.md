@@ -329,6 +329,8 @@ It returns per-image summaries plus aggregate label/object/feature coverage coun
   - `.[notebooks]`
   - `.[all]`
 - Added packaging tests to lock in the lighter default dependency surface.
+- Added `scripts/dependency_audit.py` plus a dedicated GitHub Action at `.github/workflows/dependency-audit.yml`.
+- Added `docs/security/dependency-audit.md` to document the current allowlisted unresolved `pygments` advisory explicitly.
 
 ### Dependency audit result after the change
 
@@ -343,6 +345,7 @@ So the follow-up pass removed the fixable `pyOpenSSL` exposure from the default 
 - `python -m pytest tests -q` → passed
 - `bash scripts/ci_smoke_test.sh` → passed
 - fresh base install smoke run → passed
+- `python scripts/dependency_audit.py --report /tmp/dependency-audit-report.md` → passed with only the documented unresolved `pygments` advisory
 
 ## Follow-up Pass: CDN Removal
 
@@ -383,7 +386,7 @@ I simulated a fresh setup from a clean working-tree copy and followed the README
 - README demo commands now use real bundled fixture names instead of fake generic filenames.
 - README now documents the new compare and batch commands.
 - README now explains that arbitrary uploads require live mode even when the dashboard is started in demo mode.
-- README now calls out that the browser UI still pulls Tailwind and HTMX from CDNs.
+- README now documents that the browser UI serves CSS and HTMX from local static assets, so demo mode no longer depends on public CDNs.
 - README report-page wording now matches the shipped gallery-backed report behavior.
 - README Oracle setup now requires an explicit local password instead of a checked-in sample secret.
 - README Oracle section now warns that `system` is only acceptable for quick local-only demos.
@@ -402,7 +405,7 @@ I simulated a fresh setup from a clean working-tree copy and followed the README
 
 ### Final verification
 
-- `python -m pytest tests -q` → **202 passed, 3 skipped**
+- `python -m pytest tests -q` → **208 passed, 3 skipped**
 - `bash scripts/ci_smoke_test.sh` → **passed**
 
 ### Merge state

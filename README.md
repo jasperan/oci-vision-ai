@@ -1,6 +1,7 @@
 # OCI Vision AI
 
 [![build-install-smoke](https://github.com/jasperan/oci-vision-ai/actions/workflows/build-install-smoke.yml/badge.svg)](https://github.com/jasperan/oci-vision-ai/actions/workflows/build-install-smoke.yml)
+[![dependency-audit](https://github.com/jasperan/oci-vision-ai/actions/workflows/dependency-audit.yml/badge.svg)](https://github.com/jasperan/oci-vision-ai/actions/workflows/dependency-audit.yml)
 
 The definitive Oracle Cloud Infrastructure Vision AI showcase.
 
@@ -68,6 +69,8 @@ oci-vision batch dog_closeup.jpg sign_board.png invoice_demo.png --demo --output
 oci-vision cockpit --demo
 oci-vision web --demo
 ```
+
+See `docs/security/dependency-audit.md` for the base dependency audit policy and the one currently allowlisted unresolved advisory.
 
 **Install options**
 

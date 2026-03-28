@@ -1,0 +1,41 @@
+name: dependency-audit
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  base-dependency-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install audit tooling
+        run: python -m pip install --upgrade pip pip-audit
+
+      - name: Audit base dependency set
+        run: python scripts/dependency_audit.py --report dependency-audit-report.md
+
+      - name: Publish audit summary
+        if: always()
+        run: |
+          echo "## Base dependency audit" >> "$GITHUB_STEP_SUMMARY"
+          cat dependency-audit-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload audit artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audit-report
+          path: dependency-audit-report.md
