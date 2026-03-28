@@ -200,7 +200,47 @@ These are transitive in the current environment, not direct imports in this repo
 
 ## Phase 5: Performance
 
-Pending.
+### Profiling target
+
+I profiled the hot offline paths that drive the demo experience:
+
+1. Repeated demo analyses.
+2. Overlay rendering.
+3. Web-style multi-overlay generation (full overlay plus per-feature overlays).
+
+### Biggest bottlenecks found
+
+1. **Demo fixture disk I/O and JSON parsing**
+   - `src/oci_vision/gallery/__init__.py:get_cached_response()` re-read and re-decoded the same JSON fixture on every call.
+
+2. **Renderer alpha compositing**
+   - `src/oci_vision/core/renderer.py:render_overlay()` built a separate RGBA overlay and then alpha-composited it back onto the base image every time.
+
+3. **Repeated label measurement and font setup work**
+   - `_draw_label()` re-measured text even when callers had already measured it.
+   - Font lookup also happened for every render even when the size never changed.
+
+### Fixes shipped
+
+- Added in-memory caching for `load_manifest()` and `get_cached_response()`.
+- Cleared those caches after fixture recording so demo additions stay correct in-process.
+- Switched overlay rendering to draw directly onto a single RGBA canvas, removing an extra `Image.alpha_composite()` pass.
+- Cached fonts by size.
+- Reused precomputed text sizes when drawing labels.
+
+### Benchmarks
+
+Average wall-clock time across 5 runs on this machine:
+
+| Benchmark | Before | After | Improvement |
+|---|---:|---:|---:|
+| `demo_analyze_500` | 0.289s | 0.119s | **58.7% faster** |
+| `render_overlay_100` | 2.046s | 1.629s | **20.4% faster** |
+| `web_like_overlays_50` | 2.716s | 2.015s | **25.8% faster** |
+
+### Verification
+
+- Full suite after performance work: **195 passed, 3 skipped**.
 
 ## Phase 6: Ruthless Simplification
 

@@ -7,6 +7,8 @@ with the overlays composited on top.
 
 from __future__ import annotations
 
+from functools import lru_cache
+
 from PIL import Image, ImageDraw, ImageFont
 
 from oci_vision.core.models import AnalysisReport
@@ -37,6 +39,7 @@ _LANDMARK_RADIUS = 4
 # Font helper
 # ---------------------------------------------------------------------------
 
+@lru_cache(maxsize=8)
 def _load_font(size: int = 14) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     """Try DejaVu Sans, fall back to Pillow default."""
     for path in (
@@ -73,9 +76,10 @@ def _draw_label(
     text_color: tuple[int, ...] = _LABEL_TEXT_COLOR,
     bg_color: tuple[int, ...] = _LABEL_BG_COLOR,
     pad: int = 3,
+    text_size: tuple[int, int] | None = None,
 ) -> None:
     """Draw *text* at (*x*, *y*) with a semi-transparent background pill."""
-    tw, th = _text_bbox(draw, text, font)
+    tw, th = text_size or _text_bbox(draw, text, font)
     draw.rectangle(
         [x, y, x + tw + 2 * pad, y + th + 2 * pad],
         fill=bg_color,
@@ -116,7 +120,15 @@ def _draw_detections(
         tw, th = _text_bbox(draw, label, font)
         # Position label just above the box (or at box top if no room)
         label_y = max(0, top_y - th - 8)
-        _draw_label(draw, label, top_x, label_y, font, text_color=(*color, 255))
+        _draw_label(
+            draw,
+            label,
+            top_x,
+            label_y,
+            font,
+            text_color=(*color, 255),
+            text_size=(tw, th),
+        )
 
 
 def _draw_classification(
@@ -132,7 +144,7 @@ def _draw_classification(
         pct = round(label.confidence * 100)
         text = f"{label.name} {pct}%"
         tw, th = _text_bbox(draw, text, font)
-        _draw_label(draw, text, x, y, font)
+        _draw_label(draw, text, x, y, font, text_size=(tw, th))
         y += th + 10
 
 
@@ -183,7 +195,14 @@ def _draw_faces(
         top_x = min(p[0] for p in pixels) if pixels else 0
         top_y = min(p[1] for p in pixels) if pixels else 0
         tw, th = _text_bbox(draw, label, font)
-        _draw_label(draw, label, top_x, max(0, top_y - th - 8), font)
+        _draw_label(
+            draw,
+            label,
+            top_x,
+            max(0, top_y - th - 8),
+            font,
+            text_size=(tw, th),
+        )
 
         # Landmarks as filled circles
         r = _LANDMARK_RADIUS
@@ -216,10 +235,9 @@ def render_overlay(
     img_w, img_h = image.size
     font = _load_font(max(12, img_h // 40))
 
-    # Work on an RGBA copy so we can alpha-composite
-    base = image.convert("RGBA")
-    overlay = Image.new("RGBA", (img_w, img_h), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(overlay)
+    # Draw directly on an RGBA canvas to avoid an extra alpha-composite pass.
+    canvas = image.convert("RGBA")
+    draw = ImageDraw.Draw(canvas, "RGBA")
 
     # Layer order: text regions first (they have semi-transparent fill),
     # then detection boxes, faces, and finally classification tags on top.
@@ -232,5 +250,4 @@ def render_overlay(
     if "classification" in selected_features:
         _draw_classification(draw, report, font)
 
-    composited = Image.alpha_composite(base, overlay)
-    return composited.convert("RGB")
+    return canvas.convert("RGB")

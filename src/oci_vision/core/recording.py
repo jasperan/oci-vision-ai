@@ -12,7 +12,7 @@ from oci_vision.core.models import (
     FaceDetectionResult,
     TextDetectionResult,
 )
-from oci_vision.gallery import get_gallery_path
+from oci_vision.gallery import get_cached_response, get_gallery_path, load_manifest
 
 
 FeatureResult = (
@@ -308,4 +308,6 @@ def record_fixture(
 
     manifest["images"] = sorted(manifest["images"], key=lambda item: item["id"])
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+    load_manifest.cache_clear()
+    get_cached_response.cache_clear()
     return existing
