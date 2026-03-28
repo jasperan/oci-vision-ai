@@ -17,6 +17,7 @@ from rich.table import Table
 from oci_vision.cli.formatters import format_report
 from oci_vision.core.client import VisionClient
 from oci_vision.core.exports import save_overlay_image, write_html_report
+from oci_vision.core.insights import compare_reports, summarize_batch
 from oci_vision.core.models import AnalysisReport, DetectionResult, DocumentResult, TextDetectionResult
 from oci_vision.core.recording import record_fixture, serialize_feature_result
 from oci_vision.eval import (
@@ -85,6 +86,82 @@ def _load_eval_payload(kind: str, path: str):
     raise typer.BadParameter(f"Unsupported eval kind: {kind}")
 
 
+def _output_comparison(comparison: dict, output_format: str) -> None:
+    if output_format == "json":
+        print(json.dumps(comparison, indent=2))
+        return
+
+    console.print(Panel.fit(
+        f"Compare: {comparison['left_image']} vs {comparison['right_image']}",
+        border_style="cyan",
+    ))
+
+    summary = Table(title="Comparison Summary", border_style="cyan")
+    summary.add_column("Metric", style="bold")
+    summary.add_column("Value")
+    summary.add_row("Shared features", ", ".join(comparison["shared_features"]) or "none")
+    summary.add_row("Left only", ", ".join(comparison["left_only_features"]) or "none")
+    summary.add_row("Right only", ", ".join(comparison["right_only_features"]) or "none")
+    summary.add_row(
+        "Top label",
+        f"{comparison['top_label_change']['left']} → {comparison['top_label_change']['right']}",
+    )
+    summary.add_row("Object delta", str(comparison["object_count_delta"]))
+    summary.add_row("OCR line delta", str(comparison["ocr_line_delta"]))
+    summary.add_row("Face delta", str(comparison["face_count_delta"]))
+    summary.add_row("Document field delta", str(comparison["document_field_delta"]))
+    if comparison["ocr_similarity"] is not None:
+        summary.add_row("OCR similarity", f"{comparison['ocr_similarity']:.3f}")
+    console.print(summary)
+
+    if comparison["object_deltas"]:
+        object_table = Table(title="Object Deltas", border_style="magenta")
+        object_table.add_column("Object", style="bold")
+        object_table.add_column("Left", justify="right")
+        object_table.add_column("Right", justify="right")
+        object_table.add_column("Δ", justify="right")
+        for item in comparison["object_deltas"]:
+            object_table.add_row(item["name"], str(item["left"]), str(item["right"]), str(item["delta"]))
+        console.print(object_table)
+
+
+def _output_batch_summary(batch: dict, output_format: str) -> None:
+    if output_format == "json":
+        print(json.dumps(batch, indent=2))
+        return
+
+    console.print(Panel.fit(f"Batch analysis: {batch['report_count']} image(s)", border_style="cyan"))
+
+    report_table = Table(title="Per-image Summary", border_style="cyan")
+    report_table.add_column("Image", style="bold")
+    report_table.add_column("Features")
+    report_table.add_column("Top label")
+    report_table.add_column("Objects", justify="right")
+    report_table.add_column("OCR", justify="right")
+    report_table.add_column("Doc fields", justify="right")
+    for report in batch["reports"]:
+        report_table.add_row(
+            report["image"],
+            ", ".join(report["features"]),
+            report["top_label"],
+            str(report["object_count"]),
+            str(report["ocr_line_count"]),
+            str(report["document_field_count"]),
+        )
+    console.print(report_table)
+
+    aggregate = Table(title="Aggregate Summary", border_style="magenta")
+    aggregate.add_column("Metric", style="bold")
+    aggregate.add_column("Value")
+    aggregate.add_row("Feature coverage", json.dumps(batch["feature_coverage"], indent=2))
+    aggregate.add_row("Top labels", json.dumps(batch["top_labels"], indent=2))
+    aggregate.add_row("Object counts", json.dumps(batch["object_counts"], indent=2))
+    aggregate.add_row("Total faces", str(batch["total_faces"]))
+    aggregate.add_row("Total OCR lines", str(batch["total_ocr_lines"]))
+    aggregate.add_row("Total document fields", str(batch["total_document_fields"]))
+    console.print(aggregate)
+
+
 def _run_vision_call(action, *, label: str = "request"):
     try:
         return action()
@@ -117,6 +194,13 @@ def _run_single_feature_command(
     _output_report(report, output_format, demo)
 
 
+def _parse_feature_option(features: Optional[str]) -> list[str] | str:
+    if not features:
+        return "all"
+    requested = [feature.strip() for feature in features.split(",") if feature.strip()]
+    return requested or "all"
+
+
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
@@ -133,9 +217,7 @@ def analyze(
     """Analyse an image with all OCI Vision AI features."""
     client = _build_client(demo)
 
-    feat_list: list[str] | str = "all"
-    if features:
-        feat_list = [f.strip() for f in features.split(",")]
+    feat_list = _parse_feature_option(features)
 
     report = _run_vision_call(
         lambda: client.analyze(image, features=feat_list, model_id=model_id),
@@ -148,6 +230,49 @@ def analyze(
 
     if save_overlay:
         _save_overlay(report, image, save_overlay)
+
+
+@app.command()
+def compare(
+    left: str = typer.Argument(..., help="Left image path or gallery name"),
+    right: str = typer.Argument(..., help="Right image path or gallery name"),
+    demo: bool = typer.Option(False, "--demo", help="Use demo mode"),
+    features: Optional[str] = typer.Option(None, "--features", help="Optional comma-separated feature subset"),
+    output_format: str = typer.Option("rich", "--output-format", help="Output format: rich or json"),
+) -> None:
+    """Compare two analysis reports side by side."""
+    client = _build_client(demo)
+    feat_list = _parse_feature_option(features)
+
+    left_report = _run_vision_call(
+        lambda: client.analyze(left, features=feat_list),
+        label="left analysis",
+    )
+    right_report = _run_vision_call(
+        lambda: client.analyze(right, features=feat_list),
+        label="right analysis",
+    )
+    _output_comparison(compare_reports(left_report, right_report), output_format)
+
+
+@app.command()
+def batch(
+    images: list[str] = typer.Argument(..., help="One or more image paths or gallery names"),
+    demo: bool = typer.Option(False, "--demo", help="Use demo mode"),
+    features: Optional[str] = typer.Option(None, "--features", help="Optional comma-separated feature subset"),
+    output_format: str = typer.Option("rich", "--output-format", help="Output format: rich or json"),
+) -> None:
+    """Analyze multiple images and emit an aggregate summary."""
+    client = _build_client(demo)
+    feat_list = _parse_feature_option(features)
+    reports = [
+        _run_vision_call(
+            lambda image=image: client.analyze(image, features=feat_list),
+            label=f"analysis for {image}",
+        )
+        for image in images
+    ]
+    _output_batch_summary(summarize_batch(reports), output_format)
 
 
 @app.command()

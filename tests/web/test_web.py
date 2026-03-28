@@ -48,12 +48,24 @@ async def test_compare_page(app):
 
 
 @pytest.mark.asyncio
+async def test_compare_page_renders_comparison_results(app):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/compare", params={"left": "dog_closeup.jpg", "right": "sign_board.png"})
+        assert resp.status_code == 200
+        assert "Delta summary" in resp.text
+        assert "dog_closeup.jpg" in resp.text
+        assert "sign_board.png" in resp.text
+
+
+@pytest.mark.asyncio
 async def test_report_page_for_gallery_image(app):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/report/dog_closeup.jpg")
         assert resp.status_code == 200
         assert "OCI Vision Report" in resp.text
+        assert "Insights" in resp.text
 
 
 @pytest.mark.asyncio
@@ -90,6 +102,7 @@ async def test_analyze_endpoint(app):
         assert resp.status_code == 200
         data = resp.json()
         assert "classification" in data
+        assert data["insights"]
 
 
 @pytest.mark.asyncio
@@ -158,6 +171,7 @@ async def test_analyze_upload_endpoint(app):
         assert "image_path" in data
         assert "classification" in data
         assert "feature_overlays" in data
+        assert data["insights"]
 
 
 @pytest.mark.asyncio

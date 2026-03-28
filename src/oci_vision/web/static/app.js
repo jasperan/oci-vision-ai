@@ -125,6 +125,17 @@
             html += "</div>";
         }
 
+        // Insights
+        if (data.insights && data.insights.length) {
+            html += '<div class="mb-4">';
+            html += '<h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Insights</h3>';
+            html += '<ul class="space-y-1 text-sm text-slate-200">';
+            data.insights.forEach(function (line) {
+                html += '<li>' + escHtml(line) + '</li>';
+            });
+            html += '</ul></div>';
+        }
+
         // Classification
         if (data.classification && data.classification.labels) {
             html += '<div class="mb-4">';

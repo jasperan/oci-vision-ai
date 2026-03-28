@@ -267,7 +267,53 @@ Average wall-clock time across 5 runs on this machine:
 
 ## Phase 7: Innovation
 
-Pending.
+I picked the 3 additions that felt most useful after reading the whole codebase and audit trail.
+
+### 1. Reusable insight engine
+
+Added `src/oci_vision/core/insights.py` with:
+
+- `summarize_report()`
+- `report_insights()`
+- `compare_reports()`
+- `summarize_batch()`
+
+This turns raw vision output into reusable summaries that other surfaces can consume.
+
+### 2. Real comparison feature
+
+Implemented a real compare flow instead of the old placeholder:
+
+- New CLI command: `oci-vision compare left right --demo`
+- Web compare page now accepts two images and renders an actual delta summary
+- Shared compare logic uses the new core insight engine
+
+### 3. Batch analysis with aggregation
+
+Added a new CLI command:
+
+- `oci-vision batch image1 image2 ... --demo`
+
+It returns per-image summaries plus aggregate label/object/feature coverage counts, which is far more useful for demos and small evaluations than one-image-at-a-time runs.
+
+### Bonus integration work
+
+- HTML reports now include an Insights section.
+- Web report pages now show insights.
+- API analyze/upload responses now include insight strings.
+- TUI insight helpers now reuse the same core summary/compare logic.
+
+### Tests added
+
+- Core insight summary/compare/batch tests.
+- CLI compare/batch command tests.
+- Web compare-page rendering test.
+- Report/API/upload insight assertions.
+- TUI insight regression checks through the shared helper path.
+
+### Verification
+
+- Full suite after innovation work: **202 passed, 3 skipped**.
 
 ## Phase 8: Onboarding Verify
 

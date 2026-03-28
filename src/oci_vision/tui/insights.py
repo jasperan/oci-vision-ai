@@ -2,29 +2,13 @@ from __future__ import annotations
 
 from typing import Sequence
 
+from oci_vision.core.insights import compare_reports as core_compare_reports
+from oci_vision.core.insights import summarize_report as core_summarize_report
 from oci_vision.core.models import AnalysisReport
 
 
 def summarize_report(report: AnalysisReport) -> dict[str, object]:
-    classification = report.classification.labels[0].name if report.classification and report.classification.labels else "—"
-    detection_count = len(report.detection.objects) if report.detection else 0
-    ocr_line_count = len(report.text.lines) if report.text else 0
-    face_count = len(report.faces.faces) if report.faces else 0
-    field_count = len(report.document.fields) if report.document else 0
-    table_count = len(report.document.tables) if report.document else 0
-
-    return {
-        "image": report.image_path,
-        "feature_count": len(report.available_features),
-        "features": list(report.available_features),
-        "elapsed_seconds": report.elapsed_seconds,
-        "top_label": classification,
-        "object_count": detection_count,
-        "ocr_line_count": ocr_line_count,
-        "face_count": face_count,
-        "document_field_count": field_count,
-        "document_table_count": table_count,
-    }
+    return core_summarize_report(report)
 
 
 def compare_reports(current: AnalysisReport, previous: AnalysisReport | None) -> dict[str, object]:
@@ -38,20 +22,17 @@ def compare_reports(current: AnalysisReport, previous: AnalysisReport | None) ->
             "document_field_delta": "0",
         }
 
-    current_summary = summarize_report(current)
-    previous_summary = summarize_report(previous)
-
-    object_delta = int(current_summary["object_count"]) - int(previous_summary["object_count"])
-    ocr_delta = int(current_summary["ocr_line_count"]) - int(previous_summary["ocr_line_count"])
-    field_delta = int(current_summary["document_field_count"]) - int(previous_summary["document_field_count"])
+    comparison = core_compare_reports(previous, current)
 
     return {
         "has_previous": True,
         "summary": f"Previous run: {previous.image_path}",
-        "top_label_delta": f"{previous_summary['top_label']} → {current_summary['top_label']}",
-        "object_count_delta": _signed_delta(object_delta),
-        "ocr_line_delta": _signed_delta(ocr_delta),
-        "document_field_delta": _signed_delta(field_delta),
+        "top_label_delta": (
+            f"{comparison['top_label_change']['left']} → {comparison['top_label_change']['right']}"
+        ),
+        "object_count_delta": _signed_delta(int(comparison["object_count_delta"])),
+        "ocr_line_delta": _signed_delta(int(comparison["ocr_line_delta"])),
+        "document_field_delta": _signed_delta(int(comparison["document_field_delta"])),
     }
 
 

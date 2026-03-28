@@ -5,31 +5,108 @@
 {% block content %}
 <div class="glass-card p-6 mb-6">
     <h2 class="text-xl font-semibold cyan-accent mb-2">Compare</h2>
-    <p class="text-slate-400 text-sm">Pick two gallery assets and compare their outputs side by side. This page is intentionally lightweight and reuses the same analysis APIs as the analyzer.</p>
+    <p class="text-slate-400 text-sm">Pick two demo assets and compare their outputs side by side.</p>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="glass-card p-6 mb-6">
+    <form method="get" action="/compare" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <label class="block text-sm">
+            <span class="text-slate-400">Left image</span>
+            <select name="left" class="mt-2 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100">
+                <option value="">Select an image</option>
+                {% for img in images %}
+                <option value="{{ img.filename }}" {% if selected_left == img.filename %}selected{% endif %}>{{ img.filename }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="block text-sm">
+            <span class="text-slate-400">Right image</span>
+            <select name="right" class="mt-2 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100">
+                <option value="">Select an image</option>
+                {% for img in images %}
+                <option value="{{ img.filename }}" {% if selected_right == img.filename %}selected{% endif %}>{{ img.filename }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit" class="cyan-bg text-slate-900 font-semibold py-3 rounded-lg cyan-bg-hover transition">Compare</button>
+    </form>
+</div>
+
+{% if error %}
+<div class="glass-card p-6 mb-6 border border-rose-500/40">
+    <h3 class="text-lg font-semibold text-rose-300 mb-2">Comparison error</h3>
+    <p class="text-sm text-rose-100">{{ error }}</p>
+</div>
+{% endif %}
+
+{% if comparison %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <div class="glass-card p-6">
-        <h3 class="text-lg font-semibold mb-4">Left sample</h3>
-        <div class="space-y-3">
-            {% for img in images %}
-            <div class="rounded border border-slate-700 px-4 py-3">
-                <div class="font-medium">{{ img.filename }}</div>
-                <div class="text-sm text-slate-400">{{ img.description }}</div>
-            </div>
-            {% endfor %}
-        </div>
+        <h3 class="text-lg font-semibold mb-3">{{ comparison.left_image }}</h3>
+        <p class="text-sm text-slate-400 mb-2">Features: {{ comparison.left_summary.features | join(', ') }}</p>
+        <p class="text-sm">Top label: {{ comparison.left_summary.top_label }}</p>
+        <p class="text-sm">Objects: {{ comparison.left_summary.object_count }}</p>
+        <p class="text-sm">OCR lines: {{ comparison.left_summary.ocr_line_count }}</p>
+        <p class="text-sm">Document fields: {{ comparison.left_summary.document_field_count }}</p>
     </div>
     <div class="glass-card p-6">
-        <h3 class="text-lg font-semibold mb-4">Right sample</h3>
-        <div class="space-y-3">
-            {% for img in images %}
-            <div class="rounded border border-slate-700 px-4 py-3">
-                <div class="font-medium">{{ img.filename }}</div>
-                <div class="text-sm text-slate-400">{{ img.description }}</div>
-            </div>
-            {% endfor %}
-        </div>
+        <h3 class="text-lg font-semibold mb-3">{{ comparison.right_image }}</h3>
+        <p class="text-sm text-slate-400 mb-2">Features: {{ comparison.right_summary.features | join(', ') }}</p>
+        <p class="text-sm">Top label: {{ comparison.right_summary.top_label }}</p>
+        <p class="text-sm">Objects: {{ comparison.right_summary.object_count }}</p>
+        <p class="text-sm">OCR lines: {{ comparison.right_summary.ocr_line_count }}</p>
+        <p class="text-sm">Document fields: {{ comparison.right_summary.document_field_count }}</p>
     </div>
 </div>
+
+<div class="glass-card p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-4">Delta summary</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div>
+            <p><span class="text-slate-400">Shared features:</span> {{ comparison.shared_features | join(', ') or 'none' }}</p>
+            <p><span class="text-slate-400">Left only:</span> {{ comparison.left_only_features | join(', ') or 'none' }}</p>
+            <p><span class="text-slate-400">Right only:</span> {{ comparison.right_only_features | join(', ') or 'none' }}</p>
+        </div>
+        <div>
+            <p><span class="text-slate-400">Top label change:</span> {{ comparison.top_label_change.left }} → {{ comparison.top_label_change.right }}</p>
+            <p><span class="text-slate-400">Object delta:</span> {{ comparison.object_count_delta }}</p>
+            <p><span class="text-slate-400">OCR line delta:</span> {{ comparison.ocr_line_delta }}</p>
+            <p><span class="text-slate-400">Document field delta:</span> {{ comparison.document_field_delta }}</p>
+        </div>
+    </div>
+
+    {% if comparison.ocr_similarity is not none %}
+    <p class="text-sm mt-3"><span class="text-slate-400">OCR similarity:</span> {{ '%.3f'|format(comparison.ocr_similarity) }}</p>
+    {% endif %}
+</div>
+
+<div class="glass-card p-6">
+    <h3 class="text-lg font-semibold mb-4">Object deltas</h3>
+    {% if comparison.object_deltas %}
+    <div class="space-y-2 text-sm">
+        {% for item in comparison.object_deltas %}
+        <div class="rounded border border-slate-700 px-4 py-3 flex items-center justify-between">
+            <span>{{ item.name }}</span>
+            <span class="font-mono text-slate-300">{{ item.left }} → {{ item.right }} (Δ {{ item.delta }})</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-slate-400">No object deltas to show.</p>
+    {% endif %}
+
+    {% if comparison.document_field_changes %}
+    <h4 class="text-md font-semibold mt-6 mb-3">Document field changes</h4>
+    <div class="space-y-2 text-sm">
+        {% for item in comparison.document_field_changes %}
+        <div class="rounded border border-slate-700 px-4 py-3">
+            <div class="font-medium">{{ item.label }}</div>
+            <div class="text-slate-400">Left: {{ item.left or '—' }}</div>
+            <div class="text-slate-400">Right: {{ item.right or '—' }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
 {% endblock %}

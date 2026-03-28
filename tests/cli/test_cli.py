@@ -98,6 +98,30 @@ def test_cli_analyze_save_overlay_creates_png():
         assert "Overlay saved to" in result.output
 
 
+def test_cli_compare_json_output():
+    result = runner.invoke(
+        app,
+        ["compare", "dog_closeup.jpg", "sign_board.png", "--demo", "--output-format", "json"],
+    )
+
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert "classification" in data["left_only_features"]
+    assert "text" in data["right_only_features"]
+
+
+def test_cli_batch_json_output():
+    result = runner.invoke(
+        app,
+        ["batch", "dog_closeup.jpg", "sign_board.png", "--demo", "--output-format", "json"],
+    )
+
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert data["report_count"] == 2
+    assert data["feature_coverage"]["classification"] >= 1
+
+
 def test_cli_analyze_reports_missing_demo_asset_cleanly():
     result = runner.invoke(app, ["analyze", "missing-demo.png", "--demo"])
 

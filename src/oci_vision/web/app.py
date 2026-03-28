@@ -19,6 +19,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from oci_vision.core.client import VisionClient
+from oci_vision.core.insights import compare_reports, report_insights
 from oci_vision.gallery import load_manifest
 from oci_vision.oracle import search_if_enabled, store_report_if_enabled
 
@@ -118,12 +119,31 @@ def create_app(demo: bool = False) -> FastAPI:
         })
 
     @app.get("/compare", response_class=HTMLResponse)
-    async def compare_page(request: Request):
+    async def compare_page(request: Request, left: str | None = None, right: str | None = None):
         """Comparison page for side-by-side gallery inspection."""
         manifest = load_manifest()
+        left_report = None
+        right_report = None
+        comparison = None
+        error = None
+
+        if left and right:
+            try:
+                left_report = client.analyze(left)
+                right_report = client.analyze(right)
+                comparison = compare_reports(left_report, right_report)
+            except Exception as exc:
+                error = str(exc)
+
         return templates.TemplateResponse(request, "compare.html", {
             "images": manifest["images"],
             "demo": client.is_demo,
+            "selected_left": left,
+            "selected_right": right,
+            "left_report": left_report,
+            "right_report": right_report,
+            "comparison": comparison,
+            "error": error,
         })
 
     @app.get("/report/{image_name}", response_class=HTMLResponse)
@@ -164,6 +184,7 @@ def create_app(demo: bool = False) -> FastAPI:
             "image_name": image_name,
             "demo": client.is_demo,
             "image_path": str(image_path) if image_path.exists() else None,
+            "insights": report_insights(report),
         })
 
     # ------------------------------------------------------------------
@@ -194,6 +215,7 @@ def create_app(demo: bool = False) -> FastAPI:
             return _analysis_error_response(exc)
 
         result = report.model_dump()
+        result["insights"] = report_insights(report)
         stored_run_id = store_report_if_enabled(report)
         if stored_run_id:
             result["stored_run_id"] = stored_run_id
@@ -240,6 +262,7 @@ def create_app(demo: bool = False) -> FastAPI:
                 return _analysis_error_response(exc)
 
             result = report.model_dump()
+            result["insights"] = report_insights(report)
 
             try:
                 from PIL import Image

@@ -60,6 +60,7 @@ def test_build_html_report_contains_key_sections():
     html = build_html_report(report)
 
     assert "OCI Vision AI Report" in html
+    assert "Insights" in html
     assert "Classification" in html
     assert "Object Detection" in html
     assert "Dog" in html

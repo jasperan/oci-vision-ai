@@ -5,6 +5,7 @@ from pathlib import Path
 
 from PIL import Image
 
+from oci_vision.core.insights import report_insights
 from oci_vision.core.models import AnalysisReport
 from oci_vision.core.renderer import render_overlay
 from oci_vision.gallery import get_gallery_path
@@ -16,6 +17,8 @@ def build_html_report(report: AnalysisReport) -> str:
     image_name = esc(Path(report.image_path).stem)
 
     features_html: list[str] = []
+    insight_items = "".join(f"<li>{esc(line)}</li>" for line in report_insights(report))
+    features_html.append(f"<h2>Insights</h2><ul>{insight_items}</ul>")
     if report.classification:
         rows = "".join(
             f"<tr><td>{esc(label.name)}</td><td>{label.confidence_pct:.1f}%</td></tr>"
