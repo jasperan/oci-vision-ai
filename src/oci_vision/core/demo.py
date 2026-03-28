@@ -37,8 +37,11 @@ class DemoClient:
         stem = Path(image).stem
         if stem in self._image_ids:
             return stem
-        # Fallback: return first gallery image
-        return self._manifest["images"][0]["id"]
+
+        known_assets = ", ".join(sorted(self._filenames))
+        raise FileNotFoundError(
+            f"Demo asset not found: {image}. Known demo assets: {known_assets}"
+        )
 
     def classify(self, image: str, max_results: int = 25) -> ClassificationResult | None:
         image_id = self._resolve_image_id(image)

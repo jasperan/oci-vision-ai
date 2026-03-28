@@ -127,8 +127,11 @@ def test_build_text_feature_uses_image_text_detection_feature():
     assert feature.feature_type == "TEXT_DETECTION"
 
 
-def test_live_classify_uses_analyze_image_without_name_error(monkeypatch):
+def test_live_classify_reads_existing_local_file(tmp_path, monkeypatch):
     import oci.ai_vision.models as vm
+
+    image_path = tmp_path / "local.jpg"
+    image_path.write_bytes(b"demo")
 
     client = VisionClient(demo=False, config={})
     client._compartment_id = "ocid1.compartment.oc1..demo"
@@ -140,14 +143,17 @@ def test_live_classify_uses_analyze_image_without_name_error(monkeypatch):
     client._oci_client = SimpleNamespace(analyze_image=lambda req: SimpleNamespace(data=response))
     monkeypatch.setattr(client, "_ensure_oci_client", lambda: None)
 
-    result = client.classify("missing.jpg", model_id="ocid1.model.oc1..demo")
+    result = client.classify(str(image_path), model_id="ocid1.model.oc1..demo")
 
     assert result is not None
     assert result.labels[0].name == "Dog"
 
 
-def test_live_detect_uses_analyze_image_without_name_error(monkeypatch):
+def test_live_detect_reads_existing_local_file(tmp_path, monkeypatch):
     import oci.ai_vision.models as vm
+
+    image_path = tmp_path / "local.jpg"
+    image_path.write_bytes(b"demo")
 
     client = VisionClient(demo=False, config={})
     client._compartment_id = "ocid1.compartment.oc1..demo"
@@ -172,14 +178,17 @@ def test_live_detect_uses_analyze_image_without_name_error(monkeypatch):
     client._oci_client = SimpleNamespace(analyze_image=lambda req: SimpleNamespace(data=response))
     monkeypatch.setattr(client, "_ensure_oci_client", lambda: None)
 
-    result = client.detect_objects("missing.jpg", model_id="ocid1.model.oc1..demo")
+    result = client.detect_objects(str(image_path), model_id="ocid1.model.oc1..demo")
 
     assert result is not None
     assert result.objects[0].name == "Dog"
 
 
-def test_live_text_uses_analyze_image_without_name_error(monkeypatch):
+def test_live_text_reads_existing_local_file(tmp_path, monkeypatch):
     import oci.ai_vision.models as vm
+
+    image_path = tmp_path / "local.jpg"
+    image_path.write_bytes(b"demo")
 
     client = VisionClient(demo=False, config={})
     client._compartment_id = "ocid1.compartment.oc1..demo"
@@ -200,10 +209,15 @@ def test_live_text_uses_analyze_image_without_name_error(monkeypatch):
     client._oci_client = SimpleNamespace(analyze_image=lambda req: SimpleNamespace(data=response))
     monkeypatch.setattr(client, "_ensure_oci_client", lambda: None)
 
-    result = client.detect_text("missing.jpg")
+    result = client.detect_text(str(image_path))
 
     assert result is not None
     assert result.full_text == "STOP"
+
+
+def test_parse_image_source_raises_for_missing_local_file():
+    with pytest.raises(FileNotFoundError, match="Image file not found"):
+        VisionClient._parse_image_source("missing.jpg")
 
 
 def test_client_demo_analyze():

@@ -103,8 +103,7 @@ class VisionClient:
             data = base64.b64encode(path.read_bytes()).decode()
             return "inline", {"data": data}
 
-        # Path doesn't exist on disk — still treat as inline placeholder
-        return "inline", {"data": ""}
+        raise FileNotFoundError(f"Image file not found: {image}")
 
     def _build_image_details(self, image: str):
         """Build the OCI SDK image-details object for *image*."""

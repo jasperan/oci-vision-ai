@@ -102,7 +102,51 @@ I read the project top to bottom before changing behavior.
 
 ## Phase 3: Battle Hardening
 
-Pending.
+### Edge cases I attacked
+
+- Unknown demo image names.
+- Missing local file paths in live mode.
+- Empty feature selections.
+- Arbitrary demo uploads that don't match bundled fixtures.
+- Non-image uploads.
+- Oversized uploads.
+- CLI timeout failures.
+- API connection-drop failures.
+- Unknown demo report pages.
+
+### What actually broke
+
+1. **Demo mode lied on unknown assets.**
+   - Unknown image names used to silently fall back to the dog fixture.
+   - I changed that to raise a clear `FileNotFoundError` with the known demo assets.
+
+2. **Live mode hid local typos behind empty OCI payloads.**
+   - Missing local files now fail fast with `FileNotFoundError` before any OCI call is attempted.
+
+3. **The CLI crashed on common service failures.**
+   - Added guarded execution for file-not-found, validation, timeout, and connection errors.
+   - The CLI now exits with a clean user-facing error instead of a traceback for those cases.
+
+4. **The web upload path trusted unsafe input.**
+   - Added server-side checks for empty uploads, non-image uploads, and the documented 20 MB limit.
+   - Empty feature selection now returns a 400 instead of silently running every feature.
+   - Demo uploads now preserve the original filename in a temp directory, so bundled demo assets work honestly and arbitrary uploads fail clearly instead of returning the wrong fixture.
+
+5. **Unknown demo report pages were misleading.**
+   - They now return 404 instead of rendering a report for the wrong image.
+
+### Tests added in this phase
+
+- Demo unknown-image failure tests.
+- Live missing-file failure tests.
+- CLI timeout and missing-demo-asset tests.
+- API empty-feature and connection-error tests.
+- Upload rejection tests for unknown demo assets, non-image files, empty feature selection, and oversized payloads.
+- Report-page 404 behavior for unknown demo assets.
+
+### Verification
+
+- Full suite after hardening: **191 passed, 3 skipped**.
 
 ## Phase 4: Security Audit
 

@@ -9,9 +9,10 @@ from __future__ import annotations
 import base64
 import io
 from pathlib import Path
+import tempfile
 from typing import Optional
 
-from fastapi import FastAPI, File, Form, Request, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -33,6 +34,42 @@ class AnalyzeRequest(BaseModel):
 _WEB_DIR = Path(__file__).parent
 _TEMPLATE_DIR = _WEB_DIR / "templates"
 _STATIC_DIR = _WEB_DIR / "static"
+_ALLOWED_FEATURES = {"classification", "detection", "text", "faces", "document"}
+_MAX_UPLOAD_BYTES = 20 * 1024 * 1024
+
+
+def _parse_requested_features(features: list[str] | str | None) -> list[str] | str:
+    if features is None:
+        return "all"
+
+    if isinstance(features, str):
+        if features.strip().lower() == "all":
+            return "all"
+        requested = [part.strip().lower() for part in features.split(",") if part.strip()]
+    else:
+        requested = [str(part).strip().lower() for part in features if str(part).strip()]
+
+    if not requested:
+        raise ValueError("Select at least one feature.")
+
+    invalid = sorted({feature for feature in requested if feature not in _ALLOWED_FEATURES})
+    if invalid:
+        raise ValueError(
+            f"Unsupported feature selection: {', '.join(invalid)}. "
+            f"Valid features: {', '.join(sorted(_ALLOWED_FEATURES))}"
+        )
+
+    return requested
+
+
+def _analysis_error_response(exc: Exception) -> JSONResponse:
+    if isinstance(exc, (FileNotFoundError, ValueError)):
+        return JSONResponse({"detail": str(exc)}, status_code=400)
+    if isinstance(exc, TimeoutError):
+        return JSONResponse({"detail": f"Vision request timed out: {exc}"}, status_code=504)
+    if isinstance(exc, ConnectionError):
+        return JSONResponse({"detail": f"Could not reach OCI Vision service: {exc}"}, status_code=502)
+    raise exc
 
 
 # ---------------------------------------------------------------------------
@@ -96,7 +133,15 @@ def create_app(demo: bool = False) -> FastAPI:
 
         image_path = get_gallery_path() / "images" / Path(image_name).name
         analysis_target = str(image_path) if image_path.exists() else image_name
-        report = client.analyze(analysis_target)
+        try:
+            report = client.analyze(analysis_target)
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except TimeoutError as exc:
+            raise HTTPException(status_code=504, detail=f"Vision request timed out: {exc}") from exc
+        except ConnectionError as exc:
+            raise HTTPException(status_code=502, detail=f"Could not reach OCI Vision service: {exc}") from exc
+
         overlay_base64 = None
 
         if image_path.exists():
@@ -104,8 +149,8 @@ def create_app(demo: bool = False) -> FastAPI:
                 from PIL import Image
                 from oci_vision.core.renderer import render_overlay
 
-                img = Image.open(image_path)
-                overlay = render_overlay(img, report)
+                with Image.open(image_path) as img:
+                    overlay = render_overlay(img, report)
                 buf = io.BytesIO()
                 overlay.save(buf, format="PNG")
                 buf.seek(0)
@@ -142,7 +187,12 @@ def create_app(demo: bool = False) -> FastAPI:
 
         Expects ``{"image": "...", "features": [...]}``
         """
-        report = client.analyze(body.image, features=body.features)
+        try:
+            requested_features = _parse_requested_features(body.features)
+            report = client.analyze(body.image, features=requested_features)
+        except Exception as exc:
+            return _analysis_error_response(exc)
+
         result = report.model_dump()
         stored_run_id = store_report_if_enabled(report)
         if stored_run_id:
@@ -159,63 +209,69 @@ def create_app(demo: bool = False) -> FastAPI:
         Returns analysis JSON with an optional base64-encoded overlay image.
         """
         contents = await file.read()
+        content_type = file.content_type or ""
 
-        # Write to a temp path so VisionClient can read it (inline mode).
-        # For demo mode, VisionClient will fall back to the first gallery
-        # image when the file doesn't match a known gallery entry.
-        import tempfile
-        suffix = Path(file.filename or "upload.png").suffix or ".png"
-        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-            tmp.write(contents)
-            tmp_path = tmp.name
+        if not contents:
+            return JSONResponse({"detail": "Uploaded file is empty."}, status_code=400)
+        if not content_type.startswith("image/"):
+            return JSONResponse({"detail": "Only image uploads are supported."}, status_code=400)
+        if len(contents) > _MAX_UPLOAD_BYTES:
+            return JSONResponse(
+                {"detail": "Upload exceeds the 20 MB limit."},
+                status_code=413,
+            )
 
-        # Parse features
-        feat_list: list[str] | str = "all"
-        if features:
-            feat_list = [f.strip() for f in features.split(",")]
-
-        report = client.analyze(tmp_path, features=feat_list)
-
-        # Build response with overlay
-        result = report.model_dump()
+        if features is None:
+            return JSONResponse({"detail": "Select at least one feature."}, status_code=400)
 
         try:
-            from PIL import Image
-            from oci_vision.core.renderer import render_overlay
+            requested_features = _parse_requested_features(features)
+        except Exception as exc:
+            return _analysis_error_response(exc)
 
-            img = Image.open(io.BytesIO(contents))
-            overlay = render_overlay(img, report)
+        upload_name = Path(file.filename or "upload.png").name or "upload.png"
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir) / upload_name
+            tmp_path.write_bytes(contents)
 
-            buf = io.BytesIO()
-            overlay.save(buf, format="PNG")
-            buf.seek(0)
-            result["overlay_base64"] = base64.b64encode(buf.read()).decode()
+            try:
+                report = client.analyze(str(tmp_path), features=requested_features)
+            except Exception as exc:
+                return _analysis_error_response(exc)
 
-            feature_overlays = {}
-            for feature_name in [
-                feature for feature in report.available_features
-                if feature in {"classification", "detection", "text", "faces"}
-            ]:
-                feature_img = render_overlay(img, report, selected_features={feature_name})
-                feature_buf = io.BytesIO()
-                feature_img.save(feature_buf, format="PNG")
-                feature_buf.seek(0)
-                feature_overlays[feature_name] = base64.b64encode(feature_buf.read()).decode()
-            result["feature_overlays"] = feature_overlays
-        except Exception:
-            # Overlay generation is best-effort
-            result["overlay_base64"] = None
-            result["feature_overlays"] = {}
+            result = report.model_dump()
+
+            try:
+                from PIL import Image
+                from oci_vision.core.renderer import render_overlay
+
+                with Image.open(io.BytesIO(contents)) as img:
+                    overlay = render_overlay(img, report)
+
+                    buf = io.BytesIO()
+                    overlay.save(buf, format="PNG")
+                    buf.seek(0)
+                    result["overlay_base64"] = base64.b64encode(buf.read()).decode()
+
+                    feature_overlays = {}
+                    for feature_name in [
+                        feature for feature in report.available_features
+                        if feature in {"classification", "detection", "text", "faces"}
+                    ]:
+                        feature_img = render_overlay(img, report, selected_features={feature_name})
+                        feature_buf = io.BytesIO()
+                        feature_img.save(feature_buf, format="PNG")
+                        feature_buf.seek(0)
+                        feature_overlays[feature_name] = base64.b64encode(feature_buf.read()).decode()
+                    result["feature_overlays"] = feature_overlays
+            except Exception:
+                # Overlay generation is best-effort
+                result["overlay_base64"] = None
+                result["feature_overlays"] = {}
 
         stored_run_id = store_report_if_enabled(report)
         if stored_run_id:
             result["stored_run_id"] = stored_run_id
-
-        # Clean up temp file
-        try:
-            Path(tmp_path).unlink()
-        except OSError:
-            pass
 
         return JSONResponse(result)
 

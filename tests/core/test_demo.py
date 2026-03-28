@@ -1,3 +1,5 @@
+import pytest
+
 from oci_vision.core.demo import DemoClient
 from oci_vision.core.models import (
     AnalysisReport,
@@ -67,11 +69,10 @@ def test_demo_client_analyze_specific_features():
     assert report.detection is None
 
 
-def test_demo_client_unknown_image_returns_fallback():
+def test_demo_client_unknown_image_raises_file_not_found():
     client = DemoClient()
-    result = client.classify("unknown_photo.jpg")
-    assert isinstance(result, ClassificationResult)
-    assert len(result.labels) > 0  # falls back to first gallery image
+    with pytest.raises(FileNotFoundError, match="Known demo assets"):
+        client.classify("unknown_photo.jpg")
 
 
 def test_demo_client_feature_not_cached_returns_none():

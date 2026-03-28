@@ -85,6 +85,23 @@ def _load_eval_payload(kind: str, path: str):
     raise typer.BadParameter(f"Unsupported eval kind: {kind}")
 
 
+def _run_vision_call(action, *, label: str = "request"):
+    try:
+        return action()
+    except FileNotFoundError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+    except ValueError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+    except TimeoutError as exc:
+        console.print(f"[red]Error:[/red] {label} timed out: {exc}")
+        raise typer.Exit(code=1) from exc
+    except ConnectionError as exc:
+        console.print(f"[red]Error:[/red] could not reach the OCI Vision service: {exc}")
+        raise typer.Exit(code=1) from exc
+
+
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
@@ -105,7 +122,10 @@ def analyze(
     if features:
         feat_list = [f.strip() for f in features.split(",")]
 
-    report = client.analyze(image, features=feat_list, model_id=model_id)
+    report = _run_vision_call(
+        lambda: client.analyze(image, features=feat_list, model_id=model_id),
+        label="analysis",
+    )
     _output_report(report, output_format, demo)
     stored_run_id = store_report_if_enabled(report)
     if stored_run_id and output_format not in {"json", "html"}:
@@ -124,7 +144,10 @@ def classify(
 ) -> None:
     """Run image classification only."""
     client = _build_client(demo)
-    result = client.classify(image, model_id=model_id)
+    result = _run_vision_call(
+        lambda: client.classify(image, model_id=model_id),
+        label="classification",
+    )
     report = AnalysisReport(image_path=image, classification=result)
     _output_report(report, output_format, demo)
 
@@ -138,7 +161,10 @@ def detect(
 ) -> None:
     """Run object detection only."""
     client = _build_client(demo)
-    result = client.detect_objects(image, model_id=model_id)
+    result = _run_vision_call(
+        lambda: client.detect_objects(image, model_id=model_id),
+        label="detection",
+    )
     report = AnalysisReport(image_path=image, detection=result)
     _output_report(report, output_format, demo)
 
@@ -151,7 +177,7 @@ def ocr(
 ) -> None:
     """Run text / OCR extraction only."""
     client = _build_client(demo)
-    result = client.detect_text(image)
+    result = _run_vision_call(lambda: client.detect_text(image), label="text detection")
     report = AnalysisReport(image_path=image, text=result)
     _output_report(report, output_format, demo)
 
@@ -164,7 +190,7 @@ def faces(
 ) -> None:
     """Run face detection only."""
     client = _build_client(demo)
-    result = client.detect_faces(image)
+    result = _run_vision_call(lambda: client.detect_faces(image), label="face detection")
     report = AnalysisReport(image_path=image, faces=result)
     _output_report(report, output_format, demo)
 
@@ -177,7 +203,10 @@ def document(
 ) -> None:
     """Run document AI analysis only."""
     client = _build_client(demo)
-    result = client.analyze_document(image)
+    result = _run_vision_call(
+        lambda: client.analyze_document(image),
+        label="document analysis",
+    )
     report = AnalysisReport(image_path=image, document=result)
     _output_report(report, output_format, demo)
 
@@ -249,15 +278,22 @@ def workflow_command(
     kind = kind.strip().lower()
 
     if kind == "receipt":
-        summary = receipt_workflow(client, image)
+        summary = _run_vision_call(lambda: receipt_workflow(client, image), label="receipt workflow")
     elif kind == "shelf":
-        summary = shelf_audit_workflow(client, image)
+        summary = _run_vision_call(lambda: shelf_audit_workflow(client, image), label="shelf workflow")
     elif kind == "inspection":
-        summary = inspection_workflow(client, image)
+        summary = _run_vision_call(lambda: inspection_workflow(client, image), label="inspection workflow")
     elif kind == "archive-search":
         if not query:
             raise typer.BadParameter("--query is required for archive-search")
-        summary = archive_search_workflow(client, [part.strip() for part in image.split(",") if part.strip()], query=query)
+        summary = _run_vision_call(
+            lambda: archive_search_workflow(
+                client,
+                [part.strip() for part in image.split(",") if part.strip()],
+                query=query,
+            ),
+            label="archive-search workflow",
+        )
     else:
         raise typer.BadParameter(f"Unsupported workflow kind: {kind}")
 
@@ -289,15 +325,24 @@ def record_demo(
     else:
         client = VisionClient(demo=False)
         if feature == "classification":
-            result = client.classify(str(image_path))
+            result = _run_vision_call(
+                lambda: client.classify(str(image_path)),
+                label="classification",
+            )
         elif feature == "detection":
-            result = client.detect_objects(str(image_path))
+            result = _run_vision_call(
+                lambda: client.detect_objects(str(image_path)),
+                label="detection",
+            )
         elif feature == "text":
-            result = client.detect_text(str(image_path))
+            result = _run_vision_call(lambda: client.detect_text(str(image_path)), label="text detection")
         elif feature == "faces":
-            result = client.detect_faces(str(image_path))
+            result = _run_vision_call(lambda: client.detect_faces(str(image_path)), label="face detection")
         else:
-            result = client.analyze_document(str(image_path))
+            result = _run_vision_call(
+                lambda: client.analyze_document(str(image_path)),
+                label="document analysis",
+            )
 
         if result is None:
             console.print(f"[red]Error:[/red] OCI returned no result for feature: {feature}")

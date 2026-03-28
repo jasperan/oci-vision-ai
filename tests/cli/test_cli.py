@@ -98,6 +98,25 @@ def test_cli_analyze_save_overlay_creates_png():
         assert "Overlay saved to" in result.output
 
 
+def test_cli_analyze_reports_missing_demo_asset_cleanly():
+    result = runner.invoke(app, ["analyze", "missing-demo.png", "--demo"])
+
+    assert result.exit_code == 1
+    assert "Demo asset not found" in result.output
+
+
+def test_cli_analyze_timeout_returns_user_error(monkeypatch):
+    def explode(self, *args, **kwargs):
+        raise TimeoutError("network stalled")
+
+    monkeypatch.setattr("oci_vision.core.client.VisionClient.analyze", explode)
+    result = runner.invoke(app, ["analyze", "dog_closeup.jpg", "--demo"])
+
+    assert result.exit_code == 1
+    assert "timed out" in result.output.lower()
+    assert "network stalled" in result.output
+
+
 def test_cli_gallery():
     result = runner.invoke(app, ["gallery"])
     assert result.exit_code == 0

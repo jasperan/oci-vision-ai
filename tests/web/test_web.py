@@ -1,9 +1,19 @@
 """Tests for the OCI Vision AI web dashboard (FastAPI + HTMX)."""
 
+from io import BytesIO
+from pathlib import Path
+
 import pytest
 from httpx import AsyncClient, ASGITransport
 
 from oci_vision.web.app import create_app
+
+
+def _gallery_upload(name: str) -> tuple[str, BytesIO, str]:
+    from oci_vision.gallery import get_gallery_path
+
+    path = get_gallery_path() / "images" / name
+    return name, BytesIO(path.read_bytes()), "image/jpeg"
 
 
 @pytest.fixture
@@ -62,6 +72,15 @@ async def test_report_page_tolerates_overlay_failure(app, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_report_page_unknown_demo_image_returns_404(app):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/report/mystery.png")
+        assert resp.status_code == 404
+        assert "Demo asset not found" in resp.text
+
+
+@pytest.mark.asyncio
 async def test_analyze_endpoint(app):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -72,6 +91,35 @@ async def test_analyze_endpoint(app):
         assert resp.status_code == 200
         data = resp.json()
         assert "classification" in data
+
+
+@pytest.mark.asyncio
+async def test_analyze_endpoint_rejects_empty_feature_selection(app):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post(
+            "/api/analyze",
+            json={"image": "dog_closeup.jpg", "features": []},
+        )
+        assert resp.status_code == 400
+        assert "Select at least one feature" in resp.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_analyze_endpoint_surfaces_connection_error(app, monkeypatch):
+    def explode(*args, **kwargs):
+        raise ConnectionError("socket dropped")
+
+    monkeypatch.setattr("oci_vision.core.client.VisionClient.analyze", explode)
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post(
+            "/api/analyze",
+            json={"image": "dog_closeup.jpg", "features": ["classification"]},
+        )
+        assert resp.status_code == 502
+        assert "socket dropped" in resp.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -96,21 +144,14 @@ async def test_search_api_without_oracle_enabled(app, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_analyze_upload_endpoint(app):
-    """Test multipart file upload analyze endpoint with a tiny synthetic image."""
-    from io import BytesIO
-    from PIL import Image
-
-    # Create a tiny 10x10 red PNG in memory
-    img = Image.new("RGB", (10, 10), color=(255, 0, 0))
-    buf = BytesIO()
-    img.save(buf, format="PNG")
-    buf.seek(0)
+    """Test multipart file upload analyze endpoint with a real bundled demo image."""
+    file_name, buf, content_type = _gallery_upload("dog_closeup.jpg")
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
             "/api/analyze-upload",
-            files={"file": ("test.png", buf, "image/png")},
+            files={"file": (file_name, buf, content_type)},
             data={"features": "classification,detection"},
         )
         assert resp.status_code == 200
@@ -121,14 +162,8 @@ async def test_analyze_upload_endpoint(app):
 
 
 @pytest.mark.asyncio
-async def test_analyze_upload_endpoint_tolerates_overlay_failure(app, monkeypatch):
-    from io import BytesIO
+async def test_analyze_upload_endpoint_rejects_unknown_demo_upload(app):
     from PIL import Image
-
-    def explode(*args, **kwargs):
-        raise RuntimeError("overlay boom")
-
-    monkeypatch.setattr("oci_vision.core.renderer.render_overlay", explode)
 
     img = Image.new("RGB", (10, 10), color=(255, 0, 0))
     buf = BytesIO()
@@ -139,13 +174,76 @@ async def test_analyze_upload_endpoint_tolerates_overlay_failure(app, monkeypatc
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
             "/api/analyze-upload",
-            files={"file": ("test.png", buf, "image/png")},
+            files={"file": ("random.png", buf, "image/png")},
+            data={"features": "classification"},
+        )
+        assert resp.status_code == 400
+        assert "Demo asset not found" in resp.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_analyze_upload_endpoint_rejects_non_image_file(app):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post(
+            "/api/analyze-upload",
+            files={"file": ("notes.txt", BytesIO(b"hello"), "text/plain")},
+            data={"features": "classification"},
+        )
+        assert resp.status_code == 400
+        assert "Only image uploads are supported" in resp.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_analyze_upload_endpoint_rejects_empty_feature_selection(app):
+    file_name, buf, content_type = _gallery_upload("dog_closeup.jpg")
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post(
+            "/api/analyze-upload",
+            files={"file": (file_name, buf, content_type)},
+            data={"features": ""},
+        )
+        assert resp.status_code == 400
+        assert "Select at least one feature" in resp.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_analyze_upload_endpoint_tolerates_overlay_failure(app, monkeypatch):
+    def explode(*args, **kwargs):
+        raise RuntimeError("overlay boom")
+
+    monkeypatch.setattr("oci_vision.core.renderer.render_overlay", explode)
+
+    file_name, buf, content_type = _gallery_upload("dog_closeup.jpg")
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post(
+            "/api/analyze-upload",
+            files={"file": (file_name, buf, content_type)},
             data={"features": "classification"},
         )
         assert resp.status_code == 200
         data = resp.json()
         assert data["overlay_base64"] is None
         assert data["feature_overlays"] == {}
+
+
+@pytest.mark.asyncio
+async def test_analyze_upload_endpoint_rejects_oversized_file(app):
+    too_large = BytesIO(b"0" * ((20 * 1024 * 1024) + 1))
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post(
+            "/api/analyze-upload",
+            files={"file": ("dog_closeup.jpg", too_large, "image/jpeg")},
+            data={"features": "classification"},
+        )
+        assert resp.status_code == 413
+        assert "20 MB" in resp.json()["detail"]
 
 
 @pytest.mark.asyncio
