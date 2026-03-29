@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCI Vision AI - The Definitive Oracle Cloud Vision Showcase</title>
+
+    <!-- Fonts: Cormorant (display serif) + IBM Plex Sans (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (DARK BOTANICAL - VISION VARIANT)
+           =========================================== */
+        :root {
+            /* Colors */
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #161616;
+            --bg-card: #1a1a1a;
+            --text-primary: #e8e4df;
+            --text-secondary: #9a9590;
+            --accent-teal: #4ecdc4;
+            --accent-violet: #9b59b6;
+            --accent-gold: #c9b896;
+            --accent-warm: #d4a574;
+            --accent-pink: #e8b4b8;
+            --accent-teal-glow: rgba(78, 205, 196, 0.15);
+            --accent-violet-glow: rgba(155, 89, 182, 0.15);
+
+            /* Typography - MUST use clamp() */
+            --font-display: 'Cormorant', Georgia, serif;
+            --font-body: 'IBM Plex Sans', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --title-size: clamp(2rem, 6vw, 5rem);
+            --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+            --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+            --subtitle-size: clamp(0.875rem, 2vw, 1.25rem);
+            --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+            --small-size: clamp(0.65rem, 1vw, 0.875rem);
+            --code-size: clamp(0.6rem, 1vw, 0.8rem);
+
+            /* Spacing - MUST use clamp() */
+            --slide-padding: clamp(1.5rem, 4vw, 4rem);
+            --content-gap: clamp(0.5rem, 2vw, 2rem);
+            --element-gap: clamp(0.25rem, 1vw, 1rem);
+
+            /* Animation */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        /* ===========================================
+           BASE STYLES
+           =========================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-weight: 300;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: var(--font-display);
+            font-weight: 500;
+            line-height: 1.15;
+        }
+
+        /* ===========================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           Include this ENTIRE file in every presentation.
+           These styles ensure slides fit exactly in the viewport.
+           =========================================== */
+
+        /* 1. Lock html/body to viewport */
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        /* 2. Each slide = exact viewport height */
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* 3. Content container with flex for centering */
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+
+        /* 4. ALL typography uses clamp() for responsive scaling */
+        /* (defined in :root above) */
+
+        /* 5. Cards/containers use viewport-relative max sizes */
+        .card, .container, .content-box {
+            max-width: min(90vw, 1000px);
+            max-height: min(80vh, 700px);
+        }
+
+        /* 6. Lists auto-scale with viewport */
+        .feature-list, .bullet-list {
+            gap: clamp(0.4rem, 1vh, 1rem);
+        }
+
+        .feature-list li, .bullet-list li {
+            font-size: var(--body-size);
+            line-height: 1.4;
+        }
+
+        /* 7. Grids adapt to available space */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+        }
+
+        /* 8. Images constrained to viewport */
+        img, .image-container {
+            max-width: 100%;
+            max-height: min(50vh, 400px);
+            object-fit: contain;
+        }
+
+        /* ===========================================
+           RESPONSIVE BREAKPOINTS
+           Aggressive scaling for smaller viewports
+           =========================================== */
+
+        /* Short viewports (< 700px height) */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+                --h2-size: clamp(1rem, 3vw, 1.75rem);
+            }
+        }
+
+        /* Very short viewports (< 600px height) */
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+                --title-size: clamp(1.1rem, 4vw, 2rem);
+                --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            }
+
+            .nav-dots, .keyboard-hint, .decorative {
+                display: none;
+            }
+        }
+
+        /* Extremely short (landscape phones, < 500px height) */
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+                --body-size: clamp(0.65rem, 1vw, 0.85rem);
+            }
+        }
+
+        /* Narrow viewports (< 600px width) */
+        @media (max-width: 600px) {
+            :root {
+                --title-size: clamp(1.25rem, 7vw, 2.5rem);
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .two-col {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* ===========================================
+           REDUCED MOTION
+           Respect user preferences
+           =========================================== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+
+            html {
+                scroll-behavior: auto;
+            }
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           Trigger via .visible class (added by JS on scroll)
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-left {
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal-left {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal-scale {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .reveal-blur {
+            opacity: 0;
+            filter: blur(10px);
+            transition: opacity 0.8s var(--ease-out-expo),
+                        filter 0.8s var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal-blur {
+            opacity: 1;
+            filter: blur(0);
+        }
+
+        /* Stagger children for sequential reveal */
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .reveal:nth-child(4) { transition-delay: 0.4s; }
+        .reveal:nth-child(5) { transition-delay: 0.5s; }
+        .reveal:nth-child(6) { transition-delay: 0.6s; }
+
+        /* ===========================================
+           PROGRESS BAR
+           =========================================== */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-teal), var(--accent-violet));
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+
+        /* ===========================================
+           SLIDE COUNTER
+           =========================================== */
+        .slide-counter {
+            position: fixed;
+            top: clamp(0.75rem, 2vw, 1.5rem);
+            right: clamp(0.75rem, 2vw, 1.5rem);
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            z-index: 999;
+            opacity: 0.6;
+        }
+
+        /* ===========================================
+           NAVIGATION DOTS
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.5rem, 1.5vw, 1rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(4px, 0.5vh, 8px);
+            z-index: 999;
+        }
+
+        .nav-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            opacity: 0.3;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+
+        .nav-dot.active {
+            opacity: 1;
+            background: var(--accent-teal);
+            box-shadow: 0 0 8px var(--accent-teal-glow);
+        }
+
+        /* ===========================================
+           DARK BOTANICAL DECORATIVE ELEMENTS
+           Abstract soft gradient circles, thin accent lines
+           =========================================== */
+        .deco-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .deco-circle.teal {
+            background: var(--accent-teal);
+        }
+
+        .deco-circle.violet {
+            background: var(--accent-violet);
+        }
+
+        .deco-circle.gold {
+            background: var(--accent-gold);
+        }
+
+        .deco-circle.pink {
+            background: var(--accent-pink);
+        }
+
+        .accent-line {
+            position: absolute;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, var(--accent-teal), transparent);
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .accent-line-h {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--accent-gold), transparent);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        /* ===========================================
+           SLIDE TYPES
+           =========================================== */
+
+        /* --- Title Slide --- */
+        .title-slide {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .title-slide h1 {
+            font-size: var(--title-size);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            max-width: min(90vw, 800px);
+        }
+
+        .title-slide .tagline {
+            font-size: var(--subtitle-size);
+            color: var(--text-secondary);
+            font-weight: 300;
+            margin-top: var(--element-gap);
+            font-style: italic;
+            font-family: var(--font-display);
+        }
+
+        .title-slide .author-line {
+            font-size: var(--small-size);
+            color: var(--accent-teal);
+            margin-top: clamp(1rem, 2vh, 2rem);
+            font-family: var(--font-mono);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* --- Section Divider Slide --- */
+        .section-slide {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 400;
+            color: var(--accent-teal);
+            opacity: 0.15;
+            line-height: 1;
+        }
+
+        .section-slide h2 {
+            font-size: var(--h2-size);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: var(--element-gap);
+        }
+
+        .section-slide .section-desc {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            margin-top: var(--element-gap);
+            max-width: min(80vw, 600px);
+        }
+
+        /* --- Content Slide --- */
+        .content-slide .slide-content {
+            max-width: min(90vw, 1000px);
+            margin: 0 auto;
+        }
+
+        .content-slide h2 {
+            font-size: var(--h2-size);
+            color: var(--text-primary);
+            margin-bottom: var(--content-gap);
+        }
+
+        .content-slide h2 .accent {
+            color: var(--accent-teal);
+        }
+
+        .content-slide p {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 65ch;
+        }
+
+        /* --- Feature Cards --- */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+            margin-top: var(--content-gap);
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(78, 205, 196, 0.08);
+            border-radius: clamp(6px, 1vw, 12px);
+            padding: clamp(0.75rem, 2vw, 1.5rem);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(78, 205, 196, 0.25);
+            box-shadow: 0 4px 20px var(--accent-teal-glow);
+        }
+
+        .feature-card .card-icon {
+            font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+            margin-bottom: clamp(0.25rem, 0.5vh, 0.5rem);
+        }
+
+        .feature-card h3 {
+            font-size: var(--h3-size);
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: clamp(0.15rem, 0.3vh, 0.3rem);
+            font-family: var(--font-display);
+        }
+
+        .feature-card p {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* --- Two Column Layout --- */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(1rem, 3vw, 3rem);
+            align-items: center;
+            margin-top: var(--content-gap);
+        }
+
+        /* --- Code Block --- */
+        .code-block {
+            background: #0a0a0a;
+            border: 1px solid rgba(78, 205, 196, 0.1);
+            border-radius: clamp(4px, 0.8vw, 8px);
+            padding: clamp(0.5rem, 1.5vw, 1.25rem);
+            font-family: var(--font-mono);
+            font-size: var(--code-size);
+            color: var(--text-secondary);
+            line-height: 1.6;
+            overflow: hidden;
+            white-space: pre;
+        }
+
+        .code-block .keyword { color: var(--accent-violet); }
+        .code-block .string { color: var(--accent-gold); }
+        .code-block .comment { color: #555; font-style: italic; }
+        .code-block .function { color: var(--accent-teal); }
+        .code-block .flag { color: var(--accent-pink); }
+
+        /* --- Bullet List --- */
+        .bullet-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.4rem, 1vh, 0.8rem);
+        }
+
+        .bullet-list li {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            padding-left: clamp(1rem, 2vw, 1.5rem);
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .bullet-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.55em;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-teal);
+            opacity: 0.6;
+        }
+
+        .bullet-list li strong {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* --- Architecture Diagram --- */
+        .arch-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(0.3rem, 0.8vh, 0.6rem);
+            margin-top: var(--content-gap);
+        }
+
+        .arch-row {
+            display: flex;
+            gap: clamp(0.3rem, 0.8vw, 0.6rem);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .arch-box {
+            background: var(--bg-card);
+            border: 1px solid rgba(78, 205, 196, 0.12);
+            border-radius: clamp(4px, 0.6vw, 8px);
+            padding: clamp(0.3rem, 0.8vw, 0.6rem) clamp(0.5rem, 1.2vw, 1rem);
+            font-size: var(--small-size);
+            color: var(--text-primary);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .arch-box.teal { border-color: rgba(78, 205, 196, 0.3); }
+        .arch-box.violet { border-color: rgba(155, 89, 182, 0.3); }
+        .arch-box.gold { border-color: rgba(201, 184, 150, 0.3); }
+        .arch-box.pink { border-color: rgba(232, 180, 184, 0.3); }
+
+        .arch-connector {
+            width: 1px;
+            height: clamp(8px, 1.5vh, 16px);
+            background: linear-gradient(to bottom, var(--accent-teal), transparent);
+            opacity: 0.3;
+        }
+
+        /* --- Badge / Tag --- */
+        .badge {
+            display: inline-block;
+            padding: clamp(0.15rem, 0.4vw, 0.25rem) clamp(0.4rem, 1vw, 0.75rem);
+            border-radius: 100px;
+            font-size: var(--small-size);
+            font-weight: 500;
+            font-family: var(--font-mono);
+        }
+
+        .badge.teal {
+            background: rgba(78, 205, 196, 0.1);
+            color: var(--accent-teal);
+            border: 1px solid rgba(78, 205, 196, 0.2);
+        }
+
+        .badge.violet {
+            background: rgba(155, 89, 182, 0.1);
+            color: var(--accent-violet);
+            border: 1px solid rgba(155, 89, 182, 0.2);
+        }
+
+        .badge.gold {
+            background: rgba(201, 184, 150, 0.1);
+            color: var(--accent-gold);
+            border: 1px solid rgba(201, 184, 150, 0.2);
+        }
+
+        /* --- Stat Cards --- */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+            margin-top: var(--content-gap);
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: clamp(0.5rem, 1.5vw, 1.25rem);
+            background: var(--bg-card);
+            border-radius: clamp(4px, 0.8vw, 10px);
+            border: 1px solid rgba(78, 205, 196, 0.06);
+        }
+
+        .stat-card .stat-number {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            font-weight: 600;
+            color: var(--accent-teal);
+            line-height: 1.1;
+        }
+
+        .stat-card .stat-label {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            margin-top: clamp(0.15rem, 0.3vh, 0.3rem);
+        }
+
+        /* --- Flow Steps --- */
+        .flow-steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(0.3rem, 1vw, 0.8rem);
+            flex-wrap: wrap;
+            margin-top: var(--content-gap);
+        }
+
+        .flow-step {
+            background: var(--bg-card);
+            border: 1px solid rgba(78, 205, 196, 0.1);
+            border-radius: clamp(4px, 0.6vw, 8px);
+            padding: clamp(0.4rem, 1vw, 0.8rem) clamp(0.6rem, 1.5vw, 1.2rem);
+            font-size: var(--small-size);
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .flow-arrow {
+            color: var(--accent-teal);
+            font-size: var(--body-size);
+            opacity: 0.4;
+        }
+
+        /* --- Closing Slide --- */
+        .closing-slide {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .closing-slide h2 {
+            font-size: var(--h2-size);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .closing-slide .link {
+            font-family: var(--font-mono);
+            font-size: var(--body-size);
+            color: var(--accent-teal);
+            margin-top: var(--content-gap);
+            text-decoration: none;
+        }
+
+        .closing-slide .link:hover {
+            text-decoration: underline;
+        }
+
+        /* ===========================================
+           KEYBOARD HINT
+           =========================================== */
+        .keyboard-hint {
+            position: fixed;
+            bottom: clamp(0.5rem, 1.5vw, 1rem);
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--font-mono);
+            font-size: clamp(0.5rem, 0.8vw, 0.7rem);
+            color: var(--text-secondary);
+            opacity: 0.3;
+            z-index: 999;
+            transition: opacity 2s ease;
+        }
+
+        /* ===========================================
+           SECTION SPECIFIC BACKGROUND GRADIENTS
+           =========================================== */
+        .slide.gradient-teal {
+            background:
+                radial-gradient(ellipse at 20% 80%, rgba(78, 205, 196, 0.06) 0%, transparent 50%),
+                var(--bg-primary);
+        }
+
+        .slide.gradient-violet {
+            background:
+                radial-gradient(ellipse at 80% 20%, rgba(155, 89, 182, 0.06) 0%, transparent 50%),
+                var(--bg-primary);
+        }
+
+        .slide.gradient-mixed {
+            background:
+                radial-gradient(ellipse at 20% 80%, rgba(78, 205, 196, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(155, 89, 182, 0.05) 0%, transparent 50%),
+                var(--bg-primary);
+        }
+
+        .slide.gradient-gold {
+            background:
+                radial-gradient(ellipse at 70% 70%, rgba(201, 184, 150, 0.06) 0%, transparent 50%),
+                var(--bg-primary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Progress bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Slide counter -->
+    <div class="slide-counter" id="slideCounter">1 / 22</div>
+
+    <!-- Navigation dots -->
+    <nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+    <!-- Keyboard hint -->
+    <div class="keyboard-hint" id="keyboardHint">arrows / space to navigate</div>
+
+    <!-- ============================================================
+         SLIDE 1: TITLE
+         ============================================================ -->
+    <section class="slide title-slide gradient-mixed" aria-label="Title">
+        <!-- Decorative elements -->
+        <div class="deco-circle teal decorative" style="width: 300px; height: 300px; top: -80px; right: -60px;"></div>
+        <div class="deco-circle violet decorative" style="width: 250px; height: 250px; bottom: -50px; left: -40px;"></div>
+        <div class="accent-line decorative" style="height: 40%; top: 30%; left: 8%;"></div>
+
+        <h1 class="reveal">OCI Vision AI</h1>
+        <p class="tagline reveal">The definitive Oracle Cloud Infrastructure Vision showcase</p>
+        <p class="author-line reveal">jasperan/oci-vision-ai</p>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 2: THE PROBLEM
+         ============================================================ -->
+    <section class="slide content-slide gradient-teal" aria-label="The Problem">
+        <div class="deco-circle teal decorative" style="width: 200px; height: 200px; top: 10%; right: 5%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">Why <span class="accent">This</span> Exists</h2>
+            <div class="two-col">
+                <div>
+                    <ul class="bullet-list">
+                        <li class="reveal"><strong>OCI Vision is powerful</strong> but the SDK docs are dense and scattered</li>
+                        <li class="reveal"><strong>No single project</strong> wraps all 6 features into a cohesive experience</li>
+                        <li class="reveal"><strong>Demos need credentials</strong>, which kills quick evaluation</li>
+                    </ul>
+                </div>
+                <div>
+                    <ul class="bullet-list">
+                        <li class="reveal"><strong>One project, three surfaces</strong>: CLI, web dashboard, notebooks</li>
+                        <li class="reveal"><strong>Demo mode ships built-in</strong>: zero credentials, zero setup</li>
+                        <li class="reveal"><strong>Production-ready</strong> when you plug in real OCI config</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 3: SIX VISION FEATURES
+         ============================================================ -->
+    <section class="slide content-slide gradient-violet" aria-label="Six Vision Features">
+        <div class="deco-circle violet decorative" style="width: 220px; height: 220px; bottom: 5%; left: 5%;"></div>
+        <div class="accent-line decorative" style="height: 30%; top: 35%; right: 6%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">Six <span class="accent">Vision</span> Capabilities</h2>
+            <div class="feature-grid">
+                <div class="feature-card reveal">
+                    <div class="card-icon">&#x1F3F7;</div>
+                    <h3>Classification</h3>
+                    <p>Label images with confidence scores across thousands of categories</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="card-icon">&#x1F4E6;</div>
+                    <h3>Object Detection</h3>
+                    <p>Locate objects with precise bounding polygons</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="card-icon">&#x1F4DD;</div>
+                    <h3>Text / OCR</h3>
+                    <p>Extract printed and handwritten text from any image</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="card-icon">&#x1F9D1;</div>
+                    <h3>Face Detection</h3>
+                    <p>Find faces and map facial landmarks</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="card-icon">&#x1F4C4;</div>
+                    <h3>Document AI</h3>
+                    <p>Extract fields and tables from invoices, receipts, forms</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="card-icon">&#x2699;</div>
+                    <h3>Custom Models</h3>
+                    <p>Bring your own OCI Vision model for specialized tasks</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 4: DELIVERY SURFACES (SECTION DIVIDER)
+         ============================================================ -->
+    <section class="slide section-slide gradient-mixed" aria-label="Delivery Surfaces Section">
+        <div class="deco-circle teal decorative" style="width: 350px; height: 350px; top: -100px; left: -100px;"></div>
+        <div class="deco-circle gold decorative" style="width: 200px; height: 200px; bottom: -50px; right: 10%;"></div>
+        <div class="slide-content" style="align-items: center; text-align: center;">
+            <span class="section-number reveal">02</span>
+            <h2 class="reveal">Three Delivery Surfaces</h2>
+            <p class="section-desc reveal">CLI, web dashboard, and Jupyter notebooks. Pick the one that fits your workflow.</p>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 5: CLI
+         ============================================================ -->
+    <section class="slide content-slide gradient-teal" aria-label="CLI">
+        <div class="accent-line decorative" style="height: 50%; top: 25%; left: 5%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">The <span class="accent">CLI</span></h2>
+            <p class="reveal" style="color: var(--text-secondary); font-size: var(--body-size); margin-bottom: var(--content-gap);">Rich-formatted terminal output, JSON and HTML reports, batch analysis, workflow packs, and a Textual cockpit.</p>
+            <div class="code-block reveal"><span class="comment"># Full analysis (all features)</span>
+<span class="function">oci-vision</span> analyze dog_closeup.jpg <span class="flag">--demo</span>
+
+<span class="comment"># Compare two images side by side</span>
+<span class="function">oci-vision</span> compare dog.jpg sign.png <span class="flag">--demo</span> <span class="flag">--output-format</span> json
+
+<span class="comment"># Batch summary across multiple fixtures</span>
+<span class="function">oci-vision</span> batch dog.jpg sign.png invoice.png <span class="flag">--demo</span>
+
+<span class="comment"># Launch the interactive Textual cockpit</span>
+<span class="function">oci-vision</span> cockpit <span class="flag">--demo</span></div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 6: WEB DASHBOARD
+         ============================================================ -->
+    <section class="slide content-slide gradient-violet" aria-label="Web Dashboard">
+        <div class="deco-circle pink decorative" style="width: 180px; height: 180px; top: 8%; right: 8%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">Web <span class="accent">Dashboard</span></h2>
+            <div class="two-col">
+                <div>
+                    <ul class="bullet-list">
+                        <li class="reveal"><strong>FastAPI backend</strong> with drag-and-drop image upload</li>
+                        <li class="reveal"><strong>Feature overlays</strong> toggled live on the uploaded image</li>
+                        <li class="reveal"><strong>Compare surface</strong> for side-by-side image review</li>
+                        <li class="reveal"><strong>API playground</strong> to inspect normalized JSON responses</li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="code-block reveal"><span class="comment"># Start the dashboard</span>
+<span class="function">oci-vision</span> web <span class="flag">--demo</span>
+
+<span class="comment"># Opens at localhost:8000</span>
+<span class="comment"># Serves its own CSS + HTMX</span>
+<span class="comment"># No CDN dependency</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 7: JUPYTER NOTEBOOKS
+         ============================================================ -->
+    <section class="slide content-slide gradient-gold" aria-label="Jupyter Notebooks">
+        <div class="deco-circle gold decorative" style="width: 200px; height: 200px; bottom: 10%; right: 5%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">Seven <span class="accent">Notebooks</span></h2>
+            <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));">
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">01 Quickstart</h3>
+                    <p>End-to-end walkthrough</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">02 Classification</h3>
+                    <p>Threshold tuning</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">03 Detection</h3>
+                    <p>Bounding boxes + overlays</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">04 OCR</h3>
+                    <p>Photos + scans</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">05 Face Detection</h3>
+                    <p>Landmarks visualized</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">06 Document AI</h3>
+                    <p>Fields + tables</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">07 Custom Models</h3>
+                    <p>Bring your own</p>
+                </div>
+            </div>
+            <p class="reveal" style="font-size: var(--small-size); color: var(--text-secondary); margin-top: var(--element-gap);">All notebooks run in demo mode by default. No OCI credentials needed.</p>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 8: TEXTUAL COCKPIT
+         ============================================================ -->
+    <section class="slide content-slide gradient-teal" aria-label="Textual Cockpit">
+        <div class="accent-line decorative" style="height: 40%; top: 30%; right: 4%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">Textual Demo <span class="accent">Cockpit</span></h2>
+            <p class="reveal" style="color: var(--text-secondary); font-size: var(--body-size); margin-bottom: var(--content-gap);">A polished terminal control room. Gallery browsing, feature toggles, workflow launchers, run history, compare mode, and exports in one screen.</p>
+            <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));">
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">Gallery Flow</h3>
+                    <p>Jump between bundled demo fixtures</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">Feature Toggles</h3>
+                    <p>OCR, detection, faces on/off live</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">Workflow Rail</h3>
+                    <p>Receipt, shelf-audit, inspection</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">Compare Panel</h3>
+                    <p>Deltas vs. previous run</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">Export Actions</h3>
+                    <p>JSON, HTML, overlay artifacts</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">SVG Capture</h3>
+                    <p>Deterministic screenshots for docs</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 9: ARCHITECTURE (SECTION DIVIDER)
+         ============================================================ -->
+    <section class="slide section-slide gradient-mixed" aria-label="Architecture Section">
+        <div class="deco-circle violet decorative" style="width: 300px; height: 300px; top: -80px; right: -60px;"></div>
+        <div class="accent-line-h decorative" style="width: 30%; top: 40%; left: 35%;"></div>
+        <div class="slide-content" style="align-items: center; text-align: center;">
+            <span class="section-number reveal">03</span>
+            <h2 class="reveal">Architecture</h2>
+            <p class="section-desc reveal">Pydantic models at the core, three delivery surfaces on top, optional Oracle 26ai underneath.</p>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 10: CORE ARCHITECTURE DIAGRAM
+         ============================================================ -->
+    <section class="slide content-slide gradient-teal" aria-label="Core Architecture">
+        <div class="slide-content">
+            <h2 class="reveal">System <span class="accent">Overview</span></h2>
+            <div class="arch-diagram reveal-scale">
+                <div class="arch-row">
+                    <div class="arch-box teal">CLI (Typer + Rich)</div>
+                    <div class="arch-box teal">Web (FastAPI + HTMX)</div>
+                    <div class="arch-box teal">Notebooks (Jupyter)</div>
+                    <div class="arch-box teal">TUI (Textual)</div>
+                </div>
+                <div class="arch-connector"></div>
+                <div class="arch-row">
+                    <div class="arch-box violet">VisionClient</div>
+                </div>
+                <div class="arch-connector"></div>
+                <div class="arch-row">
+                    <div class="arch-box gold">DemoClient (fixtures)</div>
+                    <div class="arch-box gold">OCI SDK (live)</div>
+                </div>
+                <div class="arch-connector"></div>
+                <div class="arch-row">
+                    <div class="arch-box">Pydantic v2 Models</div>
+                    <div class="arch-box">Renderer (PIL/OpenCV)</div>
+                    <div class="arch-box">Insights Engine</div>
+                </div>
+                <div class="arch-connector"></div>
+                <div class="arch-row">
+                    <div class="arch-box pink">Evaluation Lab</div>
+                    <div class="arch-box pink">Workflow Packs</div>
+                    <div class="arch-box pink">Oracle 26ai Store</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 11: VISION CLIENT
+         ============================================================ -->
+    <section class="slide content-slide gradient-violet" aria-label="VisionClient">
+        <div class="deco-circle teal decorative" style="width: 180px; height: 180px; top: 10%; left: 5%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">The <span class="accent">VisionClient</span></h2>
+            <p class="reveal" style="color: var(--text-secondary); font-size: var(--body-size); margin-bottom: var(--content-gap);">Single entry point for everything. Flipping one boolean toggles between fixture-backed demo and live OCI calls.</p>
+            <div class="code-block reveal"><span class="keyword">from</span> oci_vision <span class="keyword">import</span> <span class="function">VisionClient</span>
+
+<span class="comment"># Demo mode (zero credentials)</span>
+client = <span class="function">VisionClient</span>(demo=<span class="keyword">True</span>)
+report = client.<span class="function">analyze</span>(<span class="string">"dog_closeup.jpg"</span>)
+
+<span class="comment"># Live mode (uses ~/.oci/config)</span>
+client = <span class="function">VisionClient</span>()
+report = client.<span class="function">analyze</span>(<span class="string">"oci://my-bucket/photo.jpg"</span>)</div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 12: PYDANTIC MODELS
+         ============================================================ -->
+    <section class="slide content-slide gradient-gold" aria-label="Pydantic Models">
+        <div class="accent-line decorative" style="height: 35%; top: 32%; left: 6%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">Pydantic v2 <span class="accent">Models</span></h2>
+            <div class="two-col">
+                <div>
+                    <ul class="bullet-list">
+                        <li class="reveal"><strong>AnalysisReport</strong>: primary return type carrying all feature results</li>
+                        <li class="reveal"><strong>ClassificationResult</strong>: labels + confidence scores</li>
+                        <li class="reveal"><strong>DetectionResult</strong>: bounding polygons per object</li>
+                        <li class="reveal"><strong>TextDetectionResult</strong>: extracted text lines + regions</li>
+                    </ul>
+                </div>
+                <div>
+                    <ul class="bullet-list">
+                        <li class="reveal"><strong>FaceDetectionResult</strong>: face bounds + landmark maps</li>
+                        <li class="reveal"><strong>DocumentResult</strong>: fields, tables, key-value pairs</li>
+                        <li class="reveal">All models match the real OCI Vision API response shapes</li>
+                        <li class="reveal">Validated, serializable, ready for JSON/HTML rendering</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 13: DEMO MODE
+         ============================================================ -->
+    <section class="slide content-slide gradient-teal" aria-label="Demo Mode">
+        <div class="deco-circle teal decorative" style="width: 220px; height: 220px; bottom: 5%; right: 5%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">Demo <span class="accent">Mode</span></h2>
+            <p class="reveal" style="color: var(--text-secondary); font-size: var(--body-size); margin-bottom: var(--content-gap);">Fixture-backed cached responses that match OCI Vision shapes exactly. One flag, honest failures for unsupported assets.</p>
+            <div class="flow-steps reveal">
+                <div class="flow-step">Pass <code style="color: var(--accent-teal);">--demo</code></div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">DemoClient loads fixture</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">Returns real Pydantic model</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">Same rendering pipeline</div>
+            </div>
+            <div style="display: flex; gap: clamp(0.3rem, 1vw, 0.6rem); flex-wrap: wrap; margin-top: var(--content-gap);">
+                <span class="badge teal reveal">dog_closeup.jpg</span>
+                <span class="badge violet reveal">sign_board.png</span>
+                <span class="badge gold reveal">portrait_demo.png</span>
+                <span class="badge teal reveal">invoice_demo.png</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 14: PLATFORM EXTRAS (SECTION DIVIDER)
+         ============================================================ -->
+    <section class="slide section-slide gradient-mixed" aria-label="Platform Extras Section">
+        <div class="deco-circle gold decorative" style="width: 280px; height: 280px; bottom: -80px; left: -60px;"></div>
+        <div class="slide-content" style="align-items: center; text-align: center;">
+            <span class="section-number reveal">04</span>
+            <h2 class="reveal">Platform Extras</h2>
+            <p class="section-desc reveal">Evaluation lab, workflow packs, and optional Oracle 26ai storage.</p>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 15: EVALUATION LAB
+         ============================================================ -->
+    <section class="slide content-slide gradient-violet" aria-label="Evaluation Lab">
+        <div class="accent-line decorative" style="height: 45%; top: 28%; right: 5%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">Evaluation <span class="accent">Lab</span></h2>
+            <div class="two-col">
+                <div>
+                    <ul class="bullet-list">
+                        <li class="reveal"><strong>Detection metrics</strong>: IoU, precision, recall for bounding boxes</li>
+                        <li class="reveal"><strong>OCR similarity</strong>: text comparison scoring</li>
+                        <li class="reveal"><strong>Document diffing</strong>: field-level and table-level diffs</li>
+                        <li class="reveal"><strong>HTML reports</strong> generated from evaluation runs</li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="code-block reveal"><span class="comment"># Run detection evaluation</span>
+<span class="function">oci-vision</span> eval detection \
+  pred.json truth.json \
+  <span class="flag">--output-format</span> json
+
+<span class="comment"># Compare reports directly</span>
+<span class="function">oci-vision</span> compare \
+  dog.jpg sign.png <span class="flag">--demo</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 16: WORKFLOW PACKS
+         ============================================================ -->
+    <section class="slide content-slide gradient-teal" aria-label="Workflow Packs">
+        <div class="deco-circle pink decorative" style="width: 200px; height: 200px; top: 5%; left: 5%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">Workflow <span class="accent">Packs</span></h2>
+            <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));">
+                <div class="feature-card reveal">
+                    <div class="card-icon">&#x1F9FE;</div>
+                    <h3>Receipt Intake</h3>
+                    <p>Invoice field extraction, amount validation, structured output</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="card-icon">&#x1F6D2;</div>
+                    <h3>Shelf Audit</h3>
+                    <p>Product detection, placement scoring, gap analysis</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="card-icon">&#x1F50D;</div>
+                    <h3>Inspection</h3>
+                    <p>Defect detection, condition assessment, compliance checks</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="card-icon">&#x1F4DA;</div>
+                    <h3>Archive Search</h3>
+                    <p>OCR + semantic search across scanned documents</p>
+                </div>
+            </div>
+            <div class="code-block reveal" style="margin-top: var(--content-gap);"><span class="function">oci-vision</span> workflow receipt invoice_demo.png <span class="flag">--demo</span>
+<span class="function">oci-vision</span> workflow shelf dog_closeup.jpg <span class="flag">--demo</span></div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 17: ORACLE 26AI INTEGRATION
+         ============================================================ -->
+    <section class="slide content-slide gradient-gold" aria-label="Oracle 26ai Integration">
+        <div class="deco-circle gold decorative" style="width: 250px; height: 250px; bottom: 5%; right: 5%;"></div>
+        <div class="accent-line decorative" style="height: 40%; top: 30%; left: 5%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">Oracle Database <span class="accent">26ai</span></h2>
+            <p class="reveal" style="color: var(--text-secondary); font-size: var(--body-size); margin-bottom: var(--content-gap);">Optional. Off by default. Flip one env var to get persistent run storage and semantic search over past analyses.</p>
+            <div class="two-col">
+                <div>
+                    <ul class="bullet-list">
+                        <li class="reveal"><strong>Run storage</strong>: every analysis persisted automatically</li>
+                        <li class="reveal"><strong>Semantic search</strong>: vector-powered queries over past results</li>
+                        <li class="reveal"><strong>Docker Compose</strong> ships a ready Oracle Free container</li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="code-block reveal"><span class="keyword">export</span> OCI_VISION_ENABLE_ORACLE=<span class="string">1</span>
+<span class="function">oci-vision</span> analyze invoice.png <span class="flag">--demo</span>
+<span class="function">oci-vision</span> search-runs <span class="string">"INV-1001"</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 18: TECH STACK (SECTION DIVIDER)
+         ============================================================ -->
+    <section class="slide section-slide gradient-mixed" aria-label="Tech Stack Section">
+        <div class="deco-circle teal decorative" style="width: 260px; height: 260px; top: -60px; left: -60px;"></div>
+        <div class="deco-circle violet decorative" style="width: 200px; height: 200px; bottom: -40px; right: -40px;"></div>
+        <div class="slide-content" style="align-items: center; text-align: center;">
+            <span class="section-number reveal">05</span>
+            <h2 class="reveal">Tech Stack</h2>
+            <p class="section-desc reveal">Python end to end. Typed, tested, and linted.</p>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 19: DEPENDENCIES
+         ============================================================ -->
+    <section class="slide content-slide gradient-teal" aria-label="Dependencies">
+        <div class="slide-content">
+            <h2 class="reveal">Stack <span class="accent">Breakdown</span></h2>
+            <div class="two-col">
+                <div>
+                    <p class="reveal" style="font-size: var(--small-size); color: var(--accent-teal); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: var(--element-gap); font-family: var(--font-mono);">Core</p>
+                    <ul class="bullet-list">
+                        <li class="reveal"><strong>Pydantic v2</strong> for response models</li>
+                        <li class="reveal"><strong>Typer + Rich</strong> for the CLI</li>
+                        <li class="reveal"><strong>Textual</strong> for the TUI cockpit</li>
+                        <li class="reveal"><strong>FastAPI + Jinja2</strong> for the web dashboard</li>
+                    </ul>
+                </div>
+                <div>
+                    <p class="reveal" style="font-size: var(--small-size); color: var(--accent-violet); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: var(--element-gap); font-family: var(--font-mono);">Extras</p>
+                    <ul class="bullet-list">
+                        <li class="reveal"><strong>OCI SDK</strong> for live Vision calls</li>
+                        <li class="reveal"><strong>PIL / OpenCV</strong> for overlay rendering</li>
+                        <li class="reveal"><strong>python-oracledb</strong> for Oracle integration</li>
+                        <li class="reveal"><strong>pytest (200+ tests)</strong> for the test suite</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 20: INSTALL OPTIONS
+         ============================================================ -->
+    <section class="slide content-slide gradient-violet" aria-label="Install Options">
+        <div class="deco-circle violet decorative" style="width: 180px; height: 180px; top: 8%; right: 8%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">Install <span class="accent">Options</span></h2>
+            <div class="code-block reveal" style="margin-bottom: var(--content-gap);"><span class="comment"># One-command install</span>
+curl -fsSL https://raw.githubusercontent.com/.../install.sh | bash
+
+<span class="comment"># Or pick your extras</span>
+pip install -e <span class="string">"."</span>              <span class="comment"># demo CLI, cockpit, web</span>
+pip install -e <span class="string">".[live]"</span>         <span class="comment"># + OCI SDK</span>
+pip install -e <span class="string">".[notebooks]"</span>    <span class="comment"># + notebook tooling</span>
+pip install -e <span class="string">".[oracle]"</span>       <span class="comment"># + Oracle DB support</span>
+pip install -e <span class="string">".[all]"</span>          <span class="comment"># everything</span></div>
+            <p class="reveal" style="font-size: var(--small-size); color: var(--text-secondary);">The base install has zero heavy dependencies. Each extra pulls only what it needs.</p>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 21: CI AND SECURITY
+         ============================================================ -->
+    <section class="slide content-slide gradient-teal" aria-label="CI and Security">
+        <div class="accent-line decorative" style="height: 35%; top: 32%; left: 5%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">CI &amp; <span class="accent">Security</span></h2>
+            <div class="two-col">
+                <div>
+                    <ul class="bullet-list">
+                        <li class="reveal"><strong>build-install-smoke</strong>: package build, install flow, demo CLI paths, compare/batch, cockpit screenshots, web assets</li>
+                        <li class="reveal"><strong>dependency-audit</strong>: audits the base install path, uploads markdown report artifact on every run</li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="stat-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="stat-card reveal">
+                            <div class="stat-number">200+</div>
+                            <div class="stat-label">Tests</div>
+                        </div>
+                        <div class="stat-card reveal">
+                            <div class="stat-number">2</div>
+                            <div class="stat-label">CI Workflows</div>
+                        </div>
+                        <div class="stat-card reveal">
+                            <div class="stat-number">7</div>
+                            <div class="stat-label">Notebooks</div>
+                        </div>
+                        <div class="stat-card reveal">
+                            <div class="stat-number">6</div>
+                            <div class="stat-label">Vision Features</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 22: PROJECT STRUCTURE
+         ============================================================ -->
+    <section class="slide content-slide gradient-gold" aria-label="Project Structure">
+        <div class="slide-content">
+            <h2 class="reveal">Project <span class="accent">Layout</span></h2>
+            <div class="two-col">
+                <div class="code-block reveal" style="font-size: var(--code-size);">src/oci_vision/
+  core/
+    client.py      <span class="comment"># VisionClient</span>
+    demo.py        <span class="comment"># DemoClient</span>
+    models.py      <span class="comment"># Pydantic v2</span>
+    insights.py    <span class="comment"># Compare logic</span>
+    renderer.py    <span class="comment"># Overlay render</span>
+  cli/app.py       <span class="comment"># Typer CLI</span>
+  tui/app.py       <span class="comment"># Textual cockpit</span>
+  web/app.py       <span class="comment"># FastAPI dashboard</span></div>
+                <div class="code-block reveal" style="font-size: var(--code-size);">  eval/
+    detection.py   <span class="comment"># IoU / precision</span>
+    text.py        <span class="comment"># OCR similarity</span>
+    document.py    <span class="comment"># Doc field diff</span>
+  gallery/         <span class="comment"># Demo fixtures</span>
+  oracle/          <span class="comment"># DB integration</span>
+  workflows/       <span class="comment"># 4 workflow packs</span>
+notebooks/         <span class="comment"># 7 notebooks</span>
+tests/             <span class="comment"># 200+ tests</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 23: QUICK START RECAP
+         ============================================================ -->
+    <section class="slide content-slide gradient-mixed" aria-label="Quick Start">
+        <div class="deco-circle teal decorative" style="width: 200px; height: 200px; top: 5%; left: 5%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">Get <span class="accent">Started</span></h2>
+            <div class="code-block reveal" style="margin-bottom: var(--content-gap);"><span class="comment"># Clone and install</span>
+git clone https://github.com/jasperan/oci-vision-ai.git
+cd oci-vision-ai
+pip install -e <span class="string">"."</span>
+
+<span class="comment"># Try the CLI</span>
+<span class="function">oci-vision</span> analyze dog_closeup.jpg <span class="flag">--demo</span>
+
+<span class="comment"># Launch the web dashboard</span>
+<span class="function">oci-vision</span> web <span class="flag">--demo</span>
+
+<span class="comment"># Open the cockpit</span>
+<span class="function">oci-vision</span> cockpit <span class="flag">--demo</span></div>
+            <p class="reveal" style="font-size: var(--body-size); color: var(--text-secondary);">Zero credentials required. Every surface works out of the box with <code style="color: var(--accent-teal);">--demo</code>.</p>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 24: ROADMAP
+         ============================================================ -->
+    <section class="slide content-slide gradient-violet" aria-label="Roadmap">
+        <div class="deco-circle violet decorative" style="width: 200px; height: 200px; bottom: 10%; left: 5%;"></div>
+        <div class="slide-content">
+            <h2 class="reveal">What's <span class="accent">Next</span></h2>
+            <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));">
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">More Fixtures</h3>
+                    <p>Expand the demo gallery with diverse image types</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">Streaming API</h3>
+                    <p>Real-time progress for large batch operations</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">Multi-model Eval</h3>
+                    <p>Compare OCI Vision against other providers</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 style="font-size: var(--small-size);">Plugin System</h3>
+                    <p>Custom workflow packs from the community</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 25: CLOSING
+         ============================================================ -->
+    <section class="slide closing-slide gradient-mixed" aria-label="Closing">
+        <div class="deco-circle teal decorative" style="width: 350px; height: 350px; top: -100px; right: -80px;"></div>
+        <div class="deco-circle violet decorative" style="width: 280px; height: 280px; bottom: -80px; left: -60px;"></div>
+        <div class="accent-line decorative" style="height: 30%; top: 35%; left: 8%;"></div>
+        <div class="accent-line decorative" style="height: 30%; top: 35%; right: 8%;"></div>
+
+        <h2 class="reveal" style="font-size: var(--title-size); font-family: var(--font-display); font-weight: 600;">OCI Vision AI</h2>
+        <p class="reveal" style="font-size: var(--subtitle-size); color: var(--text-secondary); font-style: italic; font-family: var(--font-display); margin-top: var(--element-gap);">Six features. Three surfaces. One <code style="color: var(--accent-teal);">--demo</code> flag.</p>
+        <a class="link reveal" href="https://github.com/jasperan/oci-vision-ai" target="_blank" rel="noopener">github.com/jasperan/oci-vision-ai</a>
+        <p class="reveal" style="font-size: var(--small-size); color: var(--text-secondary); margin-top: var(--content-gap); opacity: 0.5;">GPL-3.0 License</p>
+    </section>
+
+    <!-- ===========================================
+         SLIDE PRESENTATION CONTROLLER
+         =========================================== -->
+    <script>
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.currentSlide = 0;
+                this.totalSlides = this.slides.length;
+                this.isScrolling = false;
+
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupProgressBar();
+                this.setupNavDots();
+                this.setupScrollTracking();
+                this.hideKeyboardHint();
+            }
+
+            /* --- Intersection Observer: triggers .visible class --- */
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            const index = Array.from(this.slides).indexOf(entry.target);
+                            if (index !== -1) {
+                                this.currentSlide = index;
+                                this.updateProgressBar();
+                                this.updateNavDots();
+                                this.updateSlideCounter();
+                            }
+                        }
+                    });
+                }, {
+                    threshold: 0.5
+                });
+
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            /* --- Keyboard navigation: arrows, space, page up/down --- */
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    switch (e.key) {
+                        case 'ArrowDown':
+                        case 'ArrowRight':
+                        case ' ':
+                        case 'PageDown':
+                            e.preventDefault();
+                            this.goToSlide(Math.min(this.currentSlide + 1, this.totalSlides - 1));
+                            break;
+                        case 'ArrowUp':
+                        case 'ArrowLeft':
+                        case 'PageUp':
+                            e.preventDefault();
+                            this.goToSlide(Math.max(this.currentSlide - 1, 0));
+                            break;
+                        case 'Home':
+                            e.preventDefault();
+                            this.goToSlide(0);
+                            break;
+                        case 'End':
+                            e.preventDefault();
+                            this.goToSlide(this.totalSlides - 1);
+                            break;
+                    }
+                });
+            }
+
+            /* --- Touch / swipe support for mobile --- */
+            setupTouchNav() {
+                let touchStartY = 0;
+                let touchStartX = 0;
+
+                document.addEventListener('touchstart', (e) => {
+                    touchStartY = e.changedTouches[0].screenY;
+                    touchStartX = e.changedTouches[0].screenX;
+                }, { passive: true });
+
+                document.addEventListener('touchend', (e) => {
+                    const deltaY = touchStartY - e.changedTouches[0].screenY;
+                    const deltaX = touchStartX - e.changedTouches[0].screenX;
+
+                    // Only respond to vertical swipes
+                    if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 50) {
+                        if (deltaY > 0) {
+                            this.goToSlide(Math.min(this.currentSlide + 1, this.totalSlides - 1));
+                        } else {
+                            this.goToSlide(Math.max(this.currentSlide - 1, 0));
+                        }
+                    }
+                }, { passive: true });
+            }
+
+            /* --- Progress bar at top edge --- */
+            setupProgressBar() {
+                this.progressBar = document.getElementById('progressBar');
+                this.updateProgressBar();
+            }
+
+            updateProgressBar() {
+                if (this.progressBar) {
+                    const progress = ((this.currentSlide + 1) / this.totalSlides) * 100;
+                    this.progressBar.style.width = progress + '%';
+                }
+            }
+
+            /* --- Navigation dots on right side --- */
+            setupNavDots() {
+                const container = document.getElementById('navDots');
+                if (!container) return;
+
+                this.slides.forEach((_, i) => {
+                    const dot = document.createElement('button');
+                    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+                    dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+                    dot.addEventListener('click', () => this.goToSlide(i));
+                    container.appendChild(dot);
+                });
+
+                this.navDotElements = container.querySelectorAll('.nav-dot');
+            }
+
+            updateNavDots() {
+                if (!this.navDotElements) return;
+                this.navDotElements.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === this.currentSlide);
+                });
+            }
+
+            /* --- Slide counter in top-right --- */
+            updateSlideCounter() {
+                const counter = document.getElementById('slideCounter');
+                if (counter) {
+                    counter.textContent = (this.currentSlide + 1) + ' / ' + this.totalSlides;
+                }
+            }
+
+            /* --- Track scroll position for progress --- */
+            setupScrollTracking() {
+                let ticking = false;
+                document.addEventListener('scroll', () => {
+                    if (!ticking) {
+                        window.requestAnimationFrame(() => {
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                }, { passive: true });
+            }
+
+            /* --- Navigate to a specific slide --- */
+            goToSlide(index) {
+                if (index >= 0 && index < this.totalSlides) {
+                    this.slides[index].scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+
+            /* --- Hide keyboard hint after first interaction --- */
+            hideKeyboardHint() {
+                const hint = document.getElementById('keyboardHint');
+                if (!hint) return;
+
+                const hide = () => {
+                    hint.style.opacity = '0';
+                    document.removeEventListener('keydown', hide);
+                    document.removeEventListener('touchstart', hide);
+                    document.removeEventListener('click', hide);
+                };
+
+                setTimeout(() => {
+                    document.addEventListener('keydown', hide);
+                    document.addEventListener('touchstart', hide);
+                    document.addEventListener('click', hide);
+                }, 2000);
+
+                // Auto-hide after 6 seconds regardless
+                setTimeout(() => { hint.style.opacity = '0'; }, 6000);
+            }
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            new SlidePresentation();
+        });
+    </script>
+</body>
+</html>
