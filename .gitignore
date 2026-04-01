@@ -175,3 +175,10 @@ dogfood-output/
 # Local agent artifacts
 .pi/
 CLAUDE.md
+
+# Node.js / Next.js (interactive/)
+node_modules/
+interactive/node_modules/
+interactive/.next/
+interactive/out/
+interactive/.claude/
