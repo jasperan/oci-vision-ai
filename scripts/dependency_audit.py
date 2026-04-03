@@ -12,7 +12,10 @@ from typing import Any
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover - Python <3.11
-    import tomli as tomllib
+    try:
+        import tomli as tomllib
+    except ModuleNotFoundError:  # pragma: no cover - fallback without new dependency
+        from pip._vendor import tomli as tomllib
 
 ALLOWLIST: dict[str, dict[str, str]] = {
     "CVE-2026-4539": {

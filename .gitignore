@@ -190,6 +190,14 @@ dogfood-output/
 # Local agent artifacts
 .pi/
 CLAUDE.md
+**/IMPLEMENTATION.md
+**/PLAN.md
+**/SUMMARY.md
+**/REVIEW.md
+**/NOTES.md
+**/TODO.md
+**/DESIGN.md
+**/REPORT.md
 
 # Node.js / Next.js (interactive/)
 node_modules/

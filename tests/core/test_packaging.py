@@ -5,7 +5,10 @@ from pathlib import Path
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover - Python <3.11
-    import tomli as tomllib
+    try:
+        import tomli as tomllib
+    except ModuleNotFoundError:  # pragma: no cover - fallback without new dependency
+        from pip._vendor import tomli as tomllib
 
 
 def test_pyproject_keeps_oci_out_of_base_dependencies():
@@ -28,5 +31,10 @@ def test_gitignore_blocks_local_agent_artifacts():
     gitignore = Path(".gitignore").read_text(encoding="utf-8")
 
     assert ".omx/" in gitignore
-    assert "IMPLEMENTATION.md" in gitignore
-    assert "PLAN.md" in gitignore
+    for pattern in [
+        "**/IMPLEMENTATION.md",
+        "**/PLAN.md",
+        "**/SUMMARY.md",
+        "**/REVIEW.md",
+    ]:
+        assert pattern in gitignore
