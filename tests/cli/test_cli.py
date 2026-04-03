@@ -124,13 +124,22 @@ def test_cli_batch_json_output():
 
 
 def test_cli_showcase_json_output():
-    result = runner.invoke(app, ["showcase", "--demo", "--output-format", "json"])
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            app,
+            ["showcase", "--demo", "--output-format", "json", "--output-dir", "bundle"],
+        )
 
-    assert result.exit_code == 0
-    data = json.loads(result.output)
-    assert data["asset_count"] >= 4
-    assert data["workflows"]["receipt"]["fields"]["Invoice Number"] == "INV-1001"
-    assert data["comparisons"]
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["asset_count"] >= 4
+        assert data["workflows"]["receipt"]["fields"]["Invoice Number"] == "INV-1001"
+        assert data["comparisons"]
+        assert Path("bundle/showcase.json").exists()
+        assert Path("bundle/batch_summary.json").exists()
+        assert Path("bundle/workflow_summaries.json").exists()
+        assert Path("bundle/comparisons.json").exists()
+        assert Path("bundle/index.html").exists()
 
 
 def test_cli_showcase_html_output_creates_bundle():
@@ -143,6 +152,9 @@ def test_cli_showcase_html_output_creates_bundle():
         assert result.exit_code == 0
         assert Path("bundle/index.html").exists()
         assert Path("bundle/showcase.json").exists()
+        assert Path("bundle/batch_summary.json").exists()
+        assert Path("bundle/workflow_summaries.json").exists()
+        assert Path("bundle/comparisons.json").exists()
         assert Path("bundle/overlays/dog_closeup.png").exists()
         assert "Showcase bundle saved to" in result.output
 

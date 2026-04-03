@@ -43,7 +43,8 @@ cd "$ARTIFACT_DIR"
 "$INSTALL_VENV/bin/oci-vision" document invoice_demo.png --demo --output-format json > document.json
 "$INSTALL_VENV/bin/oci-vision" compare dog_closeup.jpg sign_board.png --demo --output-format json > compare.json
 "$INSTALL_VENV/bin/oci-vision" batch dog_closeup.jpg sign_board.png invoice_demo.png --demo --output-format json > batch.json
-"$INSTALL_VENV/bin/oci-vision" showcase --demo --output-dir showcase --output-format json > showcase.json
+"$INSTALL_VENV/bin/oci-vision" showcase --demo --output-format json > showcase.json
+"$INSTALL_VENV/bin/oci-vision" showcase --demo --output-dir showcase --output-format html > showcase-html.txt
 "$INSTALL_VENV/bin/oci-vision" cockpit --demo --image dog_closeup.jpg --features classification,detection --screenshot cockpit.svg >/dev/null
 
 "$INSTALL_VENV/bin/python" - <<'PY'
@@ -70,6 +71,9 @@ showcase = json.loads(Path('showcase.json').read_text())
 assert showcase['asset_count'] >= 4, showcase
 assert (Path('showcase') / 'index.html').exists(), 'showcase index missing'
 assert (Path('showcase') / 'showcase.json').exists(), 'showcase summary missing'
+assert (Path('showcase') / 'batch_summary.json').exists(), 'showcase batch summary missing'
+assert (Path('showcase') / 'workflow_summaries.json').exists(), 'showcase workflow summary missing'
+assert (Path('showcase') / 'comparisons.json').exists(), 'showcase comparisons missing'
 svg = Path('cockpit.svg')
 assert svg.exists(), 'cockpit.svg was not created'
 text = svg.read_text(encoding='utf-8')

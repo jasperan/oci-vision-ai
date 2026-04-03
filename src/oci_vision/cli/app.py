@@ -366,16 +366,17 @@ def showcase(
 
     if output_format == "json":
         print(json.dumps(snapshot, indent=2))
+        if output_dir:
+            write_showcase_bundle(snapshot, reports, output_dir)
     elif output_format == "html":
         bundle = write_showcase_bundle(snapshot, reports, output_dir or "showcase_bundle")
         console.print(f"[green]Showcase bundle saved to:[/green] {bundle['html']}")
         return
     else:
         _output_showcase(snapshot)
-
-    if output_dir:
-        bundle = write_showcase_bundle(snapshot, reports, output_dir)
-        console.print(f"[green]Showcase bundle saved to:[/green] {bundle['html']}")
+        if output_dir:
+            bundle = write_showcase_bundle(snapshot, reports, output_dir)
+            console.print(f"[green]Showcase bundle saved to:[/green] {bundle['html']}")
 
 
 @app.command()
