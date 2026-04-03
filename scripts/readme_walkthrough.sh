@@ -20,6 +20,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
+run_interactive_build() {
+  rm -rf interactive/node_modules interactive/.next interactive/out
+  npm --prefix interactive ci
+  npm --prefix interactive run build
+}
+
 cd "$ROOT_DIR"
 
 echo "==> Creating walkthrough environment in $ARTIFACT_DIR"
@@ -162,9 +168,10 @@ wait "$SERVER_PID" >/dev/null 2>&1 || true
 SERVER_PID=""
 
 echo "==> Building interactive explorer"
-rm -rf interactive/node_modules interactive/.next interactive/out
-npm --prefix interactive ci
-npm --prefix interactive run build
+if ! run_interactive_build; then
+  echo "==> Retrying interactive explorer build after a clean reset"
+  run_interactive_build
+fi
 npm --prefix interactive run lint
 npm --prefix interactive run verify:export
 git checkout -- interactive/next-env.d.ts interactive/tsconfig.tsbuildinfo >/dev/null 2>&1 || true
