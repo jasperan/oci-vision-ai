@@ -150,6 +150,8 @@ def create_app(demo: bool = False) -> FastAPI:
     @app.get("/showcase", response_class=HTMLResponse)
     async def showcase_page(request: Request):
         """Portfolio-style showcase page covering the whole demo surface."""
+        if not client.is_demo:
+            raise HTTPException(status_code=404, detail="Showcase is available in demo mode only.")
         showcase_snapshot, _ = build_showcase_snapshot(client)
         return templates.TemplateResponse(request, "showcase.html", {
             "showcase": showcase_snapshot,

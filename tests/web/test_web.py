@@ -20,6 +20,11 @@ def app():
     return create_app(demo=True)
 
 
+@pytest.fixture
+def live_app():
+    return create_app(demo=False)
+
+
 @pytest.mark.asyncio
 async def test_index(app):
     transport = ASGITransport(app=app)
@@ -81,6 +86,15 @@ async def test_showcase_page_renders_demo_snapshot(app):
         assert "Showcase" in resp.text
         assert "Headline insights" in resp.text
         assert "Invoice Number" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_showcase_page_is_demo_only(live_app):
+    transport = ASGITransport(app=live_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/showcase")
+        assert resp.status_code == 404
+        assert "demo mode only" in resp.text.lower()
 
 
 @pytest.mark.asyncio
