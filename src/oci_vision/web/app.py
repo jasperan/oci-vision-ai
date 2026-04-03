@@ -20,6 +20,7 @@ from pydantic import BaseModel
 
 from oci_vision.core.client import VisionClient
 from oci_vision.core.insights import compare_reports, report_insights
+from oci_vision.core.showcase import build_showcase_snapshot
 from oci_vision.gallery import load_manifest
 from oci_vision.oracle import search_if_enabled, store_report_if_enabled
 
@@ -144,6 +145,15 @@ def create_app(demo: bool = False) -> FastAPI:
             "right_report": right_report,
             "comparison": comparison,
             "error": error,
+        })
+
+    @app.get("/showcase", response_class=HTMLResponse)
+    async def showcase_page(request: Request):
+        """Portfolio-style showcase page covering the whole demo surface."""
+        showcase_snapshot, _ = build_showcase_snapshot(client)
+        return templates.TemplateResponse(request, "showcase.html", {
+            "showcase": showcase_snapshot,
+            "demo": client.is_demo,
         })
 
     @app.get("/report/{image_name}", response_class=HTMLResponse)

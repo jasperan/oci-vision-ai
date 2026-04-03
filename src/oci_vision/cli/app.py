@@ -20,7 +20,7 @@ from oci_vision.core.exports import build_json_report_payload, save_overlay_imag
 from oci_vision.core.insights import compare_reports, summarize_batch
 from oci_vision.core.models import AnalysisReport, DetectionResult, DocumentResult, TextDetectionResult
 from oci_vision.core.recording import record_fixture, serialize_feature_result
-from oci_vision.core.showcase import build_showcase_bundle
+from oci_vision.core.showcase import build_showcase_snapshot, write_showcase_bundle
 from oci_vision.eval import (
     evaluate_detection_result,
     evaluate_document_result,
@@ -163,6 +163,81 @@ def _output_batch_summary(batch: dict, output_format: str) -> None:
     console.print(aggregate)
 
 
+def _output_showcase(snapshot: dict) -> None:
+    console.print(
+        Panel.fit(
+            f"OCI Vision AI showcase • {snapshot['asset_count']} assets • "
+            f"{len(snapshot['batch']['feature_coverage'])} features • "
+            f"{snapshot['workflow_count']} workflows",
+            border_style="cyan",
+        )
+    )
+
+    headline_table = Table(title="Headline Insights", border_style="cyan")
+    headline_table.add_column("Insight")
+    for line in snapshot["headlines"]:
+        headline_table.add_row(line)
+    console.print(headline_table)
+
+    gallery_table = Table(title="Gallery Coverage", border_style="cyan")
+    gallery_table.add_column("Image", style="bold")
+    gallery_table.add_column("Features")
+    gallery_table.add_column("Top label")
+    gallery_table.add_column("Objects", justify="right")
+    gallery_table.add_column("OCR", justify="right")
+    gallery_table.add_column("Doc", justify="right")
+    for item in snapshot["gallery"]:
+        summary = item["summary"]
+        gallery_table.add_row(
+            item["filename"],
+            ", ".join(item["recommended_features"]),
+            summary["top_label"],
+            str(summary["object_count"]),
+            str(summary["ocr_line_count"]),
+            str(summary["document_field_count"]),
+        )
+    console.print(gallery_table)
+
+    workflow_table = Table(title="Workflow Packs", border_style="magenta")
+    workflow_table.add_column("Workflow", style="bold")
+    workflow_table.add_column("Key output")
+    workflow_table.add_row(
+        "receipt",
+        snapshot["workflows"]["receipt"]["fields"].get("Invoice Number", "No invoice number"),
+    )
+    workflow_table.add_row(
+        "shelf",
+        json.dumps(snapshot["workflows"]["shelf"]["objects"], indent=2),
+    )
+    workflow_table.add_row(
+        "inspection",
+        json.dumps(snapshot["workflows"]["inspection"], indent=2),
+    )
+    workflow_table.add_row(
+        "archive-search",
+        json.dumps(snapshot["workflows"]["archive_search"], indent=2),
+    )
+    console.print(workflow_table)
+
+    if snapshot["comparisons"]:
+        comparison_table = Table(title="Preset Comparisons", border_style="green")
+        comparison_table.add_column("Comparison", style="bold")
+        comparison_table.add_column("Label shift")
+        comparison_table.add_column("Object Δ", justify="right")
+        comparison_table.add_column("OCR Δ", justify="right")
+        comparison_table.add_column("Doc Δ", justify="right")
+        for item in snapshot["comparisons"]:
+            summary = item["summary"]
+            comparison_table.add_row(
+                item["title"],
+                f"{summary['top_label_change']['left']} → {summary['top_label_change']['right']}",
+                str(summary["object_count_delta"]),
+                str(summary["ocr_line_delta"]),
+                str(summary["document_field_delta"]),
+            )
+        console.print(comparison_table)
+
+
 def _run_vision_call(action, *, label: str = "request"):
     try:
         return action()
@@ -278,25 +353,29 @@ def batch(
 
 @app.command()
 def showcase(
-    output_dir: str = typer.Option("showcase", "--output-dir", help="Directory to write the showcase bundle into"),
     demo: bool = typer.Option(False, "--demo", help="Use demo mode"),
-    output_format: str = typer.Option("rich", "--output-format", help="Output format: rich or json"),
+    output_format: str = typer.Option("rich", "--output-format", help="Output format: rich, json, or html"),
+    output_dir: Optional[str] = typer.Option(None, "--output-dir", help="Optional directory to write a showcase bundle"),
 ) -> None:
-    """Generate a portable showcase bundle across the bundled demo gallery."""
+    """Run the full demo showcase across gallery assets, comparisons, and workflow packs."""
     client = _build_client(demo)
-    bundle = _run_vision_call(
-        lambda: build_showcase_bundle(client, output_dir),
-        label="showcase build",
+    snapshot, reports = _run_vision_call(
+        lambda: build_showcase_snapshot(client),
+        label="showcase",
     )
 
     if output_format == "json":
-        print(json.dumps(bundle, indent=2))
+        print(json.dumps(snapshot, indent=2))
+    elif output_format == "html":
+        bundle = write_showcase_bundle(snapshot, reports, output_dir or "showcase_bundle")
+        console.print(f"[green]Showcase bundle saved to:[/green] {bundle['html']}")
         return
+    else:
+        _output_showcase(snapshot)
 
-    console.print(Panel.fit(f"Showcase bundle written to {Path(output_dir).resolve()}", border_style="cyan"))
-    console.print(f"[bold]Images:[/bold] {bundle['image_count']}")
-    console.print(f"[bold]Index:[/bold] {bundle['index_artifact']}")
-    console.print(f"[bold]Summary:[/bold] {bundle['summary_artifact']}")
+    if output_dir:
+        bundle = write_showcase_bundle(snapshot, reports, output_dir)
+        console.print(f"[green]Showcase bundle saved to:[/green] {bundle['html']}")
 
 
 @app.command()

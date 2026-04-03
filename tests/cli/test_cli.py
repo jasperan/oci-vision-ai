@@ -124,17 +124,27 @@ def test_cli_batch_json_output():
 
 
 def test_cli_showcase_json_output():
+    result = runner.invoke(app, ["showcase", "--demo", "--output-format", "json"])
+
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert data["asset_count"] >= 4
+    assert data["workflows"]["receipt"]["fields"]["Invoice Number"] == "INV-1001"
+    assert data["comparisons"]
+
+
+def test_cli_showcase_html_output_creates_bundle():
     with runner.isolated_filesystem():
         result = runner.invoke(
             app,
-            ["showcase", "--demo", "--output-dir", "bundle", "--output-format", "json"],
+            ["showcase", "--demo", "--output-format", "html", "--output-dir", "bundle"],
         )
 
         assert result.exit_code == 0
-        data = json.loads(result.output)
-        assert data["image_count"] >= 4
-        assert Path("bundle/showcase_summary.json").exists()
         assert Path("bundle/index.html").exists()
+        assert Path("bundle/showcase.json").exists()
+        assert Path("bundle/overlays/dog_closeup.png").exists()
+        assert "Showcase bundle saved to" in result.output
 
 
 def test_cli_analyze_reports_missing_demo_asset_cleanly():

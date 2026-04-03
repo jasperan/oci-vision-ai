@@ -52,6 +52,16 @@ async def test_compare_page(app):
 
 
 @pytest.mark.asyncio
+async def test_showcase_page(app):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/showcase")
+        assert resp.status_code == 200
+        assert "Showcase" in resp.text
+        assert "Workflow packs" in resp.text
+
+
+@pytest.mark.asyncio
 async def test_compare_page_renders_comparison_results(app):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -60,6 +70,17 @@ async def test_compare_page_renders_comparison_results(app):
         assert "Delta summary" in resp.text
         assert "dog_closeup.jpg" in resp.text
         assert "sign_board.png" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_showcase_page_renders_demo_snapshot(app):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/showcase")
+        assert resp.status_code == 200
+        assert "Showcase" in resp.text
+        assert "Headline insights" in resp.text
+        assert "Invoice Number" in resp.text
 
 
 @pytest.mark.asyncio
