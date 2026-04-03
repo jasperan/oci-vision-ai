@@ -27,6 +27,9 @@ def test_showcase_bundle_generates_expected_artifacts(tmp_path):
 
     assert bundle["html"].exists()
     assert bundle["json"].exists()
+    assert bundle["batch"].exists()
+    assert bundle["workflows"].exists()
+    assert bundle["comparisons"].exists()
     assert (tmp_path / "reports" / "dog_closeup.html").exists()
     assert (tmp_path / "reports" / "dog_closeup.json").exists()
     assert (tmp_path / "overlays" / "dog_closeup.png").exists()

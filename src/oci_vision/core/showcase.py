@@ -319,7 +319,12 @@ def _render_showcase_html(snapshot: dict[str, Any]) -> str:
       <h1>OCI Vision AI Showcase</h1>
       <p>A single offline summary of the repo’s gallery, comparisons, workflows, and generated artifacts.</p>
       <ul>{headline_items}</ul>
-      <p><a href="showcase_summary.json">showcase_summary.json</a></p>
+      <p>
+        <a href="showcase_summary.json">showcase_summary.json</a> ·
+        <a href="batch_summary.json">batch_summary.json</a> ·
+        <a href="workflow_summaries.json">workflow_summaries.json</a> ·
+        <a href="comparisons.json">comparisons.json</a>
+      </p>
     </section>
 
     <section class="section">
@@ -367,6 +372,12 @@ def write_showcase_bundle(
     payload = json.dumps(snapshot, indent=2)
     json_path.write_text(payload, encoding="utf-8")
     (root / "showcase.json").write_text(payload, encoding="utf-8")
+    batch_path = root / "batch_summary.json"
+    batch_path.write_text(json.dumps(snapshot["batch"], indent=2), encoding="utf-8")
+    workflow_path = root / "workflow_summaries.json"
+    workflow_path.write_text(json.dumps(snapshot["workflows"], indent=2), encoding="utf-8")
+    comparisons_path = root / "comparisons.json"
+    comparisons_path.write_text(json.dumps(snapshot["comparisons"], indent=2), encoding="utf-8")
 
     for filename, report in reports.items():
         stem = Path(filename).stem
@@ -381,6 +392,9 @@ def write_showcase_bundle(
         "root": root,
         "html": html_path,
         "json": json_path,
+        "batch": batch_path,
+        "workflows": workflow_path,
+        "comparisons": comparisons_path,
         "reports": reports_dir,
         "overlays": overlays_dir,
     }
@@ -416,9 +430,9 @@ def build_showcase_bundle(client, output_dir: str | Path | None = None) -> dict[
         "demo": snapshot["demo"],
         "image_count": snapshot["asset_count"],
         "images": images,
-        "batch_summary_artifact": "showcase_summary.json",
-        "comparison_artifact": "showcase_summary.json",
-        "workflow_artifact": "showcase_summary.json",
+        "batch_summary_artifact": bundle_paths["batch"].name,
+        "comparison_artifact": bundle_paths["comparisons"].name,
+        "workflow_artifact": bundle_paths["workflows"].name,
         "workflows": snapshot["workflows"],
         "summary_artifact": bundle_paths["json"].name,
         "index_artifact": bundle_paths["html"].name,
