@@ -165,6 +165,21 @@ docs/plans/
 task_plan.md
 findings.md
 progress.md
+.omx/
+IMPLEMENTATION.md
+IMPLEMENTATION-*.md
+PLAN.md
+PLAN-*.md
+SUMMARY.md
+SUMMARY-*.md
+REVIEW.md
+REVIEW-*.md
+NOTES.md
+NOTES-*.md
+REPORT.md
+REPORT-*.md
+TODO.md
+TODO-*.md
 
 # Playwright MCP
 .playwright-mcp/

@@ -5,10 +5,14 @@ import json
 import subprocess
 import sys
 import tempfile
-import tomllib
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python <3.11
+    import tomli as tomllib
 
 ALLOWLIST: dict[str, dict[str, str]] = {
     "CVE-2026-4539": {

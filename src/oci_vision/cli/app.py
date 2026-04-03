@@ -20,6 +20,7 @@ from oci_vision.core.exports import build_json_report_payload, save_overlay_imag
 from oci_vision.core.insights import compare_reports, summarize_batch
 from oci_vision.core.models import AnalysisReport, DetectionResult, DocumentResult, TextDetectionResult
 from oci_vision.core.recording import record_fixture, serialize_feature_result
+from oci_vision.core.showcase import build_showcase_bundle
 from oci_vision.eval import (
     evaluate_detection_result,
     evaluate_document_result,
@@ -273,6 +274,29 @@ def batch(
         for image in images
     ]
     _output_batch_summary(summarize_batch(reports), output_format)
+
+
+@app.command()
+def showcase(
+    output_dir: str = typer.Option("showcase", "--output-dir", help="Directory to write the showcase bundle into"),
+    demo: bool = typer.Option(False, "--demo", help="Use demo mode"),
+    output_format: str = typer.Option("rich", "--output-format", help="Output format: rich or json"),
+) -> None:
+    """Generate a portable showcase bundle across the bundled demo gallery."""
+    client = _build_client(demo)
+    bundle = _run_vision_call(
+        lambda: build_showcase_bundle(client, output_dir),
+        label="showcase build",
+    )
+
+    if output_format == "json":
+        print(json.dumps(bundle, indent=2))
+        return
+
+    console.print(Panel.fit(f"Showcase bundle written to {Path(output_dir).resolve()}", border_style="cyan"))
+    console.print(f"[bold]Images:[/bold] {bundle['image_count']}")
+    console.print(f"[bold]Index:[/bold] {bundle['index_artifact']}")
+    console.print(f"[bold]Summary:[/bold] {bundle['summary_artifact']}")
 
 
 @app.command()
