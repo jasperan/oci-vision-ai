@@ -158,23 +158,23 @@ def _render_showcase_html(snapshot: dict[str, Any]) -> str:
         stem = Path(item["filename"]).stem
         gallery_cards.append(
             f"""
-            <section class="card"> 
-              <div class="card-header"> 
-                <div> 
-                  <h3>{esc(item['filename'])}</h3> 
-                  <p class="muted">{esc(item['description'])}</p> 
-                </div> 
-                <div class="badge-row">{feature_badges}</div> 
-              </div> 
-              <img src="overlays/{esc(stem)}.png" alt="Overlay for {esc(item['filename'])}" class="overlay" /> 
-              <div class="stats-grid"> 
-                <div><span class="label">Top label</span><strong>{esc(summary['top_label'])}</strong></div> 
-                <div><span class="label">Objects</span><strong>{summary['object_count']}</strong></div> 
-                <div><span class="label">OCR lines</span><strong>{summary['ocr_line_count']}</strong></div> 
-                <div><span class="label">Doc fields</span><strong>{summary['document_field_count']}</strong></div> 
-              </div> 
-              <p class="muted small">{esc(item['command'])}</p> 
-              <p><a href="reports/{esc(stem)}.html">Open full report</a> · <a href="reports/{esc(stem)}.json">JSON</a></p> 
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <h3>{esc(item['filename'])}</h3>
+                  <p class="muted">{esc(item['description'])}</p>
+                </div>
+                <div class="badge-row">{feature_badges}</div>
+              </div>
+              <img src="overlays/{esc(stem)}.png" alt="Overlay for {esc(item['filename'])}" class="overlay" />
+              <div class="stats-grid">
+                <div><span class="label">Top label</span><strong>{esc(summary['top_label'])}</strong></div>
+                <div><span class="label">Objects</span><strong>{summary['object_count']}</strong></div>
+                <div><span class="label">OCR lines</span><strong>{summary['ocr_line_count']}</strong></div>
+                <div><span class="label">Doc fields</span><strong>{summary['document_field_count']}</strong></div>
+              </div>
+              <p class="muted small">{esc(item['command'])}</p>
+              <p><a href="reports/{esc(stem)}.html">Open full report</a> · <a href="reports/{esc(stem)}.json">JSON</a></p>
             </section>
             """
         )
@@ -184,18 +184,18 @@ def _render_showcase_html(snapshot: dict[str, Any]) -> str:
         summary = comparison["summary"]
         comparison_cards.append(
             f"""
-            <section class="card"> 
-              <h3>{esc(comparison['title'])}</h3> 
-              <p class="muted">{esc(summary['left_image'])} → {esc(summary['right_image'])}</p> 
-              <ul> 
-                <li><strong>Shared:</strong> {esc(', '.join(summary['shared_features']) or 'none')}</li> 
-                <li><strong>Left only:</strong> {esc(', '.join(summary['left_only_features']) or 'none')}</li> 
-                <li><strong>Right only:</strong> {esc(', '.join(summary['right_only_features']) or 'none')}</li> 
-                <li><strong>Top label:</strong> {esc(summary['top_label_change']['left'])} → {esc(summary['top_label_change']['right'])}</li> 
-                <li><strong>Object delta:</strong> {summary['object_count_delta']}</li> 
-                <li><strong>OCR line delta:</strong> {summary['ocr_line_delta']}</li> 
-                <li><strong>Document field delta:</strong> {summary['document_field_delta']}</li> 
-              </ul> 
+            <section class="card">
+              <h3>{esc(comparison['title'])}</h3>
+              <p class="muted">{esc(summary['left_image'])} → {esc(summary['right_image'])}</p>
+              <ul>
+                <li><strong>Shared:</strong> {esc(', '.join(summary['shared_features']) or 'none')}</li>
+                <li><strong>Left only:</strong> {esc(', '.join(summary['left_only_features']) or 'none')}</li>
+                <li><strong>Right only:</strong> {esc(', '.join(summary['right_only_features']) or 'none')}</li>
+                <li><strong>Top label:</strong> {esc(summary['top_label_change']['left'])} → {esc(summary['top_label_change']['right'])}</li>
+                <li><strong>Object delta:</strong> {summary['object_count_delta']}</li>
+                <li><strong>OCR line delta:</strong> {summary['ocr_line_delta']}</li>
+                <li><strong>Document field delta:</strong> {summary['document_field_delta']}</li>
+              </ul>
             </section>
             """
         )
@@ -204,9 +204,9 @@ def _render_showcase_html(snapshot: dict[str, Any]) -> str:
     for workflow_name, payload in snapshot["workflows"].items():
         workflow_cards.append(
             f"""
-            <section class="card"> 
-              <h3>{esc(workflow_name.replace('_', ' ').title())}</h3> 
-              <pre>{esc(json.dumps(payload, indent=2))}</pre> 
+            <section class="card">
+              <h3>{esc(workflow_name.replace('_', ' ').title())}</h3>
+              <pre>{esc(json.dumps(payload, indent=2))}</pre>
             </section>
             """
         )
@@ -314,37 +314,37 @@ def _render_showcase_html(snapshot: dict[str, Any]) -> str:
 </head>
 <body>
   <main>
-    <section class="hero"> 
-      <p class="muted small">Generated at {esc(snapshot['generated_at'])}</p> 
-      <h1>OCI Vision AI Showcase</h1> 
-      <p>A single offline summary of the repo’s gallery, comparisons, workflows, and generated artifacts.</p> 
-      <ul>{headline_items}</ul> 
-      <p><a href="showcase_summary.json">showcase_summary.json</a></p> 
+    <section class="hero">
+      <p class="muted small">Generated at {esc(snapshot['generated_at'])}</p>
+      <h1>OCI Vision AI Showcase</h1>
+      <p>A single offline summary of the repo’s gallery, comparisons, workflows, and generated artifacts.</p>
+      <ul>{headline_items}</ul>
+      <p><a href="showcase_summary.json">showcase_summary.json</a></p>
     </section>
 
-    <section class="section"> 
-      <h2>Feature coverage</h2> 
-      <div class="card"> 
-        <table> 
-          <thead><tr><th>Feature</th><th>Count</th></tr></thead> 
-          <tbody>{feature_rows}</tbody> 
-        </table> 
-      </div> 
+    <section class="section">
+      <h2>Feature coverage</h2>
+      <div class="card">
+        <table>
+          <thead><tr><th>Feature</th><th>Count</th></tr></thead>
+          <tbody>{feature_rows}</tbody>
+        </table>
+      </div>
     </section>
 
-    <section class="section"> 
-      <h2>Gallery</h2> 
-      <div class="grid">{''.join(gallery_cards)}</div> 
+    <section class="section">
+      <h2>Gallery</h2>
+      <div class="grid">{''.join(gallery_cards)}</div>
     </section>
 
-    <section class="section"> 
-      <h2>Comparisons</h2> 
-      <div class="grid">{''.join(comparison_cards)}</div> 
+    <section class="section">
+      <h2>Comparisons</h2>
+      <div class="grid">{''.join(comparison_cards)}</div>
     </section>
 
-    <section class="section"> 
-      <h2>Workflow packs</h2> 
-      <div class="grid">{''.join(workflow_cards)}</div> 
+    <section class="section">
+      <h2>Workflow packs</h2>
+      <div class="grid">{''.join(workflow_cards)}</div>
     </section>
   </main>
 </body>
