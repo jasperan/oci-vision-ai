@@ -1,0 +1,42 @@
+name: readme-walkthrough
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  walkthrough:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: interactive/package-lock.json
+
+      - name: Run README walkthrough
+        env:
+          OCI_VISION_WALKTHROUGH_KEEP: "1"
+          OCI_VISION_WALKTHROUGH_DIR: "${{ github.workspace }}/walkthrough-artifacts"
+        run: bash scripts/readme_walkthrough.sh
+
+      - name: Upload walkthrough artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: readme-walkthrough-artifacts
+          path: walkthrough-artifacts

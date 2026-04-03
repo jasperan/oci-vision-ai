@@ -64,8 +64,16 @@ Every chapter ships runnable commands, interactive notebooks, and a live web das
 The `interactive/` directory contains a **learn-by-play** interactive textbook built with Next.js, React 19, and Tailwind CSS. It features 8 hands-on widgets across all 8 sections -- drag confidence thresholds, hover bounding boxes, step through OCR pipelines, toggle face landmarks, explore Document AI extraction, calculate IoU metrics, toggle demo/live architecture, and animate workflow packs.
 
 ```bash
-cd interactive && npm install && npm run dev
+cd interactive && npm ci && npm run dev
 ```
+
+For a production-style verification run:
+
+```bash
+cd interactive && npm ci && npm run build && npm run lint && npm run verify:export
+```
+
+See [`interactive/README.md`](interactive/README.md) for the focused explorer workflow.
 
 ## Quick Start
 
@@ -90,9 +98,20 @@ pip install -e .
 oci-vision analyze dog_closeup.jpg --demo
 oci-vision compare dog_closeup.jpg sign_board.png --demo --output-format json
 oci-vision batch dog_closeup.jpg sign_board.png invoice_demo.png --demo --output-format json
+oci-vision showcase --demo --output-dir showcase
 oci-vision cockpit --demo
 oci-vision web --demo
 ```
+
+### Generate a portable demo bundle
+
+If you want one command that proves the shipped demo assets and workflows are healthy, generate a showcase bundle:
+
+```bash
+oci-vision showcase --demo --output-dir showcase
+```
+
+That directory will contain per-image JSON/HTML reports, overlay images, workflow summaries, a batch summary, and an `index.html` entry point.
 
 ### Install options
 
@@ -100,6 +119,16 @@ oci-vision web --demo
 - `pip install -e ".[live]"` -- add OCI SDK for live mode
 - `pip install -e ".[notebooks]"` -- add notebook tooling
 - `pip install -e ".[all]"` -- everything
+
+## Full README Walkthrough
+
+To exercise the project the way a hands-on reader would -- install it, run the CLI, capture the TUI, hit the web API, and build the interactive app -- use:
+
+```bash
+bash scripts/readme_walkthrough.sh
+```
+
+The script also checks that `.omx/` state and common agent scratch markdown files are not tracked by git.
 
 ## Delivery Surfaces
 

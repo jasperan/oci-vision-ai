@@ -213,7 +213,6 @@ export default function OcrWidget() {
         >
           {SIGN_LINES.map((line, li) => {
             const layout = LINE_LAYOUT[li];
-            const lineText = line.words.map((w) => w.text).join(" ");
             const isLargeLine = li < 3;
 
             return (

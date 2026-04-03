@@ -87,7 +87,6 @@ const STAGES = [
 /* ------------------------------------------------------------------ */
 
 const ACCENT = "#f472b6";
-const ACCENT_DIM = "rgba(244,114,182,0.25)";
 const ACCENT_GLOW = "rgba(244,114,182,0.15)";
 
 const mono: React.CSSProperties = {
