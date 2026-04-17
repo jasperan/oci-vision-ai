@@ -144,7 +144,7 @@ The script also checks that `.omx/` state and common agent scratch markdown file
 | # | Notebook | Description |
 |---|----------|-------------|
 | 01 | `01_quickstart.ipynb` | End-to-end walkthrough -- classify, detect, OCR in one notebook |
-| 02 | `02_classification.ipynb` | Deep dive into image classification with threshold tuning |
+| 02 | `02_classification.ipynb` | Image classification with threshold tuning |
 | 03 | `03_object_detection.ipynb` | Object detection, bounding boxes, and overlay rendering |
 | 04 | `04_ocr.ipynb` | Text extraction from photos and scanned documents |
 | 05 | `05_face_detection.ipynb` | Face detection with landmark visualisation |

@@ -205,3 +205,11 @@ interactive/node_modules/
 interactive/.next/
 interactive/out/
 interactive/.claude/
+
+# Agent / skill directories (local-only)
+.agents/
+.claude/
+.crush/
+.openhands/
+.serena/
+content/
