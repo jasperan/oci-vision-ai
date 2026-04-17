@@ -64,14 +64,28 @@ def _parse_requested_features(features: list[str] | str | None) -> list[str] | s
     return requested
 
 
-def _analysis_error_response(exc: Exception) -> JSONResponse:
-    if isinstance(exc, (FileNotFoundError, ValueError)):
-        return JSONResponse({"detail": str(exc)}, status_code=400)
+def _classify_analysis_error(exc: Exception) -> tuple[int, str] | None:
+    """Map known OCI/IO failures to (status_code, detail). Returns None for unknown errors."""
+    if isinstance(exc, FileNotFoundError):
+        return 404, str(exc)
+    if isinstance(exc, ValueError):
+        return 400, str(exc)
     if isinstance(exc, TimeoutError):
-        return JSONResponse({"detail": f"Vision request timed out: {exc}"}, status_code=504)
+        return 504, f"Vision request timed out: {exc}"
     if isinstance(exc, ConnectionError):
-        return JSONResponse({"detail": f"Could not reach OCI Vision service: {exc}"}, status_code=502)
-    raise exc
+        return 502, f"Could not reach OCI Vision service: {exc}"
+    return None
+
+
+def _analysis_error_response(exc: Exception) -> JSONResponse:
+    classified = _classify_analysis_error(exc)
+    if classified is None:
+        raise exc
+    status_code, detail = classified
+    # /api/analyze* surfaces FileNotFoundError as 400 for API clients
+    if isinstance(exc, FileNotFoundError):
+        status_code = 400
+    return JSONResponse({"detail": detail}, status_code=status_code)
 
 
 # ---------------------------------------------------------------------------
@@ -167,12 +181,12 @@ def create_app(demo: bool = False) -> FastAPI:
         analysis_target = str(image_path) if image_path.exists() else image_name
         try:
             report = client.analyze(analysis_target)
-        except FileNotFoundError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
-        except TimeoutError as exc:
-            raise HTTPException(status_code=504, detail=f"Vision request timed out: {exc}") from exc
-        except ConnectionError as exc:
-            raise HTTPException(status_code=502, detail=f"Could not reach OCI Vision service: {exc}") from exc
+        except Exception as exc:
+            classified = _classify_analysis_error(exc)
+            if classified is None:
+                raise
+            status_code, detail = classified
+            raise HTTPException(status_code=status_code, detail=detail) from exc
 
         overlay_base64 = None
 

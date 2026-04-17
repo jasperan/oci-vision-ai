@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from typing import Sequence
+from typing import Any, Sequence
 
 from oci_vision.core.insights import compare_reports as core_compare_reports
 from oci_vision.core.insights import summarize_report as core_summarize_report
 from oci_vision.core.models import AnalysisReport
 
 
-def summarize_report(report: AnalysisReport) -> dict[str, object]:
+def summarize_report(report: AnalysisReport) -> dict[str, Any]:
     return core_summarize_report(report)
 
 
-def compare_reports(current: AnalysisReport, previous: AnalysisReport | None) -> dict[str, object]:
+def compare_reports(current: AnalysisReport, previous: AnalysisReport | None) -> dict[str, Any]:
     if previous is None:
         return {
             "has_previous": False,
@@ -36,7 +36,7 @@ def compare_reports(current: AnalysisReport, previous: AnalysisReport | None) ->
     }
 
 
-def summarize_workflow_result(workflow_name: str, payload: dict) -> str:
+def summarize_workflow_result(workflow_name: str, payload: dict[str, Any]) -> str:
     workflow_name = workflow_name.strip().lower()
     if workflow_name == "receipt":
         fields = payload.get("fields", {})

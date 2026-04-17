@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import typer
 from rich.console import Console
@@ -87,7 +87,7 @@ def _load_eval_payload(kind: str, path: str):
     raise typer.BadParameter(f"Unsupported eval kind: {kind}")
 
 
-def _output_comparison(comparison: dict, output_format: str) -> None:
+def _output_comparison(comparison: dict[str, Any], output_format: str) -> None:
     if output_format == "json":
         print(json.dumps(comparison, indent=2))
         return
