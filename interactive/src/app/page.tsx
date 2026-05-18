@@ -10,7 +10,48 @@ import {
   EvalMetricsWidget,
   ArchitectureWidget,
   WorkflowPipelineWidget,
+  PlaybackWidget,
+  type PlaybackTrace,
 } from "./components/widgets";
+
+const visionPipelineTrace: PlaybackTrace = {
+  source: `# OCI Vision AI request lifecycle
+image = load("dog_closeup.jpg")            # 1. load bytes
+tensor = preprocess(image)                 # 2. resize + normalize
+response = vision.analyze_image(           # 3. call OCI Vision
+    tensor,
+    features=["LABEL_DETECTION", "OBJECT_DETECTION"],
+)
+overlay = annotate(image, response)        # 4. draw polygons
+`,
+  steps: [
+    {
+      line: 2,
+      vars: { path: "dog_closeup.jpg", bytes: 184302 },
+      note: "Read image bytes from disk into memory.",
+    },
+    {
+      line: 3,
+      vars: { width: 1024, height: 768, channels: 3 },
+      note: "Preprocess: resize to model input, normalize pixel values to 0–1.",
+    },
+    {
+      line: 4,
+      vars: { features: ["LABEL_DETECTION", "OBJECT_DETECTION"], demo: true },
+      note: "Send the tensor to OCI Vision (or the demo client) and await JSON.",
+    },
+    {
+      line: 8,
+      vars: { labels: 7, objects: 3, confidence_top: 0.94 },
+      note: "Inference complete — labels and object polygons returned.",
+    },
+    {
+      line: 9,
+      vars: { polygons_drawn: 3, overlay: "ready" },
+      note: "Annotate: draw bounding polygons and labels back onto the source image.",
+    },
+  ],
+};
 
 const sections = [
   { id: "classify", num: "01", title: "Classification", color: "text-s1" },
@@ -109,6 +150,23 @@ export default function Home() {
 
       {/* ---- Main Content ---- */}
       <main className="max-w-5xl mx-auto px-4 pb-24 prose-dark">
+
+        {/* ==== Pipeline Playback (v1.1.0 PlaybackWidget) ==== */}
+        <section className="reveal mb-16">
+          <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase mb-2">
+            Before we dive in
+          </p>
+          <h3>Step through a Vision AI request</h3>
+          <p>
+            Every section below is a deep-dive into one feature. But under the hood, each call
+            follows the same four-step lifecycle: <span className="text-s1">load</span> &rarr;{" "}
+            <span className="text-s2">preprocess</span> &rarr;{" "}
+            <span className="text-s5">infer</span> &rarr;{" "}
+            <span className="text-s7">annotate</span>. Use the playback controls to walk through it.
+          </p>
+          <PlaybackWidget trace={visionPipelineTrace} label="Vision Pipeline" />
+          <div className="section-divider" />
+        </section>
 
         {/* ==== Section 1: Image Classification ==== */}
         <section id="classify" className="scroll-mt-16 reveal">
