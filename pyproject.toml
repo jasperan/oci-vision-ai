@@ -56,3 +56,5 @@ markers = [
     "live: requires explicit OCI opt-in via OCI_VISION_RUN_LIVE=1",
     "oracle: requires Oracle Database 26ai integration env via OCI_VISION_RUN_ORACLE=1",
 ]
+
+[tool.uv]
