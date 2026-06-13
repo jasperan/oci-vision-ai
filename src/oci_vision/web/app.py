@@ -64,10 +64,16 @@ def _parse_requested_features(features: list[str] | str | None) -> list[str] | s
     return requested
 
 
-def _classify_analysis_error(exc: Exception) -> tuple[int, str] | None:
-    """Map known OCI/IO failures to (status_code, detail). Returns None for unknown errors."""
+def _classify_analysis_error(
+    exc: Exception, *, missing_file_status: int = 404
+) -> tuple[int, str] | None:
+    """Map known OCI/IO failures to (status_code, detail). Returns None for unknown errors.
+
+    ``missing_file_status`` lets callers choose how a missing image surfaces:
+    page routes report 404, while ``/api/analyze*`` reports 400 for API clients.
+    """
     if isinstance(exc, FileNotFoundError):
-        return 404, str(exc)
+        return missing_file_status, str(exc)
     if isinstance(exc, ValueError):
         return 400, str(exc)
     if isinstance(exc, TimeoutError):
@@ -78,13 +84,10 @@ def _classify_analysis_error(exc: Exception) -> tuple[int, str] | None:
 
 
 def _analysis_error_response(exc: Exception) -> JSONResponse:
-    classified = _classify_analysis_error(exc)
+    classified = _classify_analysis_error(exc, missing_file_status=400)
     if classified is None:
         raise exc
     status_code, detail = classified
-    # /api/analyze* surfaces FileNotFoundError as 400 for API clients
-    if isinstance(exc, FileNotFoundError):
-        status_code = 400
     return JSONResponse({"detail": detail}, status_code=status_code)
 
 

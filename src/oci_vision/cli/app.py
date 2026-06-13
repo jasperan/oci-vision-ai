@@ -7,14 +7,19 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from oci_vision.cli.formatters import format_report
+from oci_vision.cli.formatters import (
+    format_report,
+    output_batch_summary,
+    output_comparison,
+    output_showcase,
+)
 from oci_vision.core.client import VisionClient
 from oci_vision.core.exports import build_json_report_payload, save_overlay_image, write_html_report
 from oci_vision.core.insights import compare_reports, summarize_batch
@@ -87,164 +92,10 @@ def _load_eval_payload(kind: str, path: str):
     raise typer.BadParameter(f"Unsupported eval kind: {kind}")
 
 
-def _output_comparison(comparison: dict[str, Any], output_format: str) -> None:
-    if output_format == "json":
-        print(json.dumps(comparison, indent=2))
-        return
-
-    console.print(Panel.fit(
-        f"Compare: {comparison['left_image']} vs {comparison['right_image']}",
-        border_style="cyan",
-    ))
-
-    summary = Table(title="Comparison Summary", border_style="cyan")
-    summary.add_column("Metric", style="bold")
-    summary.add_column("Value")
-    summary.add_row("Shared features", ", ".join(comparison["shared_features"]) or "none")
-    summary.add_row("Left only", ", ".join(comparison["left_only_features"]) or "none")
-    summary.add_row("Right only", ", ".join(comparison["right_only_features"]) or "none")
-    summary.add_row(
-        "Top label",
-        f"{comparison['top_label_change']['left']} → {comparison['top_label_change']['right']}",
-    )
-    summary.add_row("Object delta", str(comparison["object_count_delta"]))
-    summary.add_row("OCR line delta", str(comparison["ocr_line_delta"]))
-    summary.add_row("Face delta", str(comparison["face_count_delta"]))
-    summary.add_row("Document field delta", str(comparison["document_field_delta"]))
-    if comparison["ocr_similarity"] is not None:
-        summary.add_row("OCR similarity", f"{comparison['ocr_similarity']:.3f}")
-    console.print(summary)
-
-    if comparison["object_deltas"]:
-        object_table = Table(title="Object Deltas", border_style="magenta")
-        object_table.add_column("Object", style="bold")
-        object_table.add_column("Left", justify="right")
-        object_table.add_column("Right", justify="right")
-        object_table.add_column("Δ", justify="right")
-        for item in comparison["object_deltas"]:
-            object_table.add_row(item["name"], str(item["left"]), str(item["right"]), str(item["delta"]))
-        console.print(object_table)
-
-
-def _output_batch_summary(batch: dict, output_format: str) -> None:
-    if output_format == "json":
-        print(json.dumps(batch, indent=2))
-        return
-
-    console.print(Panel.fit(f"Batch analysis: {batch['report_count']} image(s)", border_style="cyan"))
-
-    report_table = Table(title="Per-image Summary", border_style="cyan")
-    report_table.add_column("Image", style="bold")
-    report_table.add_column("Features")
-    report_table.add_column("Top label")
-    report_table.add_column("Objects", justify="right")
-    report_table.add_column("OCR", justify="right")
-    report_table.add_column("Doc fields", justify="right")
-    for report in batch["reports"]:
-        report_table.add_row(
-            report["image"],
-            ", ".join(report["features"]),
-            report["top_label"],
-            str(report["object_count"]),
-            str(report["ocr_line_count"]),
-            str(report["document_field_count"]),
-        )
-    console.print(report_table)
-
-    aggregate = Table(title="Aggregate Summary", border_style="magenta")
-    aggregate.add_column("Metric", style="bold")
-    aggregate.add_column("Value")
-    aggregate.add_row("Feature coverage", json.dumps(batch["feature_coverage"], indent=2))
-    aggregate.add_row("Top labels", json.dumps(batch["top_labels"], indent=2))
-    aggregate.add_row("Object counts", json.dumps(batch["object_counts"], indent=2))
-    aggregate.add_row("Total faces", str(batch["total_faces"]))
-    aggregate.add_row("Total OCR lines", str(batch["total_ocr_lines"]))
-    aggregate.add_row("Total document fields", str(batch["total_document_fields"]))
-    console.print(aggregate)
-
-
-def _output_showcase(snapshot: dict) -> None:
-    console.print(
-        Panel.fit(
-            f"OCI Vision AI showcase • {snapshot['asset_count']} assets • "
-            f"{len(snapshot['batch']['feature_coverage'])} features • "
-            f"{snapshot['workflow_count']} workflows",
-            border_style="cyan",
-        )
-    )
-
-    headline_table = Table(title="Headline Insights", border_style="cyan")
-    headline_table.add_column("Insight")
-    for line in snapshot["headlines"]:
-        headline_table.add_row(line)
-    console.print(headline_table)
-
-    gallery_table = Table(title="Gallery Coverage", border_style="cyan")
-    gallery_table.add_column("Image", style="bold")
-    gallery_table.add_column("Features")
-    gallery_table.add_column("Top label")
-    gallery_table.add_column("Objects", justify="right")
-    gallery_table.add_column("OCR", justify="right")
-    gallery_table.add_column("Doc", justify="right")
-    for item in snapshot["gallery"]:
-        summary = item["summary"]
-        gallery_table.add_row(
-            item["filename"],
-            ", ".join(item["recommended_features"]),
-            summary["top_label"],
-            str(summary["object_count"]),
-            str(summary["ocr_line_count"]),
-            str(summary["document_field_count"]),
-        )
-    console.print(gallery_table)
-
-    workflow_table = Table(title="Workflow Packs", border_style="magenta")
-    workflow_table.add_column("Workflow", style="bold")
-    workflow_table.add_column("Key output")
-    workflow_table.add_row(
-        "receipt",
-        snapshot["workflows"]["receipt"]["fields"].get("Invoice Number", "No invoice number"),
-    )
-    workflow_table.add_row(
-        "shelf",
-        json.dumps(snapshot["workflows"]["shelf"]["objects"], indent=2),
-    )
-    workflow_table.add_row(
-        "inspection",
-        json.dumps(snapshot["workflows"]["inspection"], indent=2),
-    )
-    workflow_table.add_row(
-        "archive-search",
-        json.dumps(snapshot["workflows"]["archive_search"], indent=2),
-    )
-    console.print(workflow_table)
-
-    if snapshot["comparisons"]:
-        comparison_table = Table(title="Preset Comparisons", border_style="green")
-        comparison_table.add_column("Comparison", style="bold")
-        comparison_table.add_column("Label shift")
-        comparison_table.add_column("Object Δ", justify="right")
-        comparison_table.add_column("OCR Δ", justify="right")
-        comparison_table.add_column("Doc Δ", justify="right")
-        for item in snapshot["comparisons"]:
-            summary = item["summary"]
-            comparison_table.add_row(
-                item["title"],
-                f"{summary['top_label_change']['left']} → {summary['top_label_change']['right']}",
-                str(summary["object_count_delta"]),
-                str(summary["ocr_line_delta"]),
-                str(summary["document_field_delta"]),
-            )
-        console.print(comparison_table)
-
-
 def _run_vision_call(action, *, label: str = "request"):
     try:
         return action()
-    except FileNotFoundError as exc:
-        console.print(f"[red]Error:[/red] {exc}")
-        raise typer.Exit(code=1) from exc
-    except ValueError as exc:
+    except (FileNotFoundError, ValueError) as exc:
         console.print(f"[red]Error:[/red] {exc}")
         raise typer.Exit(code=1) from exc
     except TimeoutError as exc:
@@ -328,7 +179,7 @@ def compare(
         lambda: client.analyze(right, features=feat_list),
         label="right analysis",
     )
-    _output_comparison(compare_reports(left_report, right_report), output_format)
+    output_comparison(compare_reports(left_report, right_report), output_format)
 
 
 @app.command()
@@ -348,7 +199,7 @@ def batch(
         )
         for image in images
     ]
-    _output_batch_summary(summarize_batch(reports), output_format)
+    output_batch_summary(summarize_batch(reports), output_format)
 
 
 @app.command()
@@ -373,7 +224,7 @@ def showcase(
         console.print(f"[green]Showcase bundle saved to:[/green] {bundle['html']}")
         return
     else:
-        _output_showcase(snapshot)
+        output_showcase(snapshot)
         if output_dir:
             bundle = write_showcase_bundle(snapshot, reports, output_dir)
             console.print(f"[green]Showcase bundle saved to:[/green] {bundle['html']}")

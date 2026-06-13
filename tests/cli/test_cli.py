@@ -135,7 +135,7 @@ def test_cli_showcase_json_output():
         assert data["asset_count"] >= 4
         assert data["workflows"]["receipt"]["fields"]["Invoice Number"] == "INV-1001"
         assert data["comparisons"]
-        assert Path("bundle/showcase.json").exists()
+        assert Path("bundle/showcase_summary.json").exists()
         assert Path("bundle/batch_summary.json").exists()
         assert Path("bundle/workflow_summaries.json").exists()
         assert Path("bundle/comparisons.json").exists()
@@ -151,7 +151,7 @@ def test_cli_showcase_html_output_creates_bundle():
 
         assert result.exit_code == 0
         assert Path("bundle/index.html").exists()
-        assert Path("bundle/showcase.json").exists()
+        assert Path("bundle/showcase_summary.json").exists()
         assert Path("bundle/batch_summary.json").exists()
         assert Path("bundle/workflow_summaries.json").exists()
         assert Path("bundle/comparisons.json").exists()

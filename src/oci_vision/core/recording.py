@@ -23,6 +23,17 @@ FeatureResult = (
     | DocumentResult
 )
 
+# Normalized full-frame bounding polygon used for synthetic document/table
+# geometry where the recorded fixtures carry no real coordinates.
+_FULL_FRAME_POLYGON: dict[str, list[dict[str, float]]] = {
+    "normalized_vertices": [
+        {"x": 0.0, "y": 0.0},
+        {"x": 1.0, "y": 0.0},
+        {"x": 1.0, "y": 1.0},
+        {"x": 0.0, "y": 1.0},
+    ]
+}
+
 
 def _vertices_to_payload(vertices: list[Any]) -> list[dict[str, float]]:
     return [{"x": vertex.x, "y": vertex.y} for vertex in vertices]
@@ -125,14 +136,7 @@ def serialize_feature_result(feature: str, result: FeatureResult) -> dict[str, A
                 {
                     "text": text,
                     "confidence": 1.0,
-                    "bounding_polygon": {
-                        "normalized_vertices": [
-                            {"x": 0.0, "y": 0.0},
-                            {"x": 1.0, "y": 0.0},
-                            {"x": 1.0, "y": 1.0},
-                            {"x": 0.0, "y": 1.0},
-                        ]
-                    },
+                    "bounding_polygon": _FULL_FRAME_POLYGON,
                     "word_indexes": [index],
                 }
             )
@@ -141,14 +145,7 @@ def serialize_feature_result(feature: str, result: FeatureResult) -> dict[str, A
             {
                 "text": text,
                 "confidence": 1.0,
-                "bounding_polygon": {
-                    "normalized_vertices": [
-                        {"x": 0.0, "y": 0.0},
-                        {"x": 1.0, "y": 0.0},
-                        {"x": 1.0, "y": 1.0},
-                        {"x": 0.0, "y": 1.0},
-                    ]
-                },
+                "bounding_polygon": _FULL_FRAME_POLYGON,
             }
             for text in filter(None, result.full_text.splitlines())
         ]
@@ -170,14 +167,7 @@ def serialize_feature_result(feature: str, result: FeatureResult) -> dict[str, A
                                 "value_type": "STRING",
                                 "text": field.value,
                                 "confidence": field.confidence,
-                                "bounding_polygon": {
-                                    "normalized_vertices": [
-                                        {"x": 0.0, "y": 0.0},
-                                        {"x": 1.0, "y": 0.0},
-                                        {"x": 1.0, "y": 1.0},
-                                        {"x": 0.0, "y": 1.0},
-                                    ]
-                                },
+                                "bounding_polygon": _FULL_FRAME_POLYGON,
                                 "word_indexes": [],
                             },
                         }
@@ -195,14 +185,7 @@ def serialize_feature_result(feature: str, result: FeatureResult) -> dict[str, A
                                             "row_index": 0,
                                             "column_index": idx,
                                             "confidence": 1.0,
-                                            "bounding_polygon": {
-                                                "normalized_vertices": [
-                                                    {"x": 0.0, "y": 0.0},
-                                                    {"x": 1.0, "y": 0.0},
-                                                    {"x": 1.0, "y": 1.0},
-                                                    {"x": 0.0, "y": 1.0},
-                                                ]
-                                            },
+                                            "bounding_polygon": _FULL_FRAME_POLYGON,
                                             "word_indexes": [],
                                         }
                                         for idx, text in enumerate(table.header_rows)
@@ -219,14 +202,7 @@ def serialize_feature_result(feature: str, result: FeatureResult) -> dict[str, A
                                             "row_index": row_idx + 1,
                                             "column_index": col_idx,
                                             "confidence": 1.0,
-                                            "bounding_polygon": {
-                                                "normalized_vertices": [
-                                                    {"x": 0.0, "y": 0.0},
-                                                    {"x": 1.0, "y": 0.0},
-                                                    {"x": 1.0, "y": 1.0},
-                                                    {"x": 0.0, "y": 1.0},
-                                                ]
-                                            },
+                                            "bounding_polygon": _FULL_FRAME_POLYGON,
                                             "word_indexes": [],
                                         }
                                         for col_idx, text in enumerate(row)
@@ -236,14 +212,7 @@ def serialize_feature_result(feature: str, result: FeatureResult) -> dict[str, A
                             ],
                             "footer_rows": [],
                             "confidence": table.confidence,
-                            "bounding_polygon": {
-                                "normalized_vertices": [
-                                    {"x": 0.0, "y": 0.0},
-                                    {"x": 1.0, "y": 0.0},
-                                    {"x": 1.0, "y": 1.0},
-                                    {"x": 0.0, "y": 1.0},
-                                ]
-                            },
+                            "bounding_polygon": _FULL_FRAME_POLYGON,
                         }
                         for table in result.tables
                     ],

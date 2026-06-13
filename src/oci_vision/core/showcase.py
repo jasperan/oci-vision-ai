@@ -371,7 +371,6 @@ def write_showcase_bundle(
     json_path = root / "showcase_summary.json"
     payload = json.dumps(snapshot, indent=2)
     json_path.write_text(payload, encoding="utf-8")
-    (root / "showcase.json").write_text(payload, encoding="utf-8")
     batch_path = root / "batch_summary.json"
     batch_path.write_text(json.dumps(snapshot["batch"], indent=2), encoding="utf-8")
     workflow_path = root / "workflow_summaries.json"
@@ -397,43 +396,4 @@ def write_showcase_bundle(
         "comparisons": comparisons_path,
         "reports": reports_dir,
         "overlays": overlays_dir,
-    }
-
-
-def build_showcase_bundle(client, output_dir: str | Path | None = None) -> dict[str, Any]:
-    """Compatibility wrapper that returns a portable bundle manifest for the CLI."""
-    snapshot, reports = build_showcase_snapshot(client)
-    bundle_paths = write_showcase_bundle(snapshot, reports, output_dir or "showcase")
-
-    images: list[dict[str, Any]] = []
-    for item in snapshot["gallery"]:
-        stem = Path(item["filename"]).stem
-        images.append(
-            {
-                "id": stem,
-                "filename": item["filename"],
-                "description": item["description"],
-                "requested_features": item["recommended_features"],
-                "available_features": item["summary"]["features"],
-                "summary": item["summary"],
-                "insights": item["insights"],
-                "artifacts": {
-                    "json": str(Path("reports") / f"{stem}.json"),
-                    "html": str(Path("reports") / f"{stem}.html"),
-                    "overlay": str(Path("overlays") / f"{stem}.png"),
-                },
-            }
-        )
-
-    return {
-        "generated_at": snapshot["generated_at"],
-        "demo": snapshot["demo"],
-        "image_count": snapshot["asset_count"],
-        "images": images,
-        "batch_summary_artifact": bundle_paths["batch"].name,
-        "comparison_artifact": bundle_paths["comparisons"].name,
-        "workflow_artifact": bundle_paths["workflows"].name,
-        "workflows": snapshot["workflows"],
-        "summary_artifact": bundle_paths["json"].name,
-        "index_artifact": bundle_paths["html"].name,
     }
