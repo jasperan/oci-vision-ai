@@ -15,19 +15,32 @@ It does **not** include:
 
 That split is deliberate. OCI live-mode dependencies are opt-in now, so the default install path should stay lean.
 
-## Current unresolved finding
+## Current unresolved findings
 
-As of 2026-03-28, the base dependency audit still reports 1 unresolved advisory:
+**None.** As of 2026-09-11 the base dependency audit reports no actionable and no unresolved
+advisories.
+
+### Resolved: `pygments` `CVE-2026-4539`
 
 - **Package:** `pygments`
-- **Version:** `2.19.2`
-- **ID:** `CVE-2026-4539`
-- **Alias:** `GHSA-5239-wwwm-4pmq`
-- **Status:** no fix version published by `pip-audit`
+- **Was:** `2.19.2`
+- **ID:** `CVE-2026-4539` (alias `GHSA-5239-wwwm-4pmq`, reported by `pip-audit` as `PYSEC-2026-2987`)
+- **Fixed in:** `2.20.0` (current release: `2.21.0`)
 
-We keep this finding **visible** in the generated audit report, but the workflow does not fail on it yet because there is no upstream fixed release to move to.
+The advisory was allowlisted on 2026-03-28 because no fix version existed. A fix version does exist
+now, so the condition on that entry was met and the entry was removed from
+`scripts/dependency_audit.py`; the allowlist is empty. Two facts make the removal safe rather than
+merely tidy:
 
-The moment a fixed `pygments` release exists, the allowlist entry in `scripts/dependency_audit.py` should be removed and the dependency should be upgraded.
+1. The base set no longer resolves the vulnerable version — the workflow's own command reports
+   "No actionable findings" and "No known unresolved findings" and exits 0.
+2. Even a finding that did resurface would fail the audit, because a finding that carries fix
+   versions is classified as actionable regardless of the allowlist. The entry was inert, which is
+   why leaving it in place was a documentation error rather than a live risk.
+
+`tests/core/test_dependency_audit_script.py` pins both halves: the advisory is actionable when it
+carries a fix version, and it is actionable when it does not, because nothing is allowlisted for
+it any more.
 
 ## CI behavior
 
