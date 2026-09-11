@@ -70,7 +70,7 @@ assert batch['feature_coverage']['classification'] >= 1, batch['feature_coverage
 showcase = json.loads(Path('showcase.json').read_text())
 assert showcase['asset_count'] >= 4, showcase
 assert (Path('showcase') / 'index.html').exists(), 'showcase index missing'
-assert (Path('showcase') / 'showcase.json').exists(), 'showcase summary missing'
+assert (Path('showcase') / 'showcase_summary.json').exists(), 'showcase summary missing'
 assert (Path('showcase') / 'batch_summary.json').exists(), 'showcase batch summary missing'
 assert (Path('showcase') / 'workflow_summaries.json').exists(), 'showcase workflow summary missing'
 assert (Path('showcase') / 'comparisons.json').exists(), 'showcase comparisons missing'
