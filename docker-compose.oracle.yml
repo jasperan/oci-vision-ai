@@ -6,7 +6,7 @@ services:
       ORACLE_PWD: ${OCI_VISION_ORACLE_PASSWORD:?Set OCI_VISION_ORACLE_PASSWORD}
       ORACLE_CHARACTERSET: AL32UTF8
     ports:
-      - "${OCI_VISION_ORACLE_PORT:-1524}:1521"
+      - "127.0.0.1:${OCI_VISION_ORACLE_PORT:-1524}:1521"
     volumes:
       - oracle-data:/opt/oracle/oradata
     healthcheck:
