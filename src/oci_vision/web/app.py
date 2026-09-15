@@ -38,6 +38,30 @@ _TEMPLATE_DIR = _WEB_DIR / "templates"
 _STATIC_DIR = _WEB_DIR / "static"
 _ALLOWED_FEATURES = {"classification", "detection", "text", "faces", "document"}
 _MAX_UPLOAD_BYTES = 20 * 1024 * 1024
+_UPLOAD_CHUNK_BYTES = 1024 * 1024
+
+
+async def _read_capped(
+    upload: UploadFile,
+    limit: int,
+    chunk_size: int = _UPLOAD_CHUNK_BYTES,
+) -> tuple[bytes, bool]:
+    """Read an upload without buffering more than ``limit`` + one chunk.
+
+    Returns the bytes read and whether the limit was exceeded. The endpoint used to call
+    ``read()`` with no size and check the length afterwards, so the 20 MB guard only limited what
+    was *processed* - an oversized upload was already in memory by then. Stopping the loop once the
+    cap is passed keeps the guard's memory bound proportional to the cap.
+    """
+    chunks: list[bytes] = []
+    total = 0
+    while total <= limit:
+        chunk = await upload.read(chunk_size)
+        if not chunk:
+            break
+        chunks.append(chunk)
+        total += len(chunk)
+    return b"".join(chunks), total > limit
 
 
 def _parse_requested_features(features: list[str] | str | None) -> list[str] | str:
@@ -259,14 +283,14 @@ def create_app(demo: bool = False) -> FastAPI:
 
         Returns analysis JSON with an optional base64-encoded overlay image.
         """
-        contents = await file.read()
+        contents, oversize = await _read_capped(file, _MAX_UPLOAD_BYTES)
         content_type = file.content_type or ""
 
         if not contents:
             return JSONResponse({"detail": "Uploaded file is empty."}, status_code=400)
         if not content_type.startswith("image/"):
             return JSONResponse({"detail": "Only image uploads are supported."}, status_code=400)
-        if len(contents) > _MAX_UPLOAD_BYTES:
+        if oversize:
             return JSONResponse(
                 {"detail": "Upload exceeds the 20 MB limit."},
                 status_code=413,

@@ -17,12 +17,15 @@ except ModuleNotFoundError:  # pragma: no cover - Python <3.11
     except ModuleNotFoundError:  # pragma: no cover - fallback without new dependency
         from pip._vendor import tomli as tomllib
 
-ALLOWLIST: dict[str, dict[str, str]] = {
-    "CVE-2026-4539": {
-        "package": "pygments",
-        "reason": "No upstream fix is published yet. Keep the finding visible and remove this allowlist entry as soon as a fixed release exists.",
-    }
-}
+# Advisories with no published fix, which are reported without failing the audit. Each entry
+# must name a package and a reason, and must be removed as soon as a fixed release exists.
+#
+# Empty as of 2026-09-11: the one entry this list carried - CVE-2026-4539 (pygments, reported
+# as PYSEC-2026-2987, alias GHSA-5239-wwwm-4pmq) - met exactly that condition. pip-audit 2.10.1
+# now lists 2.20.0 as its fix version, and the base dependency set resolves past it, so the entry
+# had become inert: a finding that carries fix versions is classified as actionable below, with
+# or without an allowlist match.
+ALLOWLIST: dict[str, dict[str, str]] = {}
 
 
 def load_base_dependencies(pyproject_path: Path) -> list[str]:

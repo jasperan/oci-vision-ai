@@ -41,11 +41,9 @@ analyze_image_response = ai_vision_client.analyze_image(
     opc_request_id="vision-ai-test-nacho-{}".format(random_number))
 
 # Get the data from response
-#print(analyze_image_response.data)
 
 # Process and analyze the JSON response to our convenience
 
-#print(str(analyze_image_response.data))
 jdata = json.loads(str(analyze_image_response.data))
 
 # First, we will check the consistency of the JSON object.

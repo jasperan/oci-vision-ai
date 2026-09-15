@@ -19,15 +19,21 @@ def test_load_base_dependencies_reads_runtime_requirements():
     assert all(not dep.startswith("oci>=") for dep in deps)
 
 
-def test_partition_findings_moves_known_unresolved_pygments_issue():
+def test_partition_findings_moves_allowlisted_unresolved_issue(monkeypatch):
+    """The allowlist mechanism still works; the allowlist itself is currently empty."""
+    monkeypatch.setitem(
+        MODULE.ALLOWLIST,
+        "CVE-2099-0001",
+        {"package": "examplepkg", "reason": "No upstream fix is published yet."},
+    )
     findings = [
         {
-            "name": "pygments",
-            "version": "2.19.2",
-            "id": "CVE-2026-4539",
-            "aliases": ["GHSA-5239-wwwm-4pmq"],
+            "name": "examplepkg",
+            "version": "1.0.0",
+            "id": "CVE-2099-0001",
+            "aliases": [],
             "fix_versions": [],
-            "description": "regex complexity issue",
+            "description": "no fix exists",
         }
     ]
 
@@ -35,8 +41,29 @@ def test_partition_findings_moves_known_unresolved_pygments_issue():
 
     assert actionable == []
     assert len(unresolved) == 1
-    assert unresolved[0]["name"] == "pygments"
+    assert unresolved[0]["name"] == "examplepkg"
     assert "No upstream fix is published yet" in unresolved[0]["reason"]
+
+
+def test_former_pygments_advisory_is_no_longer_allowlisted():
+    """CVE-2026-4539 was allowlisted while no fix existed; the fix shipped, so it must fail the audit.
+
+    Both shapes are checked: with the published fix version (2.20.0) and, more importantly,
+    without it - the second asserts that nothing silently allowlists this advisory any more.
+    """
+    base = {
+        "name": "pygments",
+        "version": "2.19.2",
+        "id": "CVE-2026-4539",
+        "aliases": ["GHSA-5239-wwwm-4pmq", "PYSEC-2026-2987"],
+        "description": "regex complexity issue",
+    }
+
+    actionable, unresolved = MODULE.partition_findings([{**base, "fix_versions": ["2.20.0"]}])
+    assert len(actionable) == 1 and unresolved == []
+
+    actionable, unresolved = MODULE.partition_findings([{**base, "fix_versions": []}])
+    assert len(actionable) == 1 and unresolved == []
 
 
 def test_partition_findings_keeps_fixable_issue_actionable():
@@ -65,10 +92,10 @@ def test_render_markdown_includes_status_sections():
             {
                 "name": "pygments",
                 "version": "2.19.2",
-                "id": "CVE-2026-4539",
-                "aliases": ["GHSA-5239-wwwm-4pmq"],
+                "id": "CVE-2099-0001",
+                "aliases": [],
                 "fix_versions": [],
-                "description": "regex complexity issue",
+                "description": "hypothetical unresolved issue",
                 "reason": "No upstream fix is published yet.",
             }
         ],
@@ -76,5 +103,5 @@ def test_render_markdown_includes_status_sections():
 
     assert "Base Dependency Audit" in markdown
     assert "Known unresolved findings" in markdown
-    assert "CVE-2026-4539" in markdown
+    assert "CVE-2099-0001" in markdown
     assert "No actionable findings" in markdown

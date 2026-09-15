@@ -100,7 +100,7 @@ assert eval_detection["mean_iou"] == 1.0, eval_detection
 assert showcase["asset_count"] >= 4, showcase
 assert showcase["workflows"]["receipt"]["fields"]["Invoice Number"] == "INV-1001", showcase
 assert (artifact_dir / "showcase" / "index.html").exists()
-assert (artifact_dir / "showcase" / "showcase.json").exists()
+assert (artifact_dir / "showcase" / "showcase_summary.json").exists()
 assert (artifact_dir / "showcase" / "batch_summary.json").exists()
 assert (artifact_dir / "showcase" / "workflow_summaries.json").exists()
 assert (artifact_dir / "showcase" / "comparisons.json").exists()
