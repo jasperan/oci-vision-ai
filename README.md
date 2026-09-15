@@ -136,6 +136,7 @@ The script also checks that `.omx/` state and common agent scratch markdown file
 |---------|---------|-------------|
 | **CLI** | `oci-vision analyze img.jpg --demo` | Rich-formatted terminal output, JSON/HTML reports |
 | **TUI Cockpit** | `oci-vision cockpit --demo` | Gallery browsing, feature toggles, workflow launchers |
+| **Go TUI** | `go run ./gotui/cmd/oci-vision-tui` | Bubble Tea front-end: ranked confidence bars, detection tables, scrollable reports |
 | **Web Dashboard** | `oci-vision web --demo` | FastAPI + drag-and-drop upload, toggleable overlays |
 | **Notebooks** | `jupyter notebook notebooks/` | 7 guided walkthroughs with inline visualisations |
 
@@ -168,6 +169,41 @@ oci-vision cockpit --demo
 **Workflow panel**
 
 ![OCI Vision AI cockpit workflow view](https://raw.githubusercontent.com/jasperan/oci-vision-ai/main/docs/images/tui-cockpit-workflow.png)
+
+## Go TUI (Bubble Tea)
+
+An **additional** way to run the same engine: a Go terminal front-end built on
+[Bubble Tea v2](https://charm.land) (`charm.land/bubbletea/v2`, `lipgloss/v2`,
+`bubbles/v2`, `huh/v2`).
+
+It never reimplements analysis. Every number it shows comes from shelling out to the
+installed `oci-vision` CLI (`--output-format json` for the feature commands, and the
+workflow command's own JSON), so a Go user and a Python user get identical results.
+
+```bash
+cd gotui && go build ./cmd/oci-vision-tui
+
+./oci-vision-tui                              # menu-driven, demo mode by default
+./oci-vision-tui -image dog_closeup.jpg       # analyse one image
+./oci-vision-tui -feature text -image sign_board.png
+./oci-vision-tui -compare-left dog_closeup.jpg -compare-right sign_board.png
+./oci-vision-tui -workflow receipt -image invoice_demo.png
+./oci-vision-tui -showcase
+./oci-vision-tui -image dog_closeup.jpg -json # the CLI's JSON, untouched, for scripts
+```
+
+Demo mode is the default, so the UI never requires OCI credentials; `-live` opts out.
+With no terminal on stdin it never prompts — it takes flags only.
+
+Two paths, one renderer:
+
+- a terminal gets a menu (analyze, compare, workflow, showcase, gallery, config) and a
+  scrollable report — ranked confidence bars, a detection table, OCR lines, face
+  landmarks, and document fields/tables;
+- a pipe, `-json`, `-plain` or `ACCESSIBLE=1` gets unstyled text (or the raw JSON),
+  rendered from the same decoded payloads so the two cannot drift apart.
+
+Run its checks with `cd gotui && gofmt -l . && go build ./... && go test ./...`.
 
 ## Demo Mode
 
