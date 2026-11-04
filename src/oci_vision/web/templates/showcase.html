@@ -1,152 +1,160 @@
 {% extends "base.html" %}
 
-{% block title %}OCI Vision Studio - Showcase{% endblock %}
+{% block title %}Showcase — OCI Vision Studio{% endblock %}
 
 {% block content %}
-<div class="glass-card p-6 mb-6">
-    <p class="text-xs text-slate-500 uppercase tracking-wider mb-2">Generated {{ showcase.generated_at }}</p>
-    <h2 class="text-xl font-semibold cyan-accent mb-2">Showcase</h2>
-    <p class="text-slate-300 text-sm">
-        A one-page snapshot of the curated gallery, batch coverage, preset comparisons, and workflow packs.
-    </p>
+<header class="page-head">
+    <h1 class="page-title">Showcase</h1>
+    <p class="page-sub">One page for the curated gallery, batch coverage, preset comparisons and workflow packs.</p>
+    <p class="mono small muted" style="margin-top: 8px;">generated {{ showcase.generated_at }}</p>
+</header>
+
+<div class="stat-row">
+    <div class="stat">
+        <span class="stat-value">{{ showcase.asset_count }}</span>
+        <span class="stat-label">Plates</span>
+    </div>
+    <div class="stat">
+        <span class="stat-value">{{ showcase.batch.feature_coverage | length }}</span>
+        <span class="stat-label">Features covered</span>
+    </div>
+    <div class="stat">
+        <span class="stat-value">{{ showcase.workflow_count }}</span>
+        <span class="stat-label">Workflow packs</span>
+    </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-    <div class="glass-card p-6">
-        <p class="text-sm text-slate-400 mb-2">Assets</p>
-        <p class="text-3xl font-bold">{{ showcase.asset_count }}</p>
-    </div>
-    <div class="glass-card p-6">
-        <p class="text-sm text-slate-400 mb-2">Features covered</p>
-        <p class="text-3xl font-bold">{{ showcase.batch.feature_coverage | length }}</p>
-    </div>
-    <div class="glass-card p-6">
-        <p class="text-sm text-slate-400 mb-2">Workflow packs</p>
-        <p class="text-3xl font-bold">{{ showcase.workflow_count }}</p>
-    </div>
-</div>
-
-<div class="glass-card p-6 mb-6">
-    <h3 class="text-lg font-semibold mb-4">Headline insights</h3>
-    <ul class="space-y-2 text-sm text-slate-300">
+<section class="panel">
+    <header class="panel-header">
+        <h2 class="panel-title">Headline insights</h2>
+        <span class="panel-note">{{ showcase.headlines | length }} lines</span>
+    </header>
+    <ul class="report-list">
         {% for line in showcase.headlines %}
         <li>{{ line }}</li>
         {% endfor %}
     </ul>
-</div>
+</section>
 
-<div class="glass-card p-6 mb-6">
-    <h3 class="text-lg font-semibold mb-4">Feature coverage</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-        {% for feature, count in showcase.batch.feature_coverage.items() %}
-        <div class="rounded border border-slate-700 px-4 py-3 flex items-center justify-between">
-            <span>{{ feature }}</span>
-            <span class="font-mono text-cyan-300">{{ count }}</span>
-        </div>
-        {% endfor %}
-    </div>
-</div>
+<section class="panel">
+    <header class="panel-header">
+        <h2 class="panel-title">Feature coverage</h2>
+        <span class="panel-note">{{ showcase.asset_count }} plates</span>
+    </header>
+    <table class="ledger">
+        <thead>
+            <tr>
+                <th scope="col">Feature</th>
+                <th class="num" scope="col">Plates</th>
+                <th scope="col">Used by</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for feature, count in showcase.batch.feature_coverage.items() %}
+            <tr>
+                <td>{{ feature }}</td>
+                <td class="num">{{ count }}</td>
+                <td class="mono">
+                    {% set ns = namespace(names=[]) %}
+                    {% for item in showcase.gallery %}
+                    {% if feature in item.recommended_features %}{% set ns.names = ns.names + [item.filename] %}{% endif %}
+                    {% endfor %}
+                    {{ ns.names | join(' · ') }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
 
-<div class="mb-6">
-    <h3 class="text-lg font-semibold mb-4">Gallery</h3>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<section style="margin-top: 32px;">
+    <h2 class="page-title" style="font-size: 18px; margin-bottom: 16px;">Gallery</h2>
+    <div class="contact-grid">
         {% for item in showcase.gallery %}
-        <div class="glass-card p-6">
-            <div class="flex items-start justify-between gap-4 mb-4">
-                <div>
-                    <h4 class="font-semibold text-lg">{{ item.filename }}</h4>
-                    <p class="text-sm text-slate-400">{{ item.description }}</p>
-                </div>
-                <div class="flex flex-wrap gap-2 justify-end">
-                    {% for feature in item.recommended_features %}
-                    <span class="text-xs px-2 py-1 rounded-full bg-cyan-900/50 text-cyan-300 border border-cyan-700/40">
-                        {{ feature }}
-                    </span>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 text-sm mb-4">
-                <div class="rounded border border-slate-700 px-3 py-2">
-                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">Top label</div>
-                    <div>{{ item.summary.top_label }}</div>
-                </div>
-                <div class="rounded border border-slate-700 px-3 py-2">
-                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">Objects</div>
-                    <div>{{ item.summary.object_count }}</div>
-                </div>
-                <div class="rounded border border-slate-700 px-3 py-2">
-                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">OCR lines</div>
-                    <div>{{ item.summary.ocr_line_count }}</div>
-                </div>
-                <div class="rounded border border-slate-700 px-3 py-2">
-                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">Document fields</div>
-                    <div>{{ item.summary.document_field_count }}</div>
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <div class="text-sm font-semibold mb-2">Insights</div>
-                <ul class="space-y-1 text-sm text-slate-300">
-                    {% for line in item.insights %}
-                    <li>{{ line }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <div class="text-xs text-slate-500 mb-4">{{ item.command }}</div>
-            <a href="/report/{{ item.filename }}" class="text-sm cyan-accent hover:text-cyan-300 transition font-medium">
-                Open report &rarr;
+        <article class="contact-card">
+            <a href="/report/{{ item.filename }}" class="plate-thumb">
+                <img src="/gallery-image/{{ item.filename }}" alt="{{ item.description }}" loading="lazy" />
             </a>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
-<div class="mb-6">
-    <h3 class="text-lg font-semibold mb-4">Preset comparisons</h3>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {% for item in showcase.comparisons %}
-        <div class="glass-card p-6">
-            <h4 class="font-semibold text-lg mb-2">{{ item.title }}</h4>
-            <p class="text-sm text-slate-400 mb-4">{{ item.summary.left_image }} → {{ item.summary.right_image }}</p>
-            <div class="space-y-2 text-sm">
-                <p><span class="text-slate-400">Shared:</span> {{ item.summary.shared_features | join(', ') or 'none' }}</p>
-                <p><span class="text-slate-400">Left only:</span> {{ item.summary.left_only_features | join(', ') or 'none' }}</p>
-                <p><span class="text-slate-400">Right only:</span> {{ item.summary.right_only_features | join(', ') or 'none' }}</p>
-                <p><span class="text-slate-400">Top label:</span> {{ item.summary.top_label_change.left }} → {{ item.summary.top_label_change.right }}</p>
-                <p><span class="text-slate-400">Object delta:</span> {{ item.summary.object_count_delta }}</p>
-                <p><span class="text-slate-400">OCR line delta:</span> {{ item.summary.ocr_line_delta }}</p>
-                <p><span class="text-slate-400">Document field delta:</span> {{ item.summary.document_field_delta }}</p>
+            <div class="contact-top">
+                <span class="mono small muted">{{ '%02d'|format(loop.index) }}</span>
+                <span class="mono small muted">{{ item.filename }}</span>
             </div>
-        </div>
+            <p class="contact-desc">{{ item.description }}</p>
+            <div class="tag-list">
+                {% for feature in item.recommended_features %}
+                <span class="tag">{{ feature }}</span>
+                {% endfor %}
+            </div>
+            <dl class="kv-list">
+            <div><dt>Top label</dt><dd>{{ item.summary.top_label }}</dd></div>
+            <div><dt>Objects</dt><dd>{{ item.summary.object_count }}</dd></div>
+            <div><dt>OCR lines</dt><dd>{{ item.summary.ocr_line_count }}</dd></div>
+            <div><dt>Document fields</dt><dd>{{ item.summary.document_field_count }}</dd></div>
+        </dl>
+            <ul class="report-list">
+                {% for line in item.insights %}
+                <li>{{ line }}</li>
+                {% endfor %}
+            </ul>
+            <p class="mono small muted" style="margin: 8px 0 0;">{{ item.command }}</p>
+            <a href="/report/{{ item.filename }}" class="text-link" style="margin-top: 8px;">Open report</a>
+        </article>
         {% endfor %}
     </div>
-</div>
+</section>
 
-<div>
-    <h3 class="text-lg font-semibold mb-4">Workflow packs</h3>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="glass-card p-6">
-            <h4 class="font-semibold mb-3">Receipt</h4>
-            <p class="text-sm text-slate-300 mb-2">Invoice Number: {{ showcase.workflows.receipt.fields.get('Invoice Number', '—') }}</p>
-            <p class="text-sm text-slate-300">Field count: {{ showcase.workflows.receipt.field_count }}</p>
-        </div>
-        <div class="glass-card p-6">
-            <h4 class="font-semibold mb-3">Shelf audit</h4>
-            <p class="text-sm text-slate-300 mb-2">Object count: {{ showcase.workflows.shelf.object_count }}</p>
-            <p class="text-sm text-slate-300">Objects: {{ showcase.workflows.shelf.objects }}</p>
-        </div>
-        <div class="glass-card p-6">
-            <h4 class="font-semibold mb-3">Inspection</h4>
-            <p class="text-sm text-slate-300 mb-2">Labels: {{ showcase.workflows.inspection.classification | join(', ') }}</p>
-            <p class="text-sm text-slate-300">Text preview: {{ showcase.workflows.inspection.text or '—' }}</p>
-        </div>
-        <div class="glass-card p-6">
-            <h4 class="font-semibold mb-3">Archive search</h4>
-            <p class="text-sm text-slate-300 mb-2">Query: {{ showcase.workflows.archive_search.query }}</p>
-            <p class="text-sm text-slate-300">Match count: {{ showcase.workflows.archive_search.match_count }}</p>
-        </div>
+<section style="margin-top: 32px;">
+    <h2 class="page-title" style="font-size: 18px; margin-bottom: 16px;">Preset comparisons</h2>
+    <div class="contact-grid">
+        {% for item in showcase.comparisons %}
+        <article class="contact-card">
+            <h3 class="contact-name">{{ item.title }}</h3>
+            <p class="card-sub">{{ item.summary.left_image }} → {{ item.summary.right_image }}</p>
+            <dl class="kv-list">
+            <div><dt>Shared features</dt><dd>{{ item.summary.shared_features | join(' · ') or 'none' }}</dd></div>
+            <div><dt>Left only</dt><dd>{{ item.summary.left_only_features | join(' · ') or 'none' }}</dd></div>
+            <div><dt>Right only</dt><dd>{{ item.summary.right_only_features | join(' · ') or 'none' }}</dd></div>
+            <div><dt>Top label</dt><dd>{{ item.summary.top_label_change.left }} → {{ item.summary.top_label_change.right }}</dd></div>
+            <div><dt>Objects Δ</dt><dd>{{ item.summary.object_count_delta }}</dd></div>
+            <div><dt>OCR lines Δ</dt><dd>{{ item.summary.ocr_line_delta }}</dd></div>
+            <div><dt>Document fields Δ</dt><dd>{{ item.summary.document_field_delta }}</dd></div>
+        </dl>
+        </article>
+        {% endfor %}
     </div>
-</div>
+</section>
+
+<section style="margin-top: 32px;">
+    <h2 class="page-title" style="font-size: 18px; margin-bottom: 16px;">Workflow packs</h2>
+    <div class="workflow-grid">
+        <article class="panel">
+            <h3 class="contact-name">Receipt</h3>
+            <dl class="kv-list">
+            <div><dt>Invoice number</dt><dd>{{ showcase.workflows.receipt.fields.get('Invoice Number', '—') }}</dd></div>
+            <div><dt>Field count</dt><dd>{{ showcase.workflows.receipt.field_count }}</dd></div>
+        </dl>
+        </article>
+        <article class="panel">
+            <h3 class="contact-name">Shelf audit</h3>
+            <dl class="kv-list">
+            <div><dt>Object count</dt><dd>{{ showcase.workflows.shelf.object_count }}</dd></div>
+            <div><dt>Objects</dt><dd>{{ showcase.workflows.shelf.objects | join(' · ') }}</dd></div>
+        </dl>
+        </article>
+        <article class="panel">
+            <h3 class="contact-name">Inspection</h3>
+            <dl class="kv-list">
+            <div><dt>Labels</dt><dd>{{ showcase.workflows.inspection.classification | join(' · ') }}</dd></div>
+            <div><dt>Text preview</dt><dd>{{ showcase.workflows.inspection.text or '—' }}</dd></div>
+        </dl>
+        </article>
+        <article class="panel">
+            <h3 class="contact-name">Archive search</h3>
+            <dl class="kv-list">
+            <div><dt>Query</dt><dd>{{ showcase.workflows.archive_search.query }}</dd></div>
+            <div><dt>Matches</dt><dd>{{ showcase.workflows.archive_search.match_count }}</dd></div>
+        </dl>
+        </article>
+    </div>
+</section>
 {% endblock %}

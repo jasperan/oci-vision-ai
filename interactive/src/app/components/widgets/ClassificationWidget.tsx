@@ -24,10 +24,10 @@ const LABELS: ClassificationLabel[] = [
 ];
 
 const PIPELINE_STAGES = [
-  { icon: "\uD83D\uDDBC\uFE0F", label: "Image" },
-  { icon: "\uD83E\uDDE0", label: "Feature Extraction" },
-  { icon: "\uD83C\uDFF7\uFE0F", label: "Label Prediction" },
-  { icon: "\uD83D\uDCCA", label: "Confidence Scoring" },
+  { label: "Image" },
+  { label: "Feature extraction" },
+  { label: "Label prediction" },
+  { label: "Confidence scoring" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -84,28 +84,28 @@ export default function ClassificationWidget() {
             width="60"
             height="60"
             rx="12"
-            stroke="rgba(249,115,22,0.35)"
-            strokeWidth="2"
-            fill="rgba(249,115,22,0.06)"
+            stroke="rgba(255,255,255,0.16)"
+            strokeWidth="1.5"
+            fill="rgba(255,255,255,0.02)"
           />
           <path
             d="M20 44c0-6 4-12 12-12s12 6 12 12"
-            stroke="#f97316"
+            stroke="#a8a39b"
             strokeWidth="2"
             strokeLinecap="round"
           />
-          <circle cx="32" cy="26" r="7" stroke="#f97316" strokeWidth="2" />
-          <circle cx="29" cy="25" r="1.2" fill="#f97316" />
-          <circle cx="35" cy="25" r="1.2" fill="#f97316" />
+          <circle cx="32" cy="26" r="7" stroke="#a8a39b" strokeWidth="2" />
+          <circle cx="29" cy="25" r="1.2" fill="#a8a39b" />
+          <circle cx="35" cy="25" r="1.2" fill="#a8a39b" />
           <path
             d="M24 19c-3-5-7-4-8-1s2 5 4 5"
-            stroke="#f97316"
+            stroke="#a8a39b"
             strokeWidth="1.5"
             strokeLinecap="round"
           />
           <path
             d="M40 19c3-5 7-4 8-1s-2 5-4 5"
-            stroke="#f97316"
+            stroke="#a8a39b"
             strokeWidth="1.5"
             strokeLinecap="round"
           />
@@ -114,7 +114,7 @@ export default function ClassificationWidget() {
           style={{
             fontFamily: "var(--font-mono), monospace",
             fontSize: "0.75rem",
-            color: "#a1a1aa",
+            color: "#a8a39b",
             letterSpacing: "0.02em",
           }}
         >
@@ -136,9 +136,7 @@ export default function ClassificationWidget() {
           style={{
             fontFamily: "var(--font-mono), monospace",
             fontSize: "0.72rem",
-            color: "#a1a1aa",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
+            color: "#a8a39b",
             flexShrink: 0,
           }}
         >
@@ -158,8 +156,8 @@ export default function ClassificationWidget() {
           style={{
             fontFamily: "var(--font-mono), monospace",
             fontSize: "0.85rem",
-            color: "#f97316",
-            fontWeight: 600,
+            color: "#ece9e4",
+            fontVariantNumeric: "tabular-nums",
             minWidth: "2.5rem",
             textAlign: "right",
           }}
@@ -172,7 +170,7 @@ export default function ClassificationWidget() {
         style={{
           fontFamily: "var(--font-mono), monospace",
           fontSize: "0.7rem",
-          color: "#a1a1aa",
+          color: "#a8a39b",
           marginBottom: "1.25rem",
         }}
       >
@@ -181,9 +179,10 @@ export default function ClassificationWidget() {
 
       {/* ---- Classification labels ---- */}
       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-        {LABELS.map((label) => {
+        {LABELS.map((label, index) => {
           const above = label.confidence >= threshold;
           const pct = Math.round(label.confidence * 100);
+          const isTop = index === 0;
           return (
             <div
               key={label.name}
@@ -192,7 +191,7 @@ export default function ClassificationWidget() {
                 alignItems: "center",
                 gap: "0.75rem",
                 opacity: above ? 1 : 0.2,
-                transition: "opacity 0.3s ease",
+                transition: "opacity 160ms cubic-bezier(0.22, 1, 0.36, 1)",
               }}
             >
               {/* Label name */}
@@ -200,7 +199,7 @@ export default function ClassificationWidget() {
                 style={{
                   fontFamily: "var(--font-mono), monospace",
                   fontSize: "0.78rem",
-                  color: "#e4e4e7",
+                  color: "#ece9e4",
                   width: 140,
                   flexShrink: 0,
                   textAlign: "right",
@@ -229,8 +228,7 @@ export default function ClassificationWidget() {
                     width: `${pct}%`,
                     height: "100%",
                     borderRadius: 3,
-                    background:
-                      "linear-gradient(90deg, #f97316, #fb923c, #fdba74)",
+                    background: isTop ? "#c74634" : "#8f887e",
                   }}
                 />
               </div>
@@ -240,11 +238,11 @@ export default function ClassificationWidget() {
                 style={{
                   fontFamily: "var(--font-mono), monospace",
                   fontSize: "0.75rem",
-                  color: above ? "#f97316" : "#a1a1aa",
-                  fontWeight: 600,
+                  color: isTop ? "#c74634" : "#a8a39b",
+                  fontVariantNumeric: "tabular-nums",
                   minWidth: "2.5rem",
                   textAlign: "right",
-                  transition: "color 0.3s ease",
+                  transition: "color 160ms cubic-bezier(0.22, 1, 0.36, 1)",
                 }}
               >
                 {label.confidence.toFixed(2)}
@@ -258,8 +256,7 @@ export default function ClassificationWidget() {
       <div
         style={{
           height: 1,
-          background:
-            "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
+          background: "rgba(255,255,255,0.08)",
           margin: "1.5rem 0",
         }}
       />
@@ -268,10 +265,8 @@ export default function ClassificationWidget() {
       <div
         style={{
           fontFamily: "var(--font-mono), monospace",
-          fontSize: "0.7rem",
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
-          color: "#a1a1aa",
+          fontSize: "0.75rem",
+          color: "#a8a39b",
           marginBottom: "1rem",
         }}
       >
@@ -293,13 +288,21 @@ export default function ClassificationWidget() {
             style={{ display: "flex", alignItems: "center", flexShrink: 0 }}
           >
             <div className="pipeline-stage">
-              <span style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}>
-                {stage.icon}
+              <span
+                style={{
+                  fontFamily: "var(--font-mono), monospace",
+                  fontSize: "0.7rem",
+                  color: "#77726a",
+                  marginBottom: "0.25rem",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {String(i + 1).padStart(2, "0")}
               </span>
               <span
                 style={{
-                  fontSize: "0.68rem",
-                  color: "#a1a1aa",
+                  fontSize: "0.75rem",
+                  color: "#a8a39b",
                   lineHeight: 1.3,
                 }}
               >
@@ -308,17 +311,18 @@ export default function ClassificationWidget() {
             </div>
 
             {i < PIPELINE_STAGES.length - 1 && (
-              <span
-                style={{
-                  color: "rgba(249,115,22,0.5)",
-                  fontSize: "1.1rem",
-                  margin: "0 0.35rem",
-                  flexShrink: 0,
-                }}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#77726a"
+                strokeWidth="1.5"
+                style={{ margin: "0 0.35rem", flexShrink: 0 }}
                 aria-hidden="true"
               >
-                &rarr;
-              </span>
+                <path d="m9 18 6-6-6-6" />
+              </svg>
             )}
           </div>
         ))}

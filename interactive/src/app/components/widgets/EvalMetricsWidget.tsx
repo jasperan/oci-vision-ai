@@ -38,32 +38,27 @@ function levenshtein(a: string, b: string): number {
 /*  Shared inline-style constants                                      */
 /* ------------------------------------------------------------------ */
 
-const ACCENT = "#facc15";
+const ACCENT = "#c74634";
 
-const mono = (size: string, color = "#e4e4e7"): React.CSSProperties => ({
+const mono = (size: string, color = "#ece9e4"): React.CSSProperties => ({
   fontFamily: "var(--font-mono), monospace",
   fontSize: size,
   color,
 });
 
 const sectionTitle: React.CSSProperties = {
-  ...mono("0.7rem", "#a1a1aa"),
-  textTransform: "uppercase",
-  letterSpacing: "0.1em",
+  ...mono("0.75rem", "#77726a"),
   marginBottom: "1rem",
 };
 
 const sliderLabel: React.CSSProperties = {
-  ...mono("0.72rem", "#a1a1aa"),
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
+  ...mono("0.75rem", "#a8a39b"),
   flexShrink: 0,
 };
 
 const divider: React.CSSProperties = {
   height: 1,
-  background:
-    "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
+  background: "rgba(255,255,255,0.08)",
   margin: "1.25rem 0",
 };
 
@@ -252,9 +247,9 @@ export default function EvalMetricsWidget() {
                   y={iou.ay}
                   width={iou.aw}
                   height={iou.ah}
-                  fill="rgba(250,204,21,0.18)"
+                  fill="rgba(199,70,52,0.1)"
                   stroke={ACCENT}
-                  strokeWidth={2}
+                  strokeWidth={1.5}
                 />
                 {/* Box B (cyan) */}
                 <rect
@@ -262,9 +257,9 @@ export default function EvalMetricsWidget() {
                   y={iou.by}
                   width={iou.bw}
                   height={iou.bh}
-                  fill="rgba(34,211,238,0.18)"
-                  stroke="#22d3ee"
-                  strokeWidth={2}
+                  fill="rgba(236,233,228,0.06)"
+                  stroke="#ece9e4"
+                  strokeWidth={1.5}
                 />
                 {/* Intersection (green) */}
                 {iou.iw > 0 && iou.ih > 0 && (
@@ -273,9 +268,9 @@ export default function EvalMetricsWidget() {
                     y={iou.iy1}
                     width={iou.iw}
                     height={iou.ih}
-                    fill="rgba(74,222,128,0.35)"
-                    stroke="#4ade80"
-                    strokeWidth={1.5}
+                    fill="rgba(236,233,228,0.18)"
+                    stroke="rgba(236,233,228,0.45)"
+                    strokeWidth={1}
                     strokeDasharray="4 2"
                   />
                 )}
@@ -294,7 +289,7 @@ export default function EvalMetricsWidget() {
                   x={iou.bx + iou.bw / 2}
                   y={iou.by - 8}
                   textAnchor="middle"
-                  fill="#22d3ee"
+                  fill="#ece9e4"
                   fontSize="13"
                   fontFamily="var(--font-mono), monospace"
                 >
@@ -305,7 +300,7 @@ export default function EvalMetricsWidget() {
                     x={iou.ix1 + iou.iw / 2}
                     y={iou.iy1 + iou.ih / 2 + 4}
                     textAnchor="middle"
-                    fill="#4ade80"
+                    fill="#ece9e4"
                     fontSize="11"
                     fontFamily="var(--font-mono), monospace"
                   >
@@ -352,26 +347,26 @@ export default function EvalMetricsWidget() {
             }}
           >
             <div>
-              <span style={{ color: "#a1a1aa" }}>Area A: </span>
+              <span style={{ color: "#a8a39b" }}>Area A: </span>
               <span style={{ color: ACCENT }}>{iou.aw}&times;{iou.ah} = {iou.areaA}</span>
             </div>
             <div>
-              <span style={{ color: "#a1a1aa" }}>Area B: </span>
-              <span style={{ color: "#22d3ee" }}>{iou.bw}&times;{iou.bh} = {iou.areaB}</span>
+              <span style={{ color: "#a8a39b" }}>Area B: </span>
+              <span style={{ color: "#ece9e4" }}>{iou.bw}&times;{iou.bh} = {iou.areaB}</span>
             </div>
             <div>
-              <span style={{ color: "#a1a1aa" }}>Intersection: </span>
-              <span style={{ color: "#4ade80" }}>{iou.intersection}</span>
+              <span style={{ color: "#a8a39b" }}>Intersection: </span>
+              <span style={{ color: "#a8a39b" }}>{iou.intersection}</span>
             </div>
             <div>
-              <span style={{ color: "#a1a1aa" }}>Union: </span>
-              <span style={{ color: "#e4e4e7" }}>
+              <span style={{ color: "#a8a39b" }}>Union: </span>
+              <span style={{ color: "#ece9e4" }}>
                 {iou.areaA} + {iou.areaB} &minus; {iou.intersection} = {iou.union}
               </span>
             </div>
             <div style={divider} />
             <div style={{ fontSize: "0.9rem" }}>
-              <span style={{ color: "#a1a1aa" }}>IoU = </span>
+              <span style={{ color: "#a8a39b" }}>IoU = </span>
               <span style={{ color: ACCENT, fontWeight: 700 }}>
                 {iou.iouVal.toFixed(2)}
               </span>
@@ -399,51 +394,51 @@ export default function EvalMetricsWidget() {
             {/* TP */}
             <div
               style={{
-                background: "rgba(74,222,128,0.12)",
-                border: "1px solid rgba(74,222,128,0.3)",
+                background: "rgba(94,158,122,0.12)",
+                border: "1px solid rgba(94,158,122,0.35)",
                 borderRadius: 8,
                 padding: "0.75rem",
                 textAlign: "center",
               }}
             >
-              <div style={{ ...mono("0.65rem", "#a1a1aa"), marginBottom: "0.25rem" }}>
+              <div style={{ ...mono("0.65rem", "#a8a39b"), marginBottom: "0.25rem" }}>
                 True Positive
               </div>
-              <div style={{ ...mono("1.2rem", "#4ade80"), fontWeight: 700 }}>
+              <div style={{ ...mono("1.2rem", "#8fbfa4"), fontWeight: 500 }}>
                 {tp}
               </div>
             </div>
             {/* FP */}
             <div
               style={{
-                background: "rgba(248,113,113,0.12)",
-                border: "1px solid rgba(248,113,113,0.3)",
+                background: "rgba(199,70,52,0.1)",
+                border: "1px solid rgba(199,70,52,0.35)",
                 borderRadius: 8,
                 padding: "0.75rem",
                 textAlign: "center",
               }}
             >
-              <div style={{ ...mono("0.65rem", "#a1a1aa"), marginBottom: "0.25rem" }}>
+              <div style={{ ...mono("0.65rem", "#a8a39b"), marginBottom: "0.25rem" }}>
                 False Positive
               </div>
-              <div style={{ ...mono("1.2rem", "#f87171"), fontWeight: 700 }}>
+              <div style={{ ...mono("1.2rem", "#e08b7d"), fontWeight: 500 }}>
                 {fp}
               </div>
             </div>
             {/* FN */}
             <div
               style={{
-                background: "rgba(251,191,36,0.12)",
-                border: "1px solid rgba(251,191,36,0.3)",
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.12)",
                 borderRadius: 8,
                 padding: "0.75rem",
                 textAlign: "center",
               }}
             >
-              <div style={{ ...mono("0.65rem", "#a1a1aa"), marginBottom: "0.25rem" }}>
+              <div style={{ ...mono("0.65rem", "#a8a39b"), marginBottom: "0.25rem" }}>
                 False Negative
               </div>
-              <div style={{ ...mono("1.2rem", "#fbbf24"), fontWeight: 700 }}>
+              <div style={{ ...mono("1.2rem", "#ece9e4"), fontWeight: 500 }}>
                 {fn}
               </div>
             </div>
@@ -457,10 +452,10 @@ export default function EvalMetricsWidget() {
                 textAlign: "center",
               }}
             >
-              <div style={{ ...mono("0.65rem", "#a1a1aa"), marginBottom: "0.25rem" }}>
+              <div style={{ ...mono("0.65rem", "#a8a39b"), marginBottom: "0.25rem" }}>
                 True Negative
               </div>
-              <div style={{ ...mono("1.2rem", "#a1a1aa"), fontWeight: 700 }}>
+              <div style={{ ...mono("1.2rem", "#a8a39b"), fontWeight: 700 }}>
                 &mdash;
               </div>
             </div>
@@ -468,9 +463,9 @@ export default function EvalMetricsWidget() {
 
           {/* Sliders */}
           {([
-            { label: "TP", value: tp, handler: handleTp, color: "#4ade80" },
-            { label: "FP", value: fp, handler: handleFp, color: "#f87171" },
-            { label: "FN", value: fn, handler: handleFn, color: "#fbbf24" },
+            { label: "TP", value: tp, handler: handleTp, color: "#8fbfa4" },
+            { label: "FP", value: fp, handler: handleFp, color: "#e08b7d" },
+            { label: "FN", value: fn, handler: handleFn, color: "#a8a39b" },
           ] as const).map((s) => (
             <div
               key={s.label}
@@ -519,20 +514,20 @@ export default function EvalMetricsWidget() {
             }}
           >
             <div>
-              <span style={{ color: "#a1a1aa" }}>Precision = TP / (TP + FP) = </span>
-              <span style={{ color: ACCENT, fontWeight: 700 }}>
+              <span style={{ color: "#a8a39b" }}>Precision = TP / (TP + FP) = </span>
+              <span style={{ color: "#ece9e4", fontVariantNumeric: "tabular-nums" }}>
                 {prMetrics.precision.toFixed(2)}
               </span>
             </div>
             <div>
-              <span style={{ color: "#a1a1aa" }}>Recall = TP / (TP + FN) = </span>
-              <span style={{ color: ACCENT, fontWeight: 700 }}>
+              <span style={{ color: "#a8a39b" }}>Recall = TP / (TP + FN) = </span>
+              <span style={{ color: "#ece9e4", fontVariantNumeric: "tabular-nums" }}>
                 {prMetrics.recall.toFixed(2)}
               </span>
             </div>
             <div>
-              <span style={{ color: "#a1a1aa" }}>F1 = 2(P&times;R)/(P+R) = </span>
-              <span style={{ color: ACCENT, fontWeight: 700 }}>
+              <span style={{ color: "#a8a39b" }}>F1 = 2(P&times;R)/(P+R) = </span>
+              <span style={{ color: ACCENT, fontVariantNumeric: "tabular-nums" }}>
                 {prMetrics.f1.toFixed(2)}
               </span>
             </div>
@@ -549,8 +544,8 @@ export default function EvalMetricsWidget() {
               }}
             >
               {([
-                { label: "P", value: prMetrics.precision, color: "#4ade80" },
-                { label: "R", value: prMetrics.recall, color: "#22d3ee" },
+                { label: "P", value: prMetrics.precision, color: "#8f887e" },
+                { label: "R", value: prMetrics.recall, color: "#a8a39b" },
                 { label: "F1", value: prMetrics.f1, color: ACCENT },
               ] as const).map((bar) => (
                 <div
@@ -591,7 +586,7 @@ export default function EvalMetricsWidget() {
                       }}
                     />
                   </div>
-                  <span style={mono("0.68rem", "#a1a1aa")}>{bar.label}</span>
+                  <span style={mono("0.68rem", "#a8a39b")}>{bar.label}</span>
                 </div>
               ))}
             </div>
@@ -607,7 +602,7 @@ export default function EvalMetricsWidget() {
           {/* Text inputs */}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.25rem" }}>
             <div>
-              <label style={{ ...mono("0.68rem", "#a1a1aa"), display: "block", marginBottom: "0.35rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              <label style={{ ...mono("0.68rem", "#a8a39b"), display: "block", marginBottom: "0.35rem", }}>
                 Ground Truth
               </label>
               <input
@@ -621,7 +616,7 @@ export default function EvalMetricsWidget() {
                   border: "1px solid rgba(255,255,255,0.1)",
                   borderRadius: 6,
                   padding: "0.5rem 0.75rem",
-                  color: "#e4e4e7",
+                  color: "#ece9e4",
                   fontFamily: "var(--font-mono), monospace",
                   fontSize: "0.85rem",
                   outline: "none",
@@ -629,7 +624,7 @@ export default function EvalMetricsWidget() {
               />
             </div>
             <div>
-              <label style={{ ...mono("0.68rem", "#a1a1aa"), display: "block", marginBottom: "0.35rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              <label style={{ ...mono("0.68rem", "#a8a39b"), display: "block", marginBottom: "0.35rem", }}>
                 Prediction
               </label>
               <input
@@ -643,7 +638,7 @@ export default function EvalMetricsWidget() {
                   border: "1px solid rgba(255,255,255,0.1)",
                   borderRadius: 6,
                   padding: "0.5rem 0.75rem",
-                  color: "#e4e4e7",
+                  color: "#ece9e4",
                   fontFamily: "var(--font-mono), monospace",
                   fontSize: "0.85rem",
                   outline: "none",
@@ -667,11 +662,11 @@ export default function EvalMetricsWidget() {
               const pChar = i < prediction.length ? prediction[i] : "";
               const match = gChar !== "" && pChar !== "" && gChar === pChar;
               const bgColor = match
-                ? "rgba(74,222,128,0.18)"
-                : "rgba(248,113,113,0.18)";
+                ? "rgba(94,158,122,0.14)"
+                : "rgba(199,70,52,0.14)";
               const borderColor = match
-                ? "rgba(74,222,128,0.35)"
-                : "rgba(248,113,113,0.35)";
+                ? "rgba(94,158,122,0.35)"
+                : "rgba(199,70,52,0.35)";
 
               return (
                 <div
@@ -690,7 +685,7 @@ export default function EvalMetricsWidget() {
                 >
                   <span
                     style={{
-                      ...mono("0.75rem", match ? "#4ade80" : "#f87171"),
+                      ...mono("0.75rem", match ? "#8fbfa4" : "#e08b7d"),
                       fontWeight: 600,
                     }}
                   >
@@ -705,7 +700,7 @@ export default function EvalMetricsWidget() {
                   />
                   <span
                     style={{
-                      ...mono("0.75rem", match ? "#4ade80" : "#f87171"),
+                      ...mono("0.75rem", match ? "#8fbfa4" : "#e08b7d"),
                       fontWeight: 600,
                     }}
                   >
@@ -728,21 +723,21 @@ export default function EvalMetricsWidget() {
             }}
           >
             <div>
-              <span style={{ color: "#a1a1aa" }}>Edit Distance: </span>
-              <span style={{ color: "#f87171", fontWeight: 700 }}>
+              <span style={{ color: "#a8a39b" }}>Edit Distance: </span>
+              <span style={{ color: "#e08b7d", fontVariantNumeric: "tabular-nums" }}>
                 {editMetrics.dist}
               </span>
             </div>
             <div>
-              <span style={{ color: "#a1a1aa" }}>Normalized: </span>
-              <span style={{ color: "#e4e4e7" }}>
+              <span style={{ color: "#a8a39b" }}>Normalized: </span>
+              <span style={{ color: "#ece9e4" }}>
                 {editMetrics.dist} / {Math.max(groundTruth.length, prediction.length)} ={" "}
                 <span style={{ fontWeight: 600 }}>{editMetrics.norm.toFixed(2)}</span>
               </span>
             </div>
             <div>
-              <span style={{ color: "#a1a1aa" }}>Similarity: </span>
-              <span style={{ color: "#4ade80", fontWeight: 700 }}>
+              <span style={{ color: "#a8a39b" }}>Similarity: </span>
+              <span style={{ color: "#8fbfa4", fontVariantNumeric: "tabular-nums" }}>
                 {editMetrics.similarity.toFixed(2)}
               </span>
             </div>

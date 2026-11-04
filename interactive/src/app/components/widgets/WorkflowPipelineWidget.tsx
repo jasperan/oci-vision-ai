@@ -276,9 +276,9 @@ await client.uploadBatch(batch, {
   },
 ];
 
-const ACCENT = "#34d399";
-const ACCENT_DIM = "rgba(52,211,153,0.15)";
-const ACCENT_BORDER = "rgba(52,211,153,0.5)";
+const ACCENT = "#c74634";
+const ACCENT_DIM = "rgba(199,70,52,0.12)";
+const ACCENT_BORDER = "rgba(199,70,52,0.45)";
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
@@ -396,7 +396,7 @@ export default function WorkflowPipelineWidget() {
             <span
               style={{
                 fontSize: "0.65rem",
-                color: "#a1a1aa",
+                color: "#a8a39b",
                 marginLeft: "0.4rem",
                 opacity: 0.7,
               }}
@@ -485,8 +485,7 @@ export default function WorkflowPipelineWidget() {
           <div
             style={{
               height: 1,
-              background:
-                "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
+              background: "rgba(255,255,255,0.08)",
               margin: "0 0 1.25rem 0",
             }}
           />
@@ -496,17 +495,15 @@ export default function WorkflowPipelineWidget() {
             <div
               key={`${workflow.id}-${activeIndex}`}
               style={{
-                animation: "fadeSlideIn 0.35s ease-out both",
+                animation: "fadeIn 240ms cubic-bezier(0.22, 1, 0.36, 1) both",
                 marginBottom: "1.25rem",
               }}
             >
               <div
                 style={{
                   fontFamily: "var(--font-mono), monospace",
-                  fontSize: "0.7rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  color: "#a1a1aa",
+                  fontSize: "0.75rem",
+                  color: "#a8a39b",
                   marginBottom: "0.75rem",
                 }}
               >
@@ -552,7 +549,7 @@ export default function WorkflowPipelineWidget() {
               {/* Code snippet */}
               <div className="code-block">
                 <pre style={{ margin: 0, whiteSpace: "pre-wrap" }}>
-                  <code style={{ color: "#e4e4e7" }}>
+                  <code style={{ color: "#ece9e4" }}>
                     {currentStage.codeSnippet}
                   </code>
                 </pre>
@@ -564,15 +561,13 @@ export default function WorkflowPipelineWidget() {
           {completed && (
             <div
               style={{
-                animation: "fadeSlideIn 0.4s ease-out both",
+                animation: "fadeIn 240ms cubic-bezier(0.22, 1, 0.36, 1) both",
               }}
             >
               <div
                 style={{
                   fontFamily: "var(--font-mono), monospace",
-                  fontSize: "0.7rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
+                  fontSize: "0.75rem",
                   color: ACCENT,
                   marginBottom: "0.75rem",
                 }}
@@ -593,10 +588,8 @@ export default function WorkflowPipelineWidget() {
                 <div
                   style={{
                     fontFamily: "var(--font-mono), monospace",
-                    fontSize: "0.68rem",
-                    color: "#a1a1aa",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
+                    fontSize: "0.75rem",
+                    color: "#a8a39b",
                     marginBottom: "0.5rem",
                   }}
                 >
@@ -619,10 +612,8 @@ export default function WorkflowPipelineWidget() {
                 <div
                   style={{
                     fontFamily: "var(--font-mono), monospace",
-                    fontSize: "0.68rem",
-                    color: "#a1a1aa",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
+                    fontSize: "0.75rem",
+                    color: "#a8a39b",
                     marginBottom: "0.35rem",
                   }}
                 >
@@ -632,7 +623,7 @@ export default function WorkflowPipelineWidget() {
                   style={{
                     fontSize: "1.1rem",
                     fontWeight: 700,
-                    color: "#e4e4e7",
+                    color: "#ece9e4",
                     marginBottom: "1rem",
                   }}
                 >
@@ -643,10 +634,8 @@ export default function WorkflowPipelineWidget() {
                 <div
                   style={{
                     fontFamily: "var(--font-mono), monospace",
-                    fontSize: "0.68rem",
-                    color: "#a1a1aa",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
+                    fontSize: "0.75rem",
+                    color: "#a8a39b",
                     marginBottom: "0.5rem",
                   }}
                 >
@@ -675,7 +664,7 @@ export default function WorkflowPipelineWidget() {
           style={{
             fontFamily: "var(--font-mono), monospace",
             fontSize: "0.78rem",
-            color: "#a1a1aa",
+            color: "#a8a39b",
             textAlign: "center",
             padding: "2rem 1rem",
           }}
@@ -716,11 +705,9 @@ function StageBox({ name, status }: { name: string; status: StageStatus }) {
         background: isCompleted
           ? ACCENT_DIM
           : isActive
-            ? "rgba(52,211,153,0.05)"
+            ? "rgba(199,70,52,0.05)"
             : "var(--card)",
-        boxShadow: isActive ? `0 0 12px rgba(52,211,153,0.25)` : "none",
-        animation: isActive ? "pulse-glow-emerald 1.5s ease-in-out infinite" : "none",
-        transition: "all 0.35s ease",
+        transition: "border-color 160ms cubic-bezier(0.22, 1, 0.36, 1), background-color 160ms cubic-bezier(0.22, 1, 0.36, 1)",
         textAlign: "center",
         gap: "0.3rem",
       }}
@@ -759,7 +746,7 @@ function StageBox({ name, status }: { name: string; status: StageStatus }) {
         style={{
           fontFamily: "var(--font-mono), monospace",
           fontSize: "0.68rem",
-          color: isPending ? "#a1a1aa" : isActive ? ACCENT : "#e4e4e7",
+          color: isPending ? "#77726a" : isActive ? "#ece9e4" : "#ece9e4",
           lineHeight: 1.3,
           transition: "color 0.3s",
         }}
@@ -767,13 +754,6 @@ function StageBox({ name, status }: { name: string; status: StageStatus }) {
         {name}
       </span>
 
-      {/* Inline style tag for emerald pulse-glow keyframes */}
-      <style>{`
-        @keyframes pulse-glow-emerald {
-          0%, 100% { box-shadow: 0 0 6px rgba(52,211,153,0.25); }
-          50% { box-shadow: 0 0 18px rgba(52,211,153,0.5); }
-        }
-      `}</style>
     </div>
   );
 }
@@ -790,10 +770,9 @@ function FeatureBadge({ label }: { label: string }) {
         fontSize: "0.65rem",
         padding: "0.2rem 0.55rem",
         borderRadius: 4,
-        background: ACCENT_DIM,
-        color: ACCENT,
-        border: `1px solid rgba(52,211,153,0.25)`,
-        letterSpacing: "0.02em",
+        background: "rgba(255,255,255,0.04)",
+        color: "#a8a39b",
+        border: `1px solid rgba(255,255,255,0.08)`,
       }}
     >
       {label}

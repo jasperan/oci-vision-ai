@@ -58,10 +58,10 @@ const SIGN_LINES: OcrLine[] = [
 ];
 
 const STAGES = [
-  { id: 1, label: "Raw Image", icon: "\uD83D\uDDBC\uFE0F" },
-  { id: 2, label: "Line Detection", icon: "\uD83D\uDD0D" },
-  { id: 3, label: "Word Segmentation", icon: "\u2702\uFE0F" },
-  { id: 4, label: "Character Recognition", icon: "\uD83C\uDD70\uFE0F" },
+  { id: 1, label: "Raw image" },
+  { id: 2, label: "Line detection" },
+  { id: 3, label: "Word segmentation" },
+  { id: 4, label: "Character recognition" },
 ] as const;
 
 /* Visual layout for the sign — pre-computed positions (percentages) */
@@ -144,8 +144,7 @@ export default function OcrWidget() {
           style={{
             fontFamily: "var(--font-mono), monospace",
             fontSize: "0.78rem",
-            color: "#4ade80",
-            fontWeight: 600,
+            color: "#ece9e4",
           }}
         >
           Stage {stage} of 4 &mdash; {currentStage.label}
@@ -162,15 +161,15 @@ export default function OcrWidget() {
                 borderRadius: "50%",
                 background:
                   s.id < stage
-                    ? "#4ade80"
+                    ? "#a8a39b"
                     : s.id === stage
-                      ? "rgba(74,222,128,0.5)"
+                      ? "#c74634"
                       : "rgba(255,255,255,0.1)",
                 border:
                   s.id === stage
-                    ? "2px solid #4ade80"
+                    ? "2px solid #c74634"
                     : "2px solid transparent",
-                transition: "all 0.3s",
+                transition: "background-color 160ms cubic-bezier(0.22, 1, 0.36, 1), border-color 160ms",
               }}
             />
           ))}
@@ -195,7 +194,7 @@ export default function OcrWidget() {
           style={{
             position: "absolute",
             inset: 6,
-            border: "1px solid rgba(74,222,128,0.08)",
+            border: "1px solid rgba(255,255,255,0.08)",
             borderRadius: 6,
             pointerEvents: "none",
           }}
@@ -228,7 +227,7 @@ export default function OcrWidget() {
                     stage >= 2
                       ? "0.3rem 0.6rem"
                       : "0.3rem 0.6rem",
-                  transition: "all 0.4s ease",
+                  transition: "border-color 160ms cubic-bezier(0.22, 1, 0.36, 1), background-color 160ms cubic-bezier(0.22, 1, 0.36, 1)",
                 }}
               >
                 {/* Line bounding box — stage 2+ */}
@@ -237,11 +236,9 @@ export default function OcrWidget() {
                     style={{
                       position: "absolute",
                       inset: 0,
-                      border: "1.5px solid rgba(74,222,128,0.5)",
+                      border: "1px solid rgba(236,233,228,0.28)",
                       borderRadius: 4,
-                      background: "rgba(74,222,128,0.04)",
-                      animation: "fadeIn 0.4s ease-out both",
-                      animationDelay: `${li * 100}ms`,
+                      background: "rgba(236,233,228,0.04)",
                     }}
                   />
                 )}
@@ -256,12 +253,12 @@ export default function OcrWidget() {
                       fontSize: layout.fontSize,
                       fontWeight: layout.fontWeight,
                       letterSpacing: layout.letterSpacing,
-                      color: isLargeLine ? "#e4e4e7" : "#a1a1aa",
+                      color: isLargeLine ? "#ece9e4" : "#a8a39b",
                       padding:
                         stage >= 3
                           ? "0.1rem 0.3rem"
                           : undefined,
-                      transition: "all 0.3s ease",
+                      transition: "background-color 160ms cubic-bezier(0.22, 1, 0.36, 1), color 160ms cubic-bezier(0.22, 1, 0.36, 1)",
                       zIndex: 1,
                     }}
                   >
@@ -271,11 +268,9 @@ export default function OcrWidget() {
                         style={{
                           position: "absolute",
                           inset: 0,
-                          border: "1px solid rgba(74,222,128,0.7)",
+                          border: "1px solid rgba(236,233,228,0.4)",
                           borderRadius: 3,
-                          background: "rgba(74,222,128,0.06)",
-                          animation: "fadeIn 0.3s ease-out both",
-                          animationDelay: `${li * 100 + wi * 60}ms`,
+                          background: "rgba(236,233,228,0.06)",
                         }}
                       />
                     )}
@@ -290,15 +285,13 @@ export default function OcrWidget() {
                           top: -14,
                           right: -4,
                           fontFamily: "var(--font-mono), monospace",
-                          fontSize: "0.55rem",
-                          color: "#4ade80",
-                          background: "rgba(0,0,0,0.7)",
+                          fontSize: "0.65rem",
+                          color: "#a8a39b",
+                          background: "rgba(18,18,19,0.8)",
                           padding: "1px 4px",
                           borderRadius: 3,
                           fontWeight: 600,
                           whiteSpace: "nowrap",
-                          animation: "fadeIn 0.3s ease-out both",
-                          animationDelay: `${li * 80 + wi * 40 + 200}ms`,
                         }}
                       >
                         {word.confidence.toFixed(2)}
@@ -317,10 +310,8 @@ export default function OcrWidget() {
                       transform: "translateY(-50%)",
                       fontFamily: "var(--font-mono), monospace",
                       fontSize: "0.55rem",
-                      color: "rgba(74,222,128,0.6)",
+                      color: "#77726a",
                       whiteSpace: "nowrap",
-                      animation: "fadeIn 0.3s ease-out both",
-                      animationDelay: `${li * 100 + 200}ms`,
                     }}
                   >
                     L{li + 1}
@@ -338,7 +329,7 @@ export default function OcrWidget() {
             marginTop: "1rem",
             fontFamily: "var(--font-mono), monospace",
             fontSize: "0.68rem",
-            color: "#71717a",
+            color: "#77726a",
           }}
         >
           sign_board.png
@@ -404,27 +395,33 @@ export default function OcrWidget() {
               style={{
                 borderColor:
                   s.id === stage
-                    ? "rgba(74,222,128,0.4)"
+                    ? "rgba(199,70,52,0.6)"
                     : s.id < stage
-                      ? "rgba(74,222,128,0.25)"
+                      ? "rgba(255,255,255,0.16)"
                       : undefined,
                 background:
                   s.id === stage
-                    ? "rgba(74,222,128,0.06)"
-                    : s.id < stage
-                      ? "rgba(74,222,128,0.03)"
-                      : undefined,
+                    ? "rgba(255,255,255,0.04)"
+                    : undefined,
               }}
             >
-              <span style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}>
-                {s.icon}
+              <span
+                style={{
+                  fontFamily: "var(--font-mono), monospace",
+                  fontSize: "0.7rem",
+                  color: "#77726a",
+                  marginBottom: "0.25rem",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {String(s.id).padStart(2, "0")}
               </span>
               <span
                 style={{
-                  fontSize: "0.68rem",
-                  color: s.id <= stage ? "#4ade80" : "#a1a1aa",
+                  fontSize: "0.75rem",
+                  color: s.id <= stage ? "#ece9e4" : "#a8a39b",
                   lineHeight: 1.3,
-                  transition: "color 0.3s",
+                  transition: "color 160ms cubic-bezier(0.22, 1, 0.36, 1)",
                 }}
               >
                 {s.label}
@@ -432,21 +429,18 @@ export default function OcrWidget() {
             </div>
 
             {i < STAGES.length - 1 && (
-              <span
-                style={{
-                  color:
-                    i < stage - 1
-                      ? "rgba(74,222,128,0.5)"
-                      : "rgba(255,255,255,0.15)",
-                  fontSize: "1.1rem",
-                  margin: "0 0.35rem",
-                  flexShrink: 0,
-                  transition: "color 0.3s",
-                }}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="rgba(255,255,255,0.16)"
+                strokeWidth="1.5"
+                style={{ margin: "0 0.35rem", flexShrink: 0 }}
                 aria-hidden="true"
               >
-                &rarr;
-              </span>
+                <path d="m9 18 6-6-6-6" />
+              </svg>
             )}
           </div>
         ))}
@@ -456,8 +450,7 @@ export default function OcrWidget() {
       <div
         style={{
           height: 1,
-          background:
-            "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
+          background: "rgba(255,255,255,0.08)",
           margin: "0 0 1.25rem 0",
         }}
       />
@@ -468,10 +461,8 @@ export default function OcrWidget() {
           <div
             style={{
               fontFamily: "var(--font-mono), monospace",
-              fontSize: "0.7rem",
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              color: "#a1a1aa",
+              fontSize: "0.75rem",
+              color: "#77726a",
               marginBottom: "0.75rem",
             }}
           >
@@ -494,17 +485,14 @@ export default function OcrWidget() {
               return (
                 <div
                   key={li}
-                  style={{
-                    animation: "fadeSlideIn 0.3s ease-out both",
-                    animationDelay: `${li * 80}ms`,
-                  }}
+                  style={undefined}
                 >
                   {/* Line entry */}
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <span style={{ color: "#71717a" }}>{linePrefix}\u2500\u2500</span>
-                    <span style={{ color: "#e4e4e7" }}>
+                    <span style={{ color: "#77726a" }}>{linePrefix}\u2500\u2500</span>
+                    <span style={{ color: "#ece9e4" }}>
                       Line {li + 1}:{" "}
-                      <span style={{ color: "#4ade80" }}>
+                      <span style={{ color: "#ece9e4" }}>
                         &quot;{lineText}&quot;
                       </span>
                     </span>
@@ -524,16 +512,14 @@ export default function OcrWidget() {
                             display: "flex",
                             alignItems: "center",
                             gap: "0.5rem",
-                            animation: "fadeSlideIn 0.25s ease-out both",
-                            animationDelay: `${li * 80 + wi * 50 + 100}ms`,
                           }}
                         >
-                          <span style={{ color: "#71717a" }}>
+                          <span style={{ color: "#77726a" }}>
                             {childPrefix}{wordPrefix}\u2500\u2500
                           </span>
-                          <span style={{ color: "#a1a1aa" }}>
+                          <span style={{ color: "#a8a39b" }}>
                             Word:{" "}
-                            <span style={{ color: "#86efac" }}>
+                            <span style={{ color: "#ece9e4" }}>
                               &quot;{word.text}&quot;
                             </span>
                           </span>
@@ -554,10 +540,8 @@ export default function OcrWidget() {
           <div
             style={{
               fontFamily: "var(--font-mono), monospace",
-              fontSize: "0.7rem",
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              color: "#a1a1aa",
+              fontSize: "0.75rem",
+              color: "#77726a",
               marginBottom: "0.75rem",
             }}
           >
@@ -567,7 +551,7 @@ export default function OcrWidget() {
             <pre
               style={{
                 margin: 0,
-                color: "#86efac",
+                color: "#ece9e4",
                 fontFamily: "var(--font-mono), monospace",
                 fontSize: "0.8rem",
                 lineHeight: 1.7,
@@ -601,8 +585,8 @@ function ConfidencePill({ value }: { value: number }) {
       <span
         style={{
           fontFamily: "var(--font-mono), monospace",
-          fontSize: "0.65rem",
-          color: "#a1a1aa",
+          fontSize: "0.7rem",
+          color: "#a8a39b",
         }}
       >
         ({value.toFixed(2)})
@@ -626,12 +610,7 @@ function ConfidencePill({ value }: { value: number }) {
             width: `${pct}%`,
             height: "100%",
             borderRadius: 2,
-            background:
-              value >= 0.9
-                ? "linear-gradient(90deg, #4ade80, #86efac)"
-                : value >= 0.8
-                  ? "linear-gradient(90deg, #4ade80, #a7f3d0)"
-                  : "linear-gradient(90deg, #facc15, #fde047)",
+            background: value >= 0.9 ? "#c74634" : "#8f887e",
           }}
         />
       </span>

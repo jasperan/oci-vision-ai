@@ -8,7 +8,7 @@ import { useState, useCallback, useEffect } from "react";
 
 interface SurfaceCard {
   id: string;
-  icon: string;
+  num: string;
   title: string;
   snippet: string;
   brief: string;
@@ -18,7 +18,7 @@ interface SurfaceCard {
 const SURFACES: SurfaceCard[] = [
   {
     id: "cli",
-    icon: "\u2328\uFE0F",
+    num: "01",
     title: "CLI",
     snippet: "oci-vision analyze img.jpg --demo",
     brief: "Rich tables, JSON/HTML export",
@@ -27,7 +27,7 @@ const SURFACES: SurfaceCard[] = [
   },
   {
     id: "tui",
-    icon: "\uD83D\uDCCA",
+    num: "02",
     title: "TUI / Cockpit",
     snippet: "oci-vision cockpit --demo",
     brief: "Textual framework, gallery browsing",
@@ -36,7 +36,7 @@ const SURFACES: SurfaceCard[] = [
   },
   {
     id: "web",
-    icon: "\uD83C\uDF10",
+    num: "03",
     title: "Web Dashboard",
     snippet: "oci-vision web --demo",
     brief: "FastAPI, drag-and-drop, overlays",
@@ -45,7 +45,7 @@ const SURFACES: SurfaceCard[] = [
   },
   {
     id: "notebooks",
-    icon: "\uD83D\uDCD3",
+    num: "04",
     title: "Notebooks",
     snippet: "jupyter notebook notebooks/",
     brief: "7 guided walkthroughs",
@@ -76,14 +76,14 @@ function tokenizePython(line: string): Token[] {
       // Try string match (double-quoted)
       const strMatchD = remaining.match(/^"([^"]*)"/);
       if (strMatchD) {
-        tokens.push({ text: strMatchD[0], color: "#4ade80" });
+        tokens.push({ text: strMatchD[0], color: "#a8a39b" });
         remaining = remaining.slice(strMatchD[0].length);
         continue;
       }
       // Try string match (single-quoted)
       const strMatchS = remaining.match(/^'([^']*)'/);
       if (strMatchS) {
-        tokens.push({ text: strMatchS[0], color: "#4ade80" });
+        tokens.push({ text: strMatchS[0], color: "#a8a39b" });
         remaining = remaining.slice(strMatchS[0].length);
         continue;
       }
@@ -91,25 +91,25 @@ function tokenizePython(line: string): Token[] {
       keywords.lastIndex = 0;
       const kwMatch = remaining.match(/^(from|import|class|def|return|if|else|elif|for|in|while|with|as|try|except|finally|raise|pass|break|continue|and|or|not|is|None|True|False)\b/);
       if (kwMatch) {
-        tokens.push({ text: kwMatch[0], color: "#c084fc" });
+        tokens.push({ text: kwMatch[0], color: "#ece9e4" });
         remaining = remaining.slice(kwMatch[0].length);
         continue;
       }
       // Try function call
       const fnMatch = remaining.match(/^(\w+)(?=\()/);
       if (fnMatch && !["from", "import", "class", "def", "return", "if", "else", "elif", "for", "in", "while", "with", "as"].includes(fnMatch[0])) {
-        tokens.push({ text: fnMatch[0], color: "#60a5fa" });
+        tokens.push({ text: fnMatch[0], color: "#c9c2b7" });
         remaining = remaining.slice(fnMatch[0].length);
         continue;
       }
       // Default: take one character
-      tokens.push({ text: remaining[0], color: "#e4e4e7" });
+      tokens.push({ text: remaining[0], color: "#ece9e4" });
       remaining = remaining.slice(1);
     }
   }
 
   if (commentPart.length > 0) {
-    tokens.push({ text: commentPart, color: "#6b7280" });
+    tokens.push({ text: commentPart, color: "#77726a" });
   }
 
   return tokens;
@@ -187,10 +187,8 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
     <div
       style={{
         fontFamily: "var(--font-mono), monospace",
-        fontSize: "0.7rem",
-        textTransform: "uppercase",
-        letterSpacing: "0.1em",
-        color: "#a1a1aa",
+        fontSize: "0.75rem",
+        color: "#77726a",
         marginBottom: "1rem",
       }}
     >
@@ -208,8 +206,7 @@ function Divider() {
     <div
       style={{
         height: 1,
-        background:
-          "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
+        background: "rgba(255,255,255,0.08)",
         margin: "1.75rem 0",
       }}
     />
@@ -238,9 +235,9 @@ export default function ArchitectureWidget() {
   }, []);
 
   /* ---- Colors per mode ---- */
-  const demoColor = "#4ade80";
-  const liveColor = "#f97316";
-  const accentColor = "#38bdf8";
+  const demoColor = "#ece9e4";
+  const liveColor = "#c74634";
+  const accentColor = "#a8a39b";
   const activeColor = demoMode ? demoColor : liveColor;
 
   return (
@@ -267,10 +264,8 @@ export default function ArchitectureWidget() {
         <span
           style={{
             fontFamily: "var(--font-mono), monospace",
-            fontSize: "0.72rem",
-            color: "#a1a1aa",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
+            fontSize: "0.75rem",
+            color: "#a8a39b",
           }}
         >
           Demo Mode
@@ -287,10 +282,10 @@ export default function ArchitectureWidget() {
             borderRadius: 12,
             border: `1.5px solid ${activeColor}`,
             background: demoMode
-              ? "rgba(74,222,128,0.18)"
-              : "rgba(249,115,22,0.12)",
+              ? "rgba(255,255,255,0.08)"
+              : "rgba(199,70,52,0.16)",
             cursor: "pointer",
-            transition: "all 0.35s ease",
+            transition: "background-color 200ms cubic-bezier(0.22, 1, 0.36, 1), border-color 200ms",
             padding: 0,
             flexShrink: 0,
           }}
@@ -353,7 +348,7 @@ export default function ArchitectureWidget() {
                 fontSize: "0.82rem",
                 color: accentColor,
                 fontWeight: 600,
-                background: "rgba(56,189,248,0.06)",
+                background: "rgba(255,255,255,0.04)",
                 textAlign: "center",
               }}
             >
@@ -405,7 +400,7 @@ export default function ArchitectureWidget() {
                   fontSize: "0.78rem",
                   color: demoColor,
                   fontWeight: 600,
-                  background: "rgba(74,222,128,0.06)",
+                  background: "rgba(255,255,255,0.04)",
                 }}
               >
                 DemoClient
@@ -436,7 +431,7 @@ export default function ArchitectureWidget() {
                   fontFamily: "var(--font-mono), monospace",
                   fontSize: "0.72rem",
                   color: demoColor,
-                  background: "rgba(74,222,128,0.06)",
+                  background: "rgba(255,255,255,0.04)",
                   textAlign: "center",
                   lineHeight: 1.6,
                 }}
@@ -491,7 +486,7 @@ export default function ArchitectureWidget() {
                   fontSize: "0.78rem",
                   color: liveColor,
                   fontWeight: 600,
-                  background: "rgba(249,115,22,0.06)",
+                  background: "rgba(199,70,52,0.06)",
                 }}
               >
                 OCI SDK
@@ -540,7 +535,7 @@ export default function ArchitectureWidget() {
                 >
                   <path
                     d="M30,40 C10,40 5,30 10,22 C5,14 15,5 28,8 C35,0 55,-2 65,8 C75,2 95,0 105,8 C120,-2 145,0 152,10 C168,8 178,18 172,28 C178,35 170,42 155,40 Z"
-                    fill="rgba(249,115,22,0.06)"
+                    fill="rgba(199,70,52,0.06)"
                     stroke={liveColor}
                     strokeWidth="1.2"
                   />
@@ -575,7 +570,7 @@ export default function ArchitectureWidget() {
                   fontFamily: "var(--font-mono), monospace",
                   fontSize: "0.72rem",
                   color: liveColor,
-                  background: "rgba(249,115,22,0.06)",
+                  background: "rgba(199,70,52,0.06)",
                 }}
               >
                 ~/.oci/config
@@ -630,16 +625,16 @@ export default function ArchitectureWidget() {
                 gap: "0.4rem",
                 padding: "0.85rem 1rem",
                 background: isExpanded
-                  ? "rgba(56,189,248,0.08)"
+                  ? "rgba(255,255,255,0.05)"
                   : "rgba(0,0,0,0.3)",
                 border: `1px solid ${
-                  isExpanded ? "rgba(56,189,248,0.3)" : "rgba(255,255,255,0.06)"
+                  isExpanded ? "rgba(199,70,52,0.4)" : "rgba(255,255,255,0.06)"
                 }`,
                 borderRadius: 8,
                 cursor: "pointer",
                 textAlign: "left",
                 width: "100%",
-                transition: "all 0.25s ease",
+                transition: "background-color 160ms cubic-bezier(0.22, 1, 0.36, 1), border-color 160ms",
                 fontFamily: "var(--font-mono), monospace",
               }}
             >
@@ -651,12 +646,21 @@ export default function ArchitectureWidget() {
                   width: "100%",
                 }}
               >
-                <span style={{ fontSize: "1.15rem" }}>{surface.icon}</span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono), monospace",
+                    fontSize: "0.7rem",
+                    color: "#77726a",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {surface.num}
+                </span>
                 <span
                   style={{
                     fontSize: "0.78rem",
                     fontWeight: 600,
-                    color: isExpanded ? accentColor : "#e4e4e7",
+                    color: isExpanded ? accentColor : "#ece9e4",
                     transition: "color 0.25s ease",
                   }}
                 >
@@ -667,7 +671,7 @@ export default function ArchitectureWidget() {
               <code
                 style={{
                   fontSize: "0.65rem",
-                  color: "#a1a1aa",
+                  color: "#a8a39b",
                   background: "rgba(0,0,0,0.3)",
                   padding: "0.2rem 0.4rem",
                   borderRadius: 4,
@@ -684,7 +688,7 @@ export default function ArchitectureWidget() {
               <span
                 style={{
                   fontSize: "0.66rem",
-                  color: "#a1a1aa",
+                  color: "#a8a39b",
                   lineHeight: 1.4,
                 }}
               >
@@ -707,7 +711,7 @@ export default function ArchitectureWidget() {
                     paddingTop: "0.5rem",
                     borderTop: "1px solid rgba(255,255,255,0.06)",
                     fontSize: "0.66rem",
-                    color: "#a1a1aa",
+                    color: "#a8a39b",
                     lineHeight: 1.55,
                   }}
                 >

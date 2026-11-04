@@ -26,10 +26,10 @@ interface DragRect {
 /* ------------------------------------------------------------------ */
 
 const SCENE_OBJECTS: DetectedObject[] = [
-  { label: "Dog", confidence: 0.96, bbox: [0.15, 0.3, 0.45, 0.85], color: "#22d3ee" },
-  { label: "Person", confidence: 0.93, bbox: [0.55, 0.1, 0.8, 0.9], color: "#4ade80" },
-  { label: "Ball", confidence: 0.88, bbox: [0.4, 0.7, 0.5, 0.82], color: "#f97316" },
-  { label: "Tree", confidence: 0.91, bbox: [0.82, 0.05, 0.98, 0.7], color: "#a78bfa" },
+  { label: "Dog", confidence: 0.96, bbox: [0.15, 0.3, 0.45, 0.85], color: "#ece9e4" },
+  { label: "Person", confidence: 0.93, bbox: [0.55, 0.1, 0.8, 0.9], color: "#c9c2b7" },
+  { label: "Ball", confidence: 0.88, bbox: [0.4, 0.7, 0.5, 0.82], color: "#a8a39b" },
+  { label: "Tree", confidence: 0.91, bbox: [0.82, 0.05, 0.98, 0.7], color: "#8f887e" },
 ];
 
 const SVG_W = 640;
@@ -130,29 +130,29 @@ export default function ObjectDetectionWidget() {
     return (
       <g opacity={0.35}>
         {/* Ground */}
-        <rect x={0} y={SVG_H * 0.78} width={SVG_W} height={SVG_H * 0.22} fill="#1a2e1a" rx={0} />
+        <rect x={0} y={SVG_H * 0.78} width={SVG_W} height={SVG_H * 0.22} fill="#171717" rx={0} />
         {/* Sky gradient line */}
-        <line x1={0} y1={SVG_H * 0.78} x2={SVG_W} y2={SVG_H * 0.78} stroke="#2a3e2a" strokeWidth={1} />
+        <line x1={0} y1={SVG_H * 0.78} x2={SVG_W} y2={SVG_H * 0.78} stroke="#262626" strokeWidth={1} />
         {/* Sun */}
-        <circle cx={SVG_W * 0.12} cy={SVG_H * 0.12} r={18} fill="#facc15" opacity={0.5} />
+        <circle cx={SVG_W * 0.12} cy={SVG_H * 0.12} r={18} fill="#ece9e4" opacity={0.5} />
         {/* Clouds */}
-        <ellipse cx={SVG_W * 0.35} cy={SVG_H * 0.1} rx={40} ry={12} fill="#334155" opacity={0.4} />
-        <ellipse cx={SVG_W * 0.65} cy={SVG_H * 0.15} rx={30} ry={10} fill="#334155" opacity={0.3} />
+        <ellipse cx={SVG_W * 0.35} cy={SVG_H * 0.1} rx={40} ry={12} fill="#2a2a2a" opacity={0.4} />
+        <ellipse cx={SVG_W * 0.65} cy={SVG_H * 0.15} rx={30} ry={10} fill="#2a2a2a" opacity={0.3} />
         {/* Dog silhouette */}
-        <ellipse cx={SVG_W * 0.3} cy={SVG_H * 0.65} rx={35} ry={22} fill="#4a3728" opacity={0.7} />
-        <ellipse cx={SVG_W * 0.25} cy={SVG_H * 0.55} rx={14} ry={12} fill="#4a3728" opacity={0.7} />
-        <rect x={SVG_W * 0.2} y={SVG_H * 0.72} width={6} height={28} rx={2} fill="#4a3728" opacity={0.7} />
-        <rect x={SVG_W * 0.35} y={SVG_H * 0.72} width={6} height={28} rx={2} fill="#4a3728" opacity={0.7} />
+        <ellipse cx={SVG_W * 0.3} cy={SVG_H * 0.65} rx={35} ry={22} fill="#3a3530" opacity={0.7} />
+        <ellipse cx={SVG_W * 0.25} cy={SVG_H * 0.55} rx={14} ry={12} fill="#3a3530" opacity={0.7} />
+        <rect x={SVG_W * 0.2} y={SVG_H * 0.72} width={6} height={28} rx={2} fill="#3a3530" opacity={0.7} />
+        <rect x={SVG_W * 0.35} y={SVG_H * 0.72} width={6} height={28} rx={2} fill="#3a3530" opacity={0.7} />
         {/* Person silhouette */}
-        <circle cx={SVG_W * 0.675} cy={SVG_H * 0.18} r={16} fill="#3b4a6b" opacity={0.7} />
-        <rect x={SVG_W * 0.65} y={SVG_H * 0.25} width={30} height={70} rx={6} fill="#3b4a6b" opacity={0.7} />
-        <rect x={SVG_W * 0.655} y={SVG_H * 0.65} width={12} height={50} rx={3} fill="#3b4a6b" opacity={0.7} />
-        <rect x={SVG_W * 0.69} y={SVG_H * 0.65} width={12} height={50} rx={3} fill="#3b4a6b" opacity={0.7} />
+        <circle cx={SVG_W * 0.675} cy={SVG_H * 0.18} r={16} fill="#3a3530" opacity={0.7} />
+        <rect x={SVG_W * 0.65} y={SVG_H * 0.25} width={30} height={70} rx={6} fill="#3a3530" opacity={0.7} />
+        <rect x={SVG_W * 0.655} y={SVG_H * 0.65} width={12} height={50} rx={3} fill="#3a3530" opacity={0.7} />
+        <rect x={SVG_W * 0.69} y={SVG_H * 0.65} width={12} height={50} rx={3} fill="#3a3530" opacity={0.7} />
         {/* Ball */}
-        <circle cx={SVG_W * 0.45} cy={SVG_H * 0.76} r={12} fill="#c2410c" opacity={0.7} />
+        <circle cx={SVG_W * 0.45} cy={SVG_H * 0.76} r={12} fill="#8f887e" opacity={0.7} />
         {/* Tree */}
-        <rect x={SVG_W * 0.895} y={SVG_H * 0.4} width={12} height={100} rx={3} fill="#5c3a1e" opacity={0.7} />
-        <ellipse cx={SVG_W * 0.9} cy={SVG_H * 0.28} rx={28} ry={38} fill="#2d5a2d" opacity={0.7} />
+        <rect x={SVG_W * 0.895} y={SVG_H * 0.4} width={12} height={100} rx={3} fill="#3a3530" opacity={0.7} />
+        <ellipse cx={SVG_W * 0.9} cy={SVG_H * 0.28} rx={28} ry={38} fill="#2a2d2a" opacity={0.7} />
       </g>
     );
   }, []);
@@ -302,9 +302,8 @@ export default function ObjectDetectionWidget() {
                   fill="none"
                   stroke={obj.color}
                   strokeWidth={isHovered ? 2.5 : 1.5}
-                  strokeDasharray={isHovered ? "none" : "none"}
                   opacity={isHovered ? 1 : 0.7}
-                  style={{ transition: "all 0.15s" }}
+                  style={{ transition: "stroke-width 120ms, opacity 120ms" }}
                 />
 
                 {/* Corner markers */}
@@ -321,7 +320,7 @@ export default function ObjectDetectionWidget() {
                     r={isHovered ? 3 : 2}
                     fill={obj.color}
                     opacity={isHovered ? 1 : 0.6}
-                    style={{ transition: "all 0.15s" }}
+                    style={{ transition: "opacity 120ms" }}
                   />
                 ))}
 
@@ -348,7 +347,7 @@ export default function ObjectDetectionWidget() {
                       fontSize={11}
                       fontFamily="var(--font-mono), monospace"
                       fontWeight={600}
-                      fill="#0a0b0f"
+                      fill="#121213"
                     >
                       {obj.label} {(obj.confidence * 100).toFixed(0)}%
                     </text>
@@ -382,7 +381,7 @@ export default function ObjectDetectionWidget() {
               left: `${((hoveredObj.px.x + hoveredObj.px.w / 2) / SVG_W) * 100}%`,
               bottom: "calc(100% - 4px)",
               transform: "translateX(-50%)",
-              animation: "fadeSlideIn 0.15s ease-out both",
+              animation: "fadeIn 120ms cubic-bezier(0.22, 1, 0.36, 1) both",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
@@ -450,8 +449,7 @@ export default function ObjectDetectionWidget() {
             style={{
               fontFamily: "var(--font-mono), monospace",
               fontSize: "0.78rem",
-              color: "#22d3ee",
-              fontWeight: 600,
+              color: "#ece9e4",
               marginBottom: "0.5rem",
             }}
           >
@@ -465,7 +463,7 @@ export default function ObjectDetectionWidget() {
               lineHeight: 1.6,
             }}
           >
-            Drag the cyan and orange boxes to change their overlap. IoU (Intersection over Union)
+            Drag the two boxes to change their overlap. IoU (Intersection over Union)
             measures how well a predicted bounding box matches the ground truth.
           </p>
 
@@ -520,8 +518,8 @@ export default function ObjectDetectionWidget() {
                   y={intersection.y}
                   width={intersection.w}
                   height={intersection.h}
-                  fill="#facc15"
-                  opacity={0.35}
+                  fill="#ece9e4"
+                  opacity={0.16}
                   rx={2}
                 />
               )}
@@ -532,10 +530,10 @@ export default function ObjectDetectionWidget() {
                 y={rectA.y}
                 width={rectA.w}
                 height={rectA.h}
-                fill="#22d3ee"
-                fillOpacity={0.12}
-                stroke="#22d3ee"
-                strokeWidth={2}
+                fill="#c74634"
+                fillOpacity={0.1}
+                stroke="#c74634"
+                strokeWidth={1.5}
                 rx={3}
                 style={{ cursor: "grab" }}
                 onMouseDown={(e) => handleIoUMouseDown("A", e)}
@@ -545,8 +543,8 @@ export default function ObjectDetectionWidget() {
                 y={rectA.y + 16}
                 fontSize={11}
                 fontFamily="var(--font-mono), monospace"
-                fontWeight={600}
-                fill="#22d3ee"
+                fontWeight={500}
+                fill="#c74634"
                 pointerEvents="none"
               >
                 Predicted
@@ -558,10 +556,10 @@ export default function ObjectDetectionWidget() {
                 y={rectB.y}
                 width={rectB.w}
                 height={rectB.h}
-                fill="#f97316"
-                fillOpacity={0.12}
-                stroke="#f97316"
-                strokeWidth={2}
+                fill="#ece9e4"
+                fillOpacity={0.06}
+                stroke="#ece9e4"
+                strokeWidth={1.5}
                 rx={3}
                 style={{ cursor: "grab" }}
                 onMouseDown={(e) => handleIoUMouseDown("B", e)}
@@ -571,8 +569,8 @@ export default function ObjectDetectionWidget() {
                 y={rectB.y + 16}
                 fontSize={11}
                 fontFamily="var(--font-mono), monospace"
-                fontWeight={600}
-                fill="#f97316"
+                fontWeight={500}
+                fill="#ece9e4"
                 pointerEvents="none"
               >
                 Ground Truth
@@ -585,8 +583,8 @@ export default function ObjectDetectionWidget() {
                   y={intersection.y + intersection.h / 2 + 4}
                   fontSize={10}
                   fontFamily="var(--font-mono), monospace"
-                  fontWeight={600}
-                  fill="#facc15"
+                  fontWeight={500}
+                  fill="#ece9e4"
                   textAnchor="middle"
                   pointerEvents="none"
                 >
@@ -599,32 +597,32 @@ export default function ObjectDetectionWidget() {
             <div style={{ flex: "1 1 200px", minWidth: 200 }}>
               <div className="code-block" style={{ marginBottom: "0.75rem" }}>
                 <div style={{ color: "var(--muted-foreground)", marginBottom: 6 }}>
-                  <span style={{ color: "#22d3ee" }}>IoU</span> = Area(
-                  <span style={{ color: "#facc15" }}>{"\u2229"}</span>) / Area(
-                  <span style={{ color: "#a78bfa" }}>{"\u222a"}</span>)
+                  <span style={{ color: "#c74634" }}>IoU</span> = Area(
+                  <span style={{ color: "#a8a39b" }}>{"\u2229"}</span>) / Area(
+                  <span style={{ color: "#77726a" }}>{"\u222a"}</span>)
                 </div>
                 <div style={{ marginTop: 8, borderTop: "1px solid var(--border)", paddingTop: 8 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                     <span style={{ color: "var(--muted-foreground)" }}>Area(Predicted)</span>
-                    <span style={{ color: "#22d3ee" }}>{(rectA.w * rectA.h).toFixed(0)} px</span>
+                    <span style={{ color: "#c74634" }}>{(rectA.w * rectA.h).toFixed(0)} px</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                     <span style={{ color: "var(--muted-foreground)" }}>Area(Ground Truth)</span>
-                    <span style={{ color: "#f97316" }}>{(rectB.w * rectB.h).toFixed(0)} px</span>
+                    <span style={{ color: "#ece9e4" }}>{(rectB.w * rectB.h).toFixed(0)} px</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                     <span style={{ color: "var(--muted-foreground)" }}>
-                      Area(<span style={{ color: "#facc15" }}>{"\u2229"}</span>)
+                      Area(<span style={{ color: "#a8a39b" }}>{"\u2229"}</span>)
                     </span>
-                    <span style={{ color: "#facc15" }}>
+                    <span style={{ color: "#a8a39b" }}>
                       {intersection ? (intersection.w * intersection.h).toFixed(0) : "0"} px
                     </span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span style={{ color: "var(--muted-foreground)" }}>
-                      Area(<span style={{ color: "#a78bfa" }}>{"\u222a"}</span>)
+                      Area(<span style={{ color: "#77726a" }}>{"\u222a"}</span>)
                     </span>
-                    <span style={{ color: "#a78bfa" }}>
+                    <span style={{ color: "#77726a" }}>
                       {(
                         rectA.w * rectA.h +
                         rectB.w * rectB.h -
@@ -668,11 +666,7 @@ export default function ObjectDetectionWidget() {
                       fontSize: "1.3rem",
                       fontWeight: 700,
                       color:
-                        iouValue >= 0.5
-                          ? "#4ade80"
-                          : iouValue >= 0.25
-                            ? "#facc15"
-                            : "#f97316",
+                        iouValue >= 0.5 ? "#c74634" : "#a8a39b",
                     }}
                   >
                     {iouValue.toFixed(3)}
@@ -692,11 +686,7 @@ export default function ObjectDetectionWidget() {
                     style={{
                       width: `${iouValue * 100}%`,
                       background:
-                        iouValue >= 0.5
-                          ? "#4ade80"
-                          : iouValue >= 0.25
-                            ? "#facc15"
-                            : "#f97316",
+                        iouValue >= 0.5 ? "#c74634" : "#a8a39b",
                     }}
                   />
                 </div>
