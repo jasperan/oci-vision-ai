@@ -86,8 +86,8 @@ const STAGES = [
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-const ACCENT = "#f472b6";
-const ACCENT_GLOW = "rgba(244,114,182,0.15)";
+const ACCENT = "#c74634";
+const ACCENT_GLOW = "rgba(199,70,52,0.12)";
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono), monospace",
@@ -114,12 +114,12 @@ function InvoiceDocument({
       if (!showHighlights) return {};
       const isSelected = selectedField === field.key;
       return {
-        border: `1.5px dashed ${isSelected ? ACCENT : "rgba(244,114,182,0.5)"}`,
+        border: `1px dashed ${isSelected ? ACCENT : "rgba(255,255,255,0.22)"}`,
         borderRadius: 3,
         padding: "1px 4px",
         cursor: "pointer",
         background: isSelected ? ACCENT_GLOW : "transparent",
-        transition: "all 0.2s ease",
+        transition: "border-color 160ms cubic-bezier(0.22, 1, 0.36, 1), background-color 160ms cubic-bezier(0.22, 1, 0.36, 1)",
         display: "inline-block",
       };
     },
@@ -143,7 +143,7 @@ function InvoiceDocument({
         ...mono,
         fontSize: "0.78rem",
         lineHeight: 1.8,
-        color: "#e4e4e7",
+        color: "#ece9e4",
         position: "relative",
         overflow: "hidden",
       }}
@@ -161,7 +161,7 @@ function InvoiceDocument({
           style={{
             fontSize: "1.1rem",
             fontWeight: 700,
-            color: "#e4e4e7",
+            color: "#ece9e4",
             letterSpacing: "0.08em",
           }}
         >
@@ -179,7 +179,7 @@ function InvoiceDocument({
 
       {/* Date & Vendor */}
       <div style={{ marginBottom: "0.15rem" }}>
-        <span style={{ color: "#a1a1aa" }}>Date: </span>
+        <span style={{ color: "#a8a39b" }}>Date: </span>
         <span
           style={fieldStyle(FIELDS[1])}
           onClick={() => handleClick("date")}
@@ -190,7 +190,7 @@ function InvoiceDocument({
         </span>
       </div>
       <div style={{ marginBottom: "1rem" }}>
-        <span style={{ color: "#a1a1aa" }}>Vendor: </span>
+        <span style={{ color: "#a8a39b" }}>Vendor: </span>
         <span
           style={fieldStyle(FIELDS[2])}
           onClick={() => handleClick("vendor")}
@@ -205,7 +205,7 @@ function InvoiceDocument({
       <div
         style={{
           border: showTable
-            ? `1px solid rgba(244,114,182,0.25)`
+            ? `1px solid rgba(199,70,52,0.3)`
             : "1px solid rgba(255,255,255,0.06)",
           borderRadius: 6,
           overflow: "hidden",
@@ -220,15 +220,12 @@ function InvoiceDocument({
             gridTemplateColumns: "1fr 60px 80px",
             gap: 0,
             background: showTable
-              ? "rgba(244,114,182,0.06)"
+              ? "rgba(255,255,255,0.05)"
               : "rgba(255,255,255,0.03)",
             borderBottom: "1px solid rgba(255,255,255,0.06)",
             padding: "0.4rem 0.75rem",
             fontSize: "0.7rem",
-            color: "#a1a1aa",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            fontWeight: 600,
+            color: "#a8a39b",
             transition: "background 0.3s ease",
           }}
         >
@@ -252,13 +249,13 @@ function InvoiceDocument({
                   : "none",
               background:
                 showTable && i % 2 === 0
-                  ? "rgba(244,114,182,0.02)"
+                  ? "rgba(255,255,255,0.02)"
                   : "transparent",
               transition: "background 0.3s ease",
             }}
           >
             <span>{item.item}</span>
-            <span style={{ textAlign: "right", color: "#a1a1aa" }}>
+            <span style={{ textAlign: "right", color: "#a8a39b" }}>
               {item.qty}
             </span>
             <span style={{ textAlign: "right" }}>{item.amount}</span>
@@ -276,7 +273,7 @@ function InvoiceDocument({
         }}
       >
         <div>
-          <span style={{ color: "#a1a1aa" }}>Subtotal: </span>
+          <span style={{ color: "#a8a39b" }}>Subtotal: </span>
           <span
             style={fieldStyle(FIELDS[3])}
             onClick={() => handleClick("subtotal")}
@@ -287,7 +284,7 @@ function InvoiceDocument({
           </span>
         </div>
         <div>
-          <span style={{ color: "#a1a1aa" }}>Tax (8%): </span>
+          <span style={{ color: "#a8a39b" }}>Tax (8%): </span>
           <span
             style={fieldStyle(FIELDS[4])}
             onClick={() => handleClick("tax")}
@@ -298,7 +295,7 @@ function InvoiceDocument({
           </span>
         </div>
         <div style={{ fontWeight: 700 }}>
-          <span style={{ color: "#a1a1aa" }}>Total: </span>
+          <span style={{ color: "#a8a39b" }}>Total: </span>
           <span
             style={fieldStyle(FIELDS[5])}
             onClick={() => handleClick("total")}
@@ -319,8 +316,8 @@ function FieldDetailPanel({ field }: { field: FieldInfo }) {
     <div
       className="animate-slide-in"
       style={{
-        background: "rgba(244,114,182,0.06)",
-        border: `1px solid rgba(244,114,182,0.2)`,
+        background: "rgba(255,255,255,0.03)",
+        border: `1px solid rgba(199,70,52,0.4)`,
         borderRadius: 8,
         padding: "0.85rem 1rem",
         ...mono,
@@ -329,9 +326,7 @@ function FieldDetailPanel({ field }: { field: FieldInfo }) {
     >
       <div
         style={{
-          fontSize: "0.68rem",
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
+          fontSize: "0.75rem",
           color: ACCENT,
           marginBottom: "0.6rem",
           fontWeight: 600,
@@ -340,11 +335,11 @@ function FieldDetailPanel({ field }: { field: FieldInfo }) {
         Field Details
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "0.25rem 0.75rem" }}>
-        <span style={{ color: "#a1a1aa" }}>Field</span>
-        <span style={{ color: "#e4e4e7" }}>{field.label}</span>
-        <span style={{ color: "#a1a1aa" }}>Value</span>
-        <span style={{ color: "#e4e4e7", fontWeight: 600 }}>{field.value}</span>
-        <span style={{ color: "#a1a1aa" }}>Confidence</span>
+        <span style={{ color: "#a8a39b" }}>Field</span>
+        <span style={{ color: "#ece9e4" }}>{field.label}</span>
+        <span style={{ color: "#a8a39b" }}>Value</span>
+        <span style={{ color: "#ece9e4", fontWeight: 600 }}>{field.value}</span>
+        <span style={{ color: "#a8a39b" }}>Confidence</span>
         <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <span style={{ color: ACCENT, fontWeight: 600 }}>{pct}%</span>
           <span
@@ -363,13 +358,13 @@ function FieldDetailPanel({ field }: { field: FieldInfo }) {
                 width: `${pct}%`,
                 height: "100%",
                 borderRadius: 2,
-                background: `linear-gradient(90deg, ${ACCENT}, #f9a8d4)`,
+                background: ACCENT,
               }}
             />
           </span>
         </span>
-        <span style={{ color: "#a1a1aa" }}>Bounding Box</span>
-        <span style={{ color: "#a1a1aa", fontSize: "0.7rem" }}>
+        <span style={{ color: "#a8a39b" }}>Bounding Box</span>
+        <span style={{ color: "#a8a39b", fontSize: "0.7rem" }}>
           [{field.bbox.x}, {field.bbox.y}, {field.bbox.w}, {field.bbox.h}]
         </span>
       </div>
@@ -390,9 +385,7 @@ function ExtractedPairsPanel() {
       <div
         style={{
           ...mono,
-          fontSize: "0.68rem",
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
+          fontSize: "0.75rem",
           color: ACCENT,
           marginBottom: "0.25rem",
           fontWeight: 600,
@@ -415,7 +408,7 @@ function ExtractedPairsPanel() {
           >
             <span
               style={{
-                color: "#a1a1aa",
+                color: "#a8a39b",
                 width: 80,
                 textAlign: "right",
                 flexShrink: 0,
@@ -425,7 +418,7 @@ function ExtractedPairsPanel() {
             </span>
             <span
               style={{
-                color: "#e4e4e7",
+                color: "#ece9e4",
                 fontWeight: 600,
                 flex: 1,
               }}
@@ -449,7 +442,7 @@ function ExtractedPairsPanel() {
                   width: `${pct}%`,
                   height: "100%",
                   borderRadius: 2,
-                  background: `linear-gradient(90deg, ${ACCENT}, #f9a8d4)`,
+                  background: "#8f887e",
                 }}
               />
             </span>
@@ -478,9 +471,7 @@ function StructuredJsonOutput() {
       <div
         style={{
           ...mono,
-          fontSize: "0.68rem",
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
+          fontSize: "0.75rem",
           color: ACCENT,
           marginBottom: "0.6rem",
           fontWeight: 600,
@@ -697,9 +688,9 @@ export default function DocumentAiWidget() {
                     : "1px solid rgba(255,255,255,0.06)",
                 background:
                   stage === s.id ? ACCENT_GLOW : "rgba(255,255,255,0.02)",
-                color: stage === s.id ? ACCENT : stage > s.id ? "#e4e4e7" : "#a1a1aa",
+                color: stage === s.id ? ACCENT : stage > s.id ? "#ece9e4" : "#a8a39b",
                 cursor: "pointer",
-                transition: "all 0.2s ease",
+                transition: "background-color 160ms, border-color 160ms, color 160ms",
                 fontWeight: stage === s.id ? 600 : 400,
                 whiteSpace: "nowrap",
               }}
@@ -707,19 +698,17 @@ export default function DocumentAiWidget() {
               {s.label}
             </button>
             {i < STAGES.length - 1 && (
-              <span
-                style={{
-                  color:
-                    stage > i
-                      ? "rgba(244,114,182,0.6)"
-                      : "rgba(255,255,255,0.15)",
-                  fontSize: "0.7rem",
-                  transition: "color 0.3s ease",
-                }}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="rgba(255,255,255,0.16)"
+                strokeWidth="1.5"
                 aria-hidden="true"
               >
-                &rarr;
-              </span>
+                <path d="m9 18 6-6-6-6" />
+              </svg>
             )}
           </div>
         ))}
@@ -750,8 +739,7 @@ export default function DocumentAiWidget() {
       <div
         style={{
           height: 1,
-          background:
-            "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
+          background: "rgba(255,255,255,0.08)",
           margin: "1.5rem 0",
         }}
       />
@@ -787,7 +775,7 @@ export default function DocumentAiWidget() {
           style={{
             ...mono,
             fontSize: "0.7rem",
-            color: "#a1a1aa",
+            color: "#a8a39b",
             marginLeft: "auto",
           }}
         >

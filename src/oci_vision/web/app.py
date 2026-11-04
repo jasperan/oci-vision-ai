@@ -13,7 +13,7 @@ import tempfile
 from typing import Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -159,6 +159,20 @@ def create_app(demo: bool = False) -> FastAPI:
             "images": manifest["images"],
             "demo": client.is_demo,
         })
+
+    @app.get("/gallery-image/{image_name}")
+    async def gallery_image(image_name: str):
+        """Serve a curated gallery asset for the contact sheet."""
+        from oci_vision.gallery import get_gallery_path
+
+        filename = Path(image_name).name
+        manifest = load_manifest()
+        if not any(image["filename"] == filename for image in manifest["images"]):
+            raise HTTPException(status_code=404, detail="Unknown gallery image")
+        image_path = get_gallery_path() / "images" / filename
+        if not image_path.exists():
+            raise HTTPException(status_code=404, detail="Image file missing")
+        return FileResponse(image_path)
 
     @app.get("/compare", response_class=HTMLResponse)
     async def compare_page(request: Request, left: str | None = None, right: str | None = None):

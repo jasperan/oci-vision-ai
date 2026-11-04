@@ -72,7 +72,7 @@ async def test_compare_page_renders_comparison_results(app):
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/compare", params={"left": "dog_closeup.jpg", "right": "sign_board.png"})
         assert resp.status_code == 200
-        assert "Delta summary" in resp.text
+        assert "Deltas" in resp.text
         assert "dog_closeup.jpg" in resp.text
         assert "sign_board.png" in resp.text
 
@@ -85,7 +85,7 @@ async def test_showcase_page_renders_demo_snapshot(app):
         assert resp.status_code == 200
         assert "Showcase" in resp.text
         assert "Headline insights" in resp.text
-        assert "Invoice Number" in resp.text
+        assert "Invoice number" in resp.text
 
 
 @pytest.mark.asyncio
@@ -103,7 +103,7 @@ async def test_report_page_for_gallery_image(app):
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/report/dog_closeup.jpg")
         assert resp.status_code == 200
-        assert "OCI Vision Report" in resp.text
+        assert 'class="page-title">Report<' in resp.text
         assert "Insights" in resp.text
 
 
@@ -118,7 +118,7 @@ async def test_report_page_tolerates_overlay_failure(app, monkeypatch):
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/report/dog_closeup.jpg")
         assert resp.status_code == 200
-        assert "Overlay unavailable" in resp.text
+        assert "No overlay for this plate" in resp.text
 
 
 @pytest.mark.asyncio

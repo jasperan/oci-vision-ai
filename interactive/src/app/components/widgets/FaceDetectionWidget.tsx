@@ -20,11 +20,11 @@ const GROUP_META: Record<
   LandmarkGroup,
   { label: string; color: string; colorDim: string }
 > = {
-  eyes: { label: "Eyes", color: "#a78bfa", colorDim: "rgba(167,139,250,0.25)" },
-  nose: { label: "Nose", color: "#22d3ee", colorDim: "rgba(34,211,238,0.25)" },
-  mouth: { label: "Mouth", color: "#f472b6", colorDim: "rgba(244,114,182,0.25)" },
-  ears: { label: "Ears", color: "#f97316", colorDim: "rgba(249,115,22,0.25)" },
-  jaw: { label: "Jaw", color: "#4ade80", colorDim: "rgba(74,222,128,0.25)" },
+  eyes: { label: "Eyes", color: "#ece9e4", colorDim: "rgba(236,233,228,0.18)" },
+  nose: { label: "Nose", color: "#d5cec2", colorDim: "rgba(213,206,194,0.18)" },
+  mouth: { label: "Mouth", color: "#bcb4a8", colorDim: "rgba(188,180,168,0.18)" },
+  ears: { label: "Ears", color: "#a8a39b", colorDim: "rgba(168,163,155,0.18)" },
+  jaw: { label: "Jaw", color: "#8f887e", colorDim: "rgba(143,136,126,0.18)" },
 };
 
 const ALL_GROUPS: LandmarkGroup[] = ["eyes", "nose", "mouth", "ears", "jaw"];
@@ -115,8 +115,7 @@ export default function FaceDetectionWidget() {
         style={{
           fontFamily: "var(--font-mono), monospace",
           fontSize: "0.78rem",
-          color: "#a78bfa",
-          fontWeight: 600,
+          color: "#ece9e4",
           marginBottom: "1.25rem",
           display: "flex",
           alignItems: "center",
@@ -129,8 +128,7 @@ export default function FaceDetectionWidget() {
             width: 8,
             height: 8,
             borderRadius: "50%",
-            background: "#a78bfa",
-            boxShadow: "0 0 6px rgba(167,139,250,0.5)",
+            background: "#c74634",
           }}
         />
         Face detected: {CONFIDENCE}% confidence
@@ -164,9 +162,9 @@ export default function FaceDetectionWidget() {
             width={SVG_W * 0.76}
             height={SVG_H * 0.82}
             rx={8}
-            stroke="#a78bfa"
-            strokeWidth={1.5}
-            strokeDasharray="6 4"
+            stroke="rgba(236,233,228,0.28)"
+            strokeWidth={1}
+            strokeDasharray="4 4"
             fill="none"
           />
 
@@ -316,7 +314,7 @@ export default function FaceDetectionWidget() {
               padding: "0.5rem 0.75rem",
               zIndex: 50,
               pointerEvents: "none",
-              animation: "fadeSlideIn 0.15s ease-out both",
+              animation: "fadeIn 120ms cubic-bezier(0.22, 1, 0.36, 1) both",
             }}
           >
             <div
@@ -334,26 +332,26 @@ export default function FaceDetectionWidget() {
               style={{
                 fontFamily: "var(--font-mono), monospace",
                 fontSize: "0.68rem",
-                color: "#a1a1aa",
+                color: "#a8a39b",
                 lineHeight: 1.7,
               }}
             >
               <div>
                 Normalized:{" "}
-                <span style={{ color: "#e4e4e7" }}>
+                <span style={{ color: "#ece9e4" }}>
                   ({hoveredData.x.toFixed(2)}, {hoveredData.y.toFixed(2)})
                 </span>
               </div>
               <div>
                 Pixel ({IMG_W}&times;{IMG_H}):{" "}
-                <span style={{ color: "#e4e4e7" }}>
+                <span style={{ color: "#ece9e4" }}>
                   ({Math.round(hoveredData.x * IMG_W)},{" "}
                   {Math.round(hoveredData.y * IMG_H)})
                 </span>
               </div>
               <div>
                 Position:{" "}
-                <span style={{ color: "#e4e4e7" }}>{hoveredData.position}</span>
+                <span style={{ color: "#ece9e4" }}>{hoveredData.position}</span>
               </div>
             </div>
           </div>
@@ -410,8 +408,7 @@ export default function FaceDetectionWidget() {
       <div
         style={{
           height: 1,
-          background:
-            "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
+          background: "rgba(255,255,255,0.08)",
           margin: "0 0 1.25rem",
         }}
       />
@@ -420,10 +417,8 @@ export default function FaceDetectionWidget() {
       <div
         style={{
           fontFamily: "var(--font-mono), monospace",
-          fontSize: "0.7rem",
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
-          color: "#a1a1aa",
+          fontSize: "0.75rem",
+          color: "#77726a",
           marginBottom: "0.75rem",
         }}
       >
@@ -451,10 +446,8 @@ export default function FaceDetectionWidget() {
           <span
             style={{
               fontFamily: "var(--font-mono), monospace",
-              fontSize: "0.65rem",
-              color: "#a1a1aa",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
+              fontSize: "0.7rem",
+              color: "#a8a39b",
             }}
           >
             Landmark
@@ -462,10 +455,8 @@ export default function FaceDetectionWidget() {
           <span
             style={{
               fontFamily: "var(--font-mono), monospace",
-              fontSize: "0.65rem",
-              color: "#a1a1aa",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
+              fontSize: "0.7rem",
+              color: "#a8a39b",
               textAlign: "center",
             }}
           >
@@ -474,10 +465,8 @@ export default function FaceDetectionWidget() {
           <span
             style={{
               fontFamily: "var(--font-mono), monospace",
-              fontSize: "0.65rem",
-              color: "#a1a1aa",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
+              fontSize: "0.7rem",
+              color: "#a8a39b",
               textAlign: "right",
             }}
           >
@@ -513,7 +502,7 @@ export default function FaceDetectionWidget() {
                 style={{
                   fontFamily: "var(--font-mono), monospace",
                   fontSize: "0.72rem",
-                  color: isHovered ? meta.color : "#e4e4e7",
+                  color: isHovered ? meta.color : "#ece9e4",
                   display: "flex",
                   alignItems: "center",
                   gap: "0.4rem",
@@ -536,7 +525,7 @@ export default function FaceDetectionWidget() {
                 style={{
                   fontFamily: "var(--font-mono), monospace",
                   fontSize: "0.72rem",
-                  color: isHovered ? "#e4e4e7" : "#a1a1aa",
+                  color: isHovered ? "#ece9e4" : "#a8a39b",
                   textAlign: "center",
                   transition: "color 0.15s",
                 }}
@@ -547,7 +536,7 @@ export default function FaceDetectionWidget() {
                 style={{
                   fontFamily: "var(--font-mono), monospace",
                   fontSize: "0.72rem",
-                  color: isHovered ? "#e4e4e7" : "#a1a1aa",
+                  color: isHovered ? "#ece9e4" : "#a8a39b",
                   textAlign: "right",
                   transition: "color 0.15s",
                 }}

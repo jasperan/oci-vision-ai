@@ -1,41 +1,42 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}OCI Vision Studio{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="/static/styles.css">
     <script src="/static/htmx-2.0.0.min.js"></script>
     {% block head_extra %}{% endblock %}
 </head>
-<body class="h-full min-h-screen font-sans antialiased">
-    <!-- Navigation -->
-    <nav class="glass-card mb-6 mx-4 mt-4 px-6 py-4 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-3 text-xl font-bold cyan-accent hover:text-cyan-300 transition">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-            </svg>
-            OCI Vision Studio
-        </a>
-        <div class="flex items-center gap-6">
-            <a href="/" class="text-slate-300 hover:text-cyan-400 transition font-medium">Analyzer</a>
-            <a href="/gallery" class="text-slate-300 hover:text-cyan-400 transition font-medium">Gallery</a>
-            <a href="/compare" class="text-slate-300 hover:text-cyan-400 transition font-medium">Compare</a>
-            <a href="/showcase" class="text-slate-300 hover:text-cyan-400 transition font-medium">Showcase</a>
+<body>
+    <header class="site-header">
+        <div class="shell header-inner">
+            <a href="/" class="brand">
+                <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <span>OCI Vision Studio</span>
+            </a>
+            <nav class="site-nav" aria-label="Sections">
+                <a href="/" class="nav-link{% if request.url.path == '/' %} active{% endif %}">Analyzer</a>
+                <a href="/gallery" class="nav-link{% if request.url.path == '/gallery' %} active{% endif %}">Gallery</a>
+                <a href="/compare" class="nav-link{% if request.url.path == '/compare' %} active{% endif %}">Compare</a>
+                <a href="/showcase" class="nav-link{% if request.url.path == '/showcase' %} active{% endif %}">Showcase</a>
+                {% if demo %}<span class="demo-note">demo · cached responses</span>{% endif %}
+            </nav>
         </div>
-    </nav>
+    </header>
 
-    <!-- Main content -->
-    <main class="mx-4 mb-8">
+    <main class="shell main">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="text-center text-slate-500 text-sm pb-6">
-        OCI Vision Studio &mdash; Powered by Oracle Cloud Vision AI
+    <footer class="shell site-footer">
+        <span>OCI Vision Studio</span>
+        <span class="mono">Oracle Cloud Vision AI</span>
     </footer>
 
     <script src="/static/app.js"></script>

@@ -1,31 +1,39 @@
 {% extends "base.html" %}
 
-{% block title %}OCI Vision Studio - Report{% endblock %}
+{% block title %}Report — OCI Vision Studio{% endblock %}
 
 {% block content %}
-<div class="glass-card p-6 mb-6">
-    <h2 class="text-xl font-semibold cyan-accent mb-2">OCI Vision Report</h2>
-    <p class="text-slate-400 text-sm">Image: {{ image_name }}{% if demo %} · demo mode{% endif %}</p>
-</div>
+<header class="page-head">
+    <h1 class="page-title">Report</h1>
+    <p class="page-sub">{{ image_name }}{% if demo %} · cached response{% endif %}</p>
+</header>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="glass-card p-6">
-        <h3 class="text-lg font-semibold mb-4">Overlay</h3>
+<div class="report-grid">
+    <section class="panel">
+        <header class="panel-header">
+            <h2 class="panel-title">Overlay</h2>
+            <span class="panel-note">{{ report.available_features | join(' · ') }}</span>
+        </header>
         {% if overlay_base64 %}
-        <img src="data:image/png;base64,{{ overlay_base64 }}" class="w-full rounded-lg border border-slate-700" alt="Overlay" />
+        <figure class="plate-frame" style="margin: 0;">
+            <figcaption class="plate">plate 01 · {{ image_name }}</figcaption>
+            <img src="data:image/png;base64,{{ overlay_base64 }}" class="overlay-img" alt="Annotated overlay for {{ image_name }}" />
+        </figure>
         {% else %}
-        <p class="text-slate-500">Overlay unavailable for this report.</p>
+        <p class="small muted">No overlay for this plate. The response still carries the readout on the right.</p>
         {% endif %}
-    </div>
+    </section>
 
-    <div class="glass-card p-6">
-        <h3 class="text-lg font-semibold mb-4">Summary</h3>
-        <p class="text-sm text-slate-400 mb-4">Available features: {{ report.available_features | join(', ') }}</p>
+    <section class="panel">
+        <header class="panel-header">
+            <h2 class="panel-title">Summary</h2>
+            <span class="panel-note">{{ report.available_features | length }} features</span>
+        </header>
 
         {% if insights %}
-        <div class="mb-4">
-            <h4 class="font-semibold mb-2">Insights</h4>
-            <ul class="text-sm space-y-1 text-slate-300">
+        <div class="report-section">
+            <h3 class="result-title">Insights</h3>
+            <ul class="report-list">
                 {% for line in insights %}
                 <li>{{ line }}</li>
                 {% endfor %}
@@ -34,43 +42,58 @@
         {% endif %}
 
         {% if report.classification %}
-        <div class="mb-4">
-            <h4 class="font-semibold mb-2">Classification</h4>
-            <ul class="text-sm space-y-1">
+        <div class="report-section">
+            <h3 class="result-title">Classification</h3>
+            <div class="result-list">
                 {% for label in report.classification.labels[:5] %}
-                <li>{{ label.name }} — {{ label.confidence_pct }}%</li>
+                <div class="result-row">
+                    <span class="name">{{ label.name }}</span>
+                    <span class="value">{{ '%.1f'|format(label.confidence_pct) }}%</span>
+                    <div class="bar"><div class="bar-fill{% if loop.first %} top{% endif %}" style="width: {{ label.confidence_pct }}%"></div></div>
+                </div>
                 {% endfor %}
-            </ul>
+            </div>
         </div>
         {% endif %}
 
         {% if report.detection %}
-        <div class="mb-4">
-            <h4 class="font-semibold mb-2">Detection</h4>
-            <p class="text-sm">{{ report.detection.objects | length }} object(s)</p>
+        <div class="report-section">
+            <h3 class="result-title">Detection</h3>
+            <dl class="kv">
+                <dt>Objects</dt>
+                <dd>{{ report.detection.objects | length }}</dd>
+            </dl>
         </div>
         {% endif %}
 
         {% if report.text %}
-        <div class="mb-4">
-            <h4 class="font-semibold mb-2">Text</h4>
-            <pre class="text-sm whitespace-pre-wrap text-slate-300">{{ report.text.full_text }}</pre>
+        <div class="report-section">
+            <h3 class="result-title">Text</h3>
+            <pre class="text-block">{{ report.text.full_text }}</pre>
         </div>
         {% endif %}
 
         {% if report.faces %}
-        <div class="mb-4">
-            <h4 class="font-semibold mb-2">Faces</h4>
-            <p class="text-sm">{{ report.faces.faces | length }} face(s)</p>
+        <div class="report-section">
+            <h3 class="result-title">Faces</h3>
+            <dl class="kv">
+                <dt>Faces</dt>
+                <dd>{{ report.faces.faces | length }}</dd>
+            </dl>
         </div>
         {% endif %}
 
         {% if report.document %}
-        <div class="mb-4">
-            <h4 class="font-semibold mb-2">Document</h4>
-            <p class="text-sm">{{ report.document.fields | length }} field(s), {{ report.document.tables | length }} table(s)</p>
+        <div class="report-section">
+            <h3 class="result-title">Document</h3>
+            <dl class="kv">
+                <dt>Fields</dt>
+                <dd>{{ report.document.fields | length }}</dd>
+                <dt>Tables</dt>
+                <dd>{{ report.document.tables | length }}</dd>
+            </dl>
         </div>
         {% endif %}
-    </div>
+    </section>
 </div>
 {% endblock %}

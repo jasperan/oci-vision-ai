@@ -397,10 +397,9 @@
         .title-slide .tagline {
             font-size: var(--subtitle-size);
             color: var(--text-secondary);
-            font-weight: 300;
+            font-weight: 400;
             margin-top: var(--element-gap);
-            font-style: italic;
-            font-family: var(--font-display);
+            font-family: var(--font-body);
         }
 
         .title-slide .author-line {
@@ -408,8 +407,7 @@
             color: var(--accent-teal);
             margin-top: clamp(1rem, 2vh, 2rem);
             font-family: var(--font-mono);
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
+            letter-spacing: 0.01em;
         }
 
         /* --- Section Divider Slide --- */
@@ -758,6 +756,47 @@
                 radial-gradient(ellipse at 70% 70%, rgba(201, 184, 150, 0.06) 0%, transparent 50%),
                 var(--bg-primary);
         }
+
+        /* ---- unslop pass: imaging lab (graphite, hairline, Oracle red) ---- */
+        :root {
+            --bg-primary: #121213;
+            --bg-secondary: #19191a;
+            --bg-card: #19191a;
+            --text-primary: #ece9e4;
+            --text-secondary: #a8a39b;
+            --text-muted: #77726a;
+            --accent-teal: #ece9e4;
+            --accent-violet: #a8a39b;
+            --accent-gold: #c9c2b7;
+            --accent-warm: #ece9e4;
+            --accent-pink: #a8a39b;
+            --accent: #c74634;
+            --accent-teal-glow: transparent;
+            --accent-violet-glow: transparent;
+            --font-display: 'IBM Plex Sans', sans-serif;
+            --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+            --duration-normal: 0.3s;
+        }
+        .hex-grid, .shield-glow, .glow-line, .nav-dots, .progress-bar { display: none !important; }
+        .gradient-mesh, .grid-bg { background: var(--bg-primary) !important; }
+        .grid-bg::before { display: none !important; }
+        .accent, .accent-teal, .accent-violet, .accent-gold, .accent-warm, .accent-pink { color: #ece9e4; }
+        .section-label {
+            text-transform: none;
+            letter-spacing: 0.01em;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+        h1, h2, h3 { font-weight: 500; letter-spacing: -0.02em; }
+        .feature-card:hover { box-shadow: none; border-color: rgba(255,255,255,0.16); }
+        .flow-box.active { box-shadow: none; border-color: rgba(255,255,255,0.24); }
+        .stat-value { font-family: var(--font-mono); font-weight: 500; color: var(--text-primary); }
+        .stat-label { color: var(--text-muted); }
+        .reveal { transition-duration: 300ms !important; transition-delay: 0s !important; }
+        .tag { background: transparent; color: var(--text-secondary); border-color: rgba(255,255,255,0.16); }
+        .separator { background: #c74634; }
+        .deco-circle, .decorative { display: none !important; }
+        [class*="gradient-"] { background: #121213 !important; }
     </style>
 </head>
 <body>
@@ -784,7 +823,7 @@
         <div class="accent-line decorative" style="height: 40%; top: 30%; left: 8%;"></div>
 
         <h1 class="reveal">OCI Vision AI</h1>
-        <p class="tagline reveal">The definitive Oracle Cloud Infrastructure Vision showcase</p>
+        <p class="tagline reveal">A studio for labels, object polygons, OCR lines, faces and document fields</p>
         <p class="author-line reveal">jasperan/oci-vision-ai</p>
     </section>
 
@@ -1246,7 +1285,7 @@ report = client.<span class="function">analyze</span>(<span class="string">"oci:
             <h2 class="reveal">Stack <span class="accent">Breakdown</span></h2>
             <div class="two-col">
                 <div>
-                    <p class="reveal" style="font-size: var(--small-size); color: var(--accent-teal); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: var(--element-gap); font-family: var(--font-mono);">Core</p>
+                    <p class="reveal" style="font-size: var(--small-size); color: var(--accent-teal); margin-bottom: var(--element-gap); font-family: var(--font-mono);">Core</p>
                     <ul class="bullet-list">
                         <li class="reveal"><strong>Pydantic v2</strong> for response models</li>
                         <li class="reveal"><strong>Typer + Rich</strong> for the CLI</li>
@@ -1255,7 +1294,7 @@ report = client.<span class="function">analyze</span>(<span class="string">"oci:
                     </ul>
                 </div>
                 <div>
-                    <p class="reveal" style="font-size: var(--small-size); color: var(--accent-violet); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: var(--element-gap); font-family: var(--font-mono);">Extras</p>
+                    <p class="reveal" style="font-size: var(--small-size); color: var(--accent-violet); margin-bottom: var(--element-gap); font-family: var(--font-mono);">Extras</p>
                     <ul class="bullet-list">
                         <li class="reveal"><strong>OCI SDK</strong> for live Vision calls</li>
                         <li class="reveal"><strong>PIL / OpenCV</strong> for overlay rendering</li>
@@ -1417,7 +1456,7 @@ pip install -e <span class="string">"."</span>
         <div class="accent-line decorative" style="height: 30%; top: 35%; right: 8%;"></div>
 
         <h2 class="reveal" style="font-size: var(--title-size); font-family: var(--font-display); font-weight: 600;">OCI Vision AI</h2>
-        <p class="reveal" style="font-size: var(--subtitle-size); color: var(--text-secondary); font-style: italic; font-family: var(--font-display); margin-top: var(--element-gap);">Six features. Three surfaces. One <code style="color: var(--accent-teal);">--demo</code> flag.</p>
+        <p class="reveal" style="font-size: var(--subtitle-size); color: var(--text-secondary); font-family: var(--font-body); margin-top: var(--element-gap);">Six features. Three surfaces. One <code style="color: var(--accent-teal);">--demo</code> flag.</p>
         <a class="link reveal" href="https://github.com/jasperan/oci-vision-ai" target="_blank" rel="noopener">github.com/jasperan/oci-vision-ai</a>
         <p class="reveal" style="font-size: var(--small-size); color: var(--text-secondary); margin-top: var(--content-gap); opacity: 0.5;">GPL-3.0 License</p>
     </section>

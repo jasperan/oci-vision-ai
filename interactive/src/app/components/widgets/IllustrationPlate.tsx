@@ -54,8 +54,8 @@ export default function IllustrationPlate({
             onClick={() => setOpenPin((p) => (p === i ? null : i))}
             style={{ cursor: "pointer", outline: "none" }}
           >
-            <circle cx={pin.x} cy={pin.y} r={10} fill="rgba(249,115,22,0.2)" stroke="#f97316" strokeWidth={1.5} />
-            <text x={pin.x} y={pin.y + 4} textAnchor="middle" fill="#f97316" fontSize="11" fontFamily="monospace" pointerEvents="none">
+            <circle cx={pin.x} cy={pin.y} r={10} fill="rgba(199,70,52,0.18)" stroke="#c74634" strokeWidth={1.5} />
+            <text x={pin.x} y={pin.y + 4} textAnchor="middle" fill="#c74634" fontSize="11" fontFamily="monospace" pointerEvents="none">
               {i + 1}
             </text>
             {openPin === i && (
@@ -69,7 +69,7 @@ export default function IllustrationPlate({
                   stroke="rgba(255,255,255,0.15)"
                   rx={4}
                 />
-                <text x={pin.x + 21} y={pin.y - 7} fill="#e4e4e7" fontSize="11" fontFamily="monospace">
+                <text x={pin.x + 21} y={pin.y - 7} fill="#ece9e4" fontSize="11" fontFamily="monospace">
                   {pin.label}
                 </text>
                 {pin.description && (
@@ -96,10 +96,10 @@ export function HeroPlate() {
       <line x1="300" y1="40" x2="300" y2="200" stroke="#f5ecd9" strokeWidth="2" />
       {/* left page */}
       <path d="M 110 60 Q 110 50 120 50 L 295 50 L 295 195 L 120 195 Q 110 195 110 185 Z"
-        fill="#18181b" stroke="#f5ecd9" strokeWidth="1.5" />
+        fill="#171717" stroke="#ece9e4" strokeWidth="1.5" />
       {/* right page */}
       <path d="M 305 50 L 480 50 Q 490 50 490 60 L 490 185 Q 490 195 480 195 L 305 195 Z"
-        fill="#18181b" stroke="#f5ecd9" strokeWidth="1.5" />
+        fill="#171717" stroke="#ece9e4" strokeWidth="1.5" />
       {/* lines of text */}
       {[80, 100, 120, 140, 160].map((y, i) => (
         <line key={`l${i}`} x1="125" y1={y} x2="285" y2={y} stroke="#f5ecd9" strokeWidth="0.8" opacity="0.6" />
@@ -108,10 +108,10 @@ export function HeroPlate() {
         <line key={`r${i}`} x1="315" y1={y} x2="475" y2={y} stroke="#f5ecd9" strokeWidth="0.8" opacity="0.6" />
       ))}
       {/* drifting tokens */}
-      <circle cx="80" cy="80" r="4" fill="#22d3ee" opacity="0.7" />
-      <circle cx="60" cy="140" r="3" fill="#a78bfa" opacity="0.6" />
-      <circle cx="520" cy="100" r="5" fill="#f472b6" opacity="0.7" />
-      <circle cx="540" cy="170" r="3" fill="#4ade80" opacity="0.6" />
+      <circle cx="80" cy="80" r="4" fill="#ece9e4" opacity="0.5" />
+      <circle cx="60" cy="140" r="3" fill="#a8a39b" opacity="0.5" />
+      <circle cx="520" cy="100" r="5" fill="#c74634" opacity="0.5" />
+      <circle cx="540" cy="170" r="3" fill="#8f887e" opacity="0.5" />
     </IllustrationPlate>
   );
 }

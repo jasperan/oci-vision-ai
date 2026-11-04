@@ -1,112 +1,180 @@
 {% extends "base.html" %}
 
-{% block title %}OCI Vision Studio - Compare{% endblock %}
+{% block title %}Compare — OCI Vision Studio{% endblock %}
 
 {% block content %}
-<div class="glass-card p-6 mb-6">
-    <h2 class="text-xl font-semibold cyan-accent mb-2">Compare</h2>
-    <p class="text-slate-400 text-sm">Pick two demo assets and compare their outputs side by side.</p>
-</div>
+<header class="page-head">
+    <h1 class="page-title">Compare</h1>
+    <p class="page-sub">Pick two plates and read their summaries against each other, field by field.</p>
+</header>
 
-<div class="glass-card p-6 mb-6">
-    <form method="get" action="/compare" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-        <label class="block text-sm">
-            <span class="text-slate-400">Left image</span>
-            <select name="left" class="mt-2 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100">
+<section class="panel">
+    <form method="get" action="/compare" class="form-grid">
+        <label class="field">
+            <span class="field-label">Left plate</span>
+            <select name="left" class="select">
                 <option value="">Select an image</option>
                 {% for img in images %}
                 <option value="{{ img.filename }}" {% if selected_left == img.filename %}selected{% endif %}>{{ img.filename }}</option>
                 {% endfor %}
             </select>
         </label>
-        <label class="block text-sm">
-            <span class="text-slate-400">Right image</span>
-            <select name="right" class="mt-2 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100">
+        <label class="field">
+            <span class="field-label">Right plate</span>
+            <select name="right" class="select">
                 <option value="">Select an image</option>
                 {% for img in images %}
                 <option value="{{ img.filename }}" {% if selected_right == img.filename %}selected{% endif %}>{{ img.filename }}</option>
                 {% endfor %}
             </select>
         </label>
-        <button type="submit" class="cyan-bg text-slate-900 font-semibold py-3 rounded-lg cyan-bg-hover transition">Compare</button>
+        <button type="submit" class="btn btn-primary">Compare</button>
     </form>
-</div>
+</section>
 
 {% if error %}
-<div class="glass-card p-6 mb-6 border border-rose-500/40">
-    <h3 class="text-lg font-semibold text-rose-300 mb-2">Comparison error</h3>
-    <p class="text-sm text-rose-100">{{ error }}</p>
+<div class="error-panel">
+    <strong>Comparison failed.</strong> {{ error }}
 </div>
 {% endif %}
 
 {% if comparison %}
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    <div class="glass-card p-6">
-        <h3 class="text-lg font-semibold mb-3">{{ comparison.left_image }}</h3>
-        <p class="text-sm text-slate-400 mb-2">Features: {{ comparison.left_summary.features | join(', ') }}</p>
-        <p class="text-sm">Top label: {{ comparison.left_summary.top_label }}</p>
-        <p class="text-sm">Objects: {{ comparison.left_summary.object_count }}</p>
-        <p class="text-sm">OCR lines: {{ comparison.left_summary.ocr_line_count }}</p>
-        <p class="text-sm">Document fields: {{ comparison.left_summary.document_field_count }}</p>
-    </div>
-    <div class="glass-card p-6">
-        <h3 class="text-lg font-semibold mb-3">{{ comparison.right_image }}</h3>
-        <p class="text-sm text-slate-400 mb-2">Features: {{ comparison.right_summary.features | join(', ') }}</p>
-        <p class="text-sm">Top label: {{ comparison.right_summary.top_label }}</p>
-        <p class="text-sm">Objects: {{ comparison.right_summary.object_count }}</p>
-        <p class="text-sm">OCR lines: {{ comparison.right_summary.ocr_line_count }}</p>
-        <p class="text-sm">Document fields: {{ comparison.right_summary.document_field_count }}</p>
-    </div>
+<div class="two-up" style="margin-top: 16px;">
+    <section class="panel">
+        <header class="panel-header">
+            <h2 class="panel-title">{{ comparison.left_image }}</h2>
+            <span class="panel-note">left</span>
+        </header>
+        <dl class="kv-list">
+            <div><dt>Features</dt><dd>{{ comparison.left_summary.features | join(' · ') }}</dd></div>
+            <div><dt>Top label</dt><dd>{{ comparison.left_summary.top_label }}</dd></div>
+            <div><dt>Objects</dt><dd>{{ comparison.left_summary.object_count }}</dd></div>
+            <div><dt>OCR lines</dt><dd>{{ comparison.left_summary.ocr_line_count }}</dd></div>
+            <div><dt>Document fields</dt><dd>{{ comparison.left_summary.document_field_count }}</dd></div>
+        </dl>
+    </section>
+    <section class="panel">
+        <header class="panel-header">
+            <h2 class="panel-title">{{ comparison.right_image }}</h2>
+            <span class="panel-note">right</span>
+        </header>
+        <dl class="kv-list">
+            <div><dt>Features</dt><dd>{{ comparison.right_summary.features | join(' · ') }}</dd></div>
+            <div><dt>Top label</dt><dd>{{ comparison.right_summary.top_label }}</dd></div>
+            <div><dt>Objects</dt><dd>{{ comparison.right_summary.object_count }}</dd></div>
+            <div><dt>OCR lines</dt><dd>{{ comparison.right_summary.ocr_line_count }}</dd></div>
+            <div><dt>Document fields</dt><dd>{{ comparison.right_summary.document_field_count }}</dd></div>
+        </dl>
+    </section>
 </div>
 
-<div class="glass-card p-6 mb-6">
-    <h3 class="text-lg font-semibold mb-4">Delta summary</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-        <div>
-            <p><span class="text-slate-400">Shared features:</span> {{ comparison.shared_features | join(', ') or 'none' }}</p>
-            <p><span class="text-slate-400">Left only:</span> {{ comparison.left_only_features | join(', ') or 'none' }}</p>
-            <p><span class="text-slate-400">Right only:</span> {{ comparison.right_only_features | join(', ') or 'none' }}</p>
-        </div>
-        <div>
-            <p><span class="text-slate-400">Top label change:</span> {{ comparison.top_label_change.left }} → {{ comparison.top_label_change.right }}</p>
-            <p><span class="text-slate-400">Object delta:</span> {{ comparison.object_count_delta }}</p>
-            <p><span class="text-slate-400">OCR line delta:</span> {{ comparison.ocr_line_delta }}</p>
-            <p><span class="text-slate-400">Document field delta:</span> {{ comparison.document_field_delta }}</p>
-        </div>
-    </div>
+<section class="panel" style="margin-top: 16px;">
+    <header class="panel-header">
+        <h2 class="panel-title">Deltas</h2>
+        <span class="panel-note">right − left</span>
+    </header>
+    <table class="ledger">
+        <thead>
+            <tr>
+                <th scope="col">Field</th>
+                <th scope="col">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Top label</td>
+                <td>{{ comparison.top_label_change.left }} → {{ comparison.top_label_change.right }}</td>
+            </tr>
+            <tr>
+                <td>Objects</td>
+                <td class="mono">{{ comparison.object_count_delta }}</td>
+            </tr>
+            <tr>
+                <td>OCR lines</td>
+                <td class="mono">{{ comparison.ocr_line_delta }}</td>
+            </tr>
+            <tr>
+                <td>Document fields</td>
+                <td class="mono">{{ comparison.document_field_delta }}</td>
+            </tr>
+            {% if comparison.ocr_similarity is not none %}
+            <tr>
+                <td>OCR similarity</td>
+                <td class="mono">{{ '%.3f'|format(comparison.ocr_similarity) }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td>Shared features</td>
+                <td>{{ comparison.shared_features | join(' · ') or 'none' }}</td>
+            </tr>
+            <tr>
+                <td>Left only</td>
+                <td>{{ comparison.left_only_features | join(' · ') or 'none' }}</td>
+            </tr>
+            <tr>
+                <td>Right only</td>
+                <td>{{ comparison.right_only_features | join(' · ') or 'none' }}</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
 
-    {% if comparison.ocr_similarity is not none %}
-    <p class="text-sm mt-3"><span class="text-slate-400">OCR similarity:</span> {{ '%.3f'|format(comparison.ocr_similarity) }}</p>
-    {% endif %}
-</div>
-
-<div class="glass-card p-6">
-    <h3 class="text-lg font-semibold mb-4">Object deltas</h3>
+<section class="panel" style="margin-top: 16px;">
+    <header class="panel-header">
+        <h2 class="panel-title">Object deltas</h2>
+        <span class="panel-note">counts per label</span>
+    </header>
     {% if comparison.object_deltas %}
-    <div class="space-y-2 text-sm">
-        {% for item in comparison.object_deltas %}
-        <div class="rounded border border-slate-700 px-4 py-3 flex items-center justify-between">
-            <span>{{ item.name }}</span>
-            <span class="font-mono text-slate-300">{{ item.left }} → {{ item.right }} (Δ {{ item.delta }})</span>
-        </div>
-        {% endfor %}
-    </div>
+    <table class="ledger ledger--compact">
+        <thead>
+            <tr>
+                <th scope="col">Object</th>
+                <th class="num" scope="col">Left</th>
+                <th class="num" scope="col">Right</th>
+                <th class="num" scope="col">Δ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in comparison.object_deltas %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td class="num">{{ item.left }}</td>
+                <td class="num">{{ item.right }}</td>
+                <td class="num">{{ item.delta }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     {% else %}
-    <p class="text-sm text-slate-400">No object deltas to show.</p>
+    <p class="small muted">No object deltas for this pair.</p>
     {% endif %}
+</section>
 
-    {% if comparison.document_field_changes %}
-    <h4 class="text-md font-semibold mt-6 mb-3">Document field changes</h4>
-    <div class="space-y-2 text-sm">
-        {% for item in comparison.document_field_changes %}
-        <div class="rounded border border-slate-700 px-4 py-3">
-            <div class="font-medium">{{ item.label }}</div>
-            <div class="text-slate-400">Left: {{ item.left or '—' }}</div>
-            <div class="text-slate-400">Right: {{ item.right or '—' }}</div>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-</div>
+{% if comparison.document_field_changes %}
+<section class="panel" style="margin-top: 16px;">
+    <header class="panel-header">
+        <h2 class="panel-title">Document field changes</h2>
+        <span class="panel-note">{{ comparison.document_field_changes | length }} fields</span>
+    </header>
+    <table class="ledger">
+        <thead>
+            <tr>
+                <th scope="col">Field</th>
+                <th scope="col">Left</th>
+                <th scope="col">Right</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in comparison.document_field_changes %}
+            <tr>
+                <td>{{ item.label }}</td>
+                <td>{{ item.left or '—' }}</td>
+                <td>{{ item.right or '—' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
 {% endif %}
 {% endblock %}

@@ -1,7 +1,7 @@
 /**
  * OCI Vision Studio — client-side JavaScript.
  *
- * Handles drag-and-drop image upload, file preview, feature toggle
+ * Handles drag-and-drop image upload, the plate preview, feature toggle
  * synchronisation, and HTMX response rendering.
  */
 (function () {
@@ -15,8 +15,11 @@
     const preview = document.getElementById("preview");
     const dropText = document.getElementById("drop-text");
     const featuresInput = document.getElementById("features-input");
+    const resultStatus = document.getElementById("result-status");
 
     if (!dropZone || !fileInput) return; // not on the analyzer page
+
+    const plate = { name: "", width: 0, height: 0 };
 
     // ------------------------------------------------------------------
     // Feature checkboxes -> hidden input sync
@@ -34,7 +37,6 @@
     document.querySelectorAll('input[type="checkbox"][name^="feat_"]').forEach(
         (cb) => cb.addEventListener("change", syncFeatures)
     );
-    // Initial sync
     syncFeatures();
 
     // ------------------------------------------------------------------
@@ -55,17 +57,17 @@
     // ------------------------------------------------------------------
     dropZone.addEventListener("dragover", function (e) {
         e.preventDefault();
-        dropZone.classList.add("border-cyan-400", "bg-cyan-900/20");
+        dropZone.classList.add("dragging");
     });
 
     dropZone.addEventListener("dragleave", function (e) {
         e.preventDefault();
-        dropZone.classList.remove("border-cyan-400", "bg-cyan-900/20");
+        dropZone.classList.remove("dragging");
     });
 
     dropZone.addEventListener("drop", function (e) {
         e.preventDefault();
-        dropZone.classList.remove("border-cyan-400", "bg-cyan-900/20");
+        dropZone.classList.remove("dragging");
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             fileInput.files = e.dataTransfer.files;
             showPreview(e.dataTransfer.files[0]);
@@ -73,25 +75,34 @@
     });
 
     // ------------------------------------------------------------------
-    // File preview
+    // Plate preview
     // ------------------------------------------------------------------
     function showPreview(file) {
         if (!file.type.startsWith("image/")) return;
+        plate.name = file.name;
         const reader = new FileReader();
         reader.onload = function (e) {
             preview.src = e.target.result;
             preview.classList.remove("hidden");
             if (dropText) dropText.classList.add("hidden");
+            preview.onload = function () {
+                plate.width = preview.naturalWidth;
+                plate.height = preview.naturalHeight;
+            };
         };
         reader.readAsDataURL(file);
+    }
+
+    function plateLabel() {
+        const name = plate.name || "uploaded image";
+        const size = plate.width && plate.height ? ` · ${plate.width}×${plate.height}` : "";
+        return `plate 01 · ${name}${size}`;
     }
 
     // ------------------------------------------------------------------
     // HTMX response handling — render JSON results as structured HTML
     // ------------------------------------------------------------------
     document.body.addEventListener("htmx:beforeSwap", function (evt) {
-        // The /api/analyze-upload endpoint returns JSON.
-        // We intercept and render it as HTML before HTMX swaps.
         if (evt.detail.xhr && evt.detail.xhr.responseURL &&
             evt.detail.xhr.responseURL.includes("/api/analyze-upload")) {
             try {
@@ -109,111 +120,116 @@
     function renderResults(data) {
         let html = "";
 
-        // Overlay image + toggle buttons
         if (data.overlay_base64) {
-            html += '<div class="mb-4">';
-            html += '<h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Overlay</h3>';
-            html += '<img id="analysis-overlay" src="data:image/png;base64,' + data.overlay_base64 + '" class="w-full rounded-lg border border-slate-600 mb-3" alt="Annotated" />';
+            html += '<figure class="plate-frame" style="margin:0">';
+            html += '<figcaption class="plate">' + escHtml(plateLabel()) + "</figcaption>";
+            html += '<img id="analysis-overlay" src="data:image/png;base64,' + data.overlay_base64 + '" class="overlay-img" alt="Annotated image" />';
             if (data.feature_overlays && Object.keys(data.feature_overlays).length) {
-                html += '<div class="flex flex-wrap gap-2">';
-                html += '<button type="button" class="text-xs px-3 py-1 rounded-full bg-cyan-900/50 text-cyan-300 border border-cyan-700/40" onclick="window.__ociVisionSetOverlay(\'' + data.overlay_base64 + '\')">All</button>';
+                html += '<div class="feature-tabs">';
+                html += '<button type="button" class="chip active" onclick="window.__ociVisionSetOverlay(\'' + data.overlay_base64 + '\', this)">All features</button>';
                 Object.keys(data.feature_overlays).forEach(function (featureName) {
-                    html += '<button type="button" class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-200 border border-slate-700" onclick="window.__ociVisionSetOverlay(\'' + data.feature_overlays[featureName] + '\')">' + escHtml(featureName) + '</button>';
+                    html += '<button type="button" class="chip" onclick="window.__ociVisionSetOverlay(\'' + data.feature_overlays[featureName] + '\', this)">' + escHtml(featureName) + "</button>";
                 });
-                html += '</div>';
+                html += "</div>";
             }
-            html += "</div>";
+            html += "</figure>";
         }
 
-        // Insights
         if (data.insights && data.insights.length) {
-            html += '<div class="mb-4">';
-            html += '<h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Insights</h3>';
-            html += '<ul class="space-y-1 text-sm text-slate-200">';
+            html += '<div class="result-section">';
+            html += '<h3 class="result-title">Insights</h3>';
+            html += '<ul class="report-list">';
             data.insights.forEach(function (line) {
-                html += '<li>' + escHtml(line) + '</li>';
+                html += "<li>" + escHtml(line) + "</li>";
             });
-            html += '</ul></div>';
+            html += "</ul></div>";
         }
 
-        // Classification
         if (data.classification && data.classification.labels) {
-            html += '<div class="mb-4">';
-            html += '<h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Classification</h3>';
-            html += '<div class="space-y-1">';
-            data.classification.labels.slice(0, 10).forEach(function (l) {
-                const pct = (l.confidence * 100).toFixed(1);
-                html += '<div class="flex items-center justify-between text-sm"><span>' + escHtml(l.name) + '</span><span class="cyan-accent font-mono">' + pct + '%</span></div>';
-                html += '<div class="w-full bg-slate-700 rounded-full h-1.5"><div class="cyan-bg rounded-full h-1.5" style="width:' + pct + '%"></div></div>';
+            html += '<div class="result-section">';
+            html += '<h3 class="result-title">Classification</h3>';
+            html += '<div class="result-list">';
+            data.classification.labels.slice(0, 10).forEach(function (label, index) {
+                const pct = (label.confidence * 100).toFixed(1);
+                html += '<div class="result-row">';
+                html += '<span class="name">' + escHtml(label.name) + "</span>";
+                html += '<span class="value">' + pct + "%</span>";
+                html += '<div class="bar"><div class="bar-fill' + (index === 0 ? " top" : "") + '" style="width:' + pct + '%"></div></div>';
+                html += "</div>";
             });
             html += "</div></div>";
         }
 
-        // Detection
         if (data.detection && data.detection.objects) {
-            html += '<div class="mb-4">';
-            html += '<h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Object Detection</h3>';
-            html += '<div class="space-y-2">';
-            data.detection.objects.forEach(function (o) {
-                const pct = (o.confidence * 100).toFixed(1);
-                html += '<div class="flex items-center justify-between text-sm bg-slate-800/50 rounded px-3 py-2"><span class="font-medium">' + escHtml(o.name) + '</span><span class="cyan-accent font-mono">' + pct + '%</span></div>';
+            html += '<div class="result-section">';
+            html += '<h3 class="result-title">Detection</h3>';
+            html += '<div class="result-list">';
+            data.detection.objects.forEach(function (object) {
+                const pct = (object.confidence * 100).toFixed(1);
+                html += '<div class="detection-row"><span>' + escHtml(object.name) + '</span><span class="value">' + pct + "%</span></div>";
             });
             html += "</div></div>";
         }
 
-        // Text / OCR
         if (data.text && data.text.lines) {
-            html += '<div class="mb-4">';
-            html += '<h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Text / OCR</h3>';
-            html += '<div class="bg-slate-800/50 rounded p-3 text-sm font-mono whitespace-pre-wrap">' + escHtml(data.text.full_text) + "</div>";
+            html += '<div class="result-section">';
+            html += '<h3 class="result-title">Text</h3>';
+            html += '<pre class="text-block">' + escHtml(data.text.full_text) + "</pre>";
             html += "</div>";
         }
 
-        // Faces
         if (data.faces && data.faces.faces) {
-            html += '<div class="mb-4">';
-            html += '<h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Face Detection</h3>';
-            html += "<p class=\"text-sm\">" + data.faces.faces.length + " face(s) detected</p>";
+            html += '<div class="result-section">';
+            html += '<h3 class="result-title">Faces</h3>';
+            html += '<dl class="kv"><dt>Faces</dt><dd>' + data.faces.faces.length + "</dd></dl>";
             html += "</div>";
         }
 
-        // Document
         if (data.document) {
-            html += '<div class="mb-4">';
-            html += '<h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Document AI</h3>';
+            html += '<div class="result-section">';
+            html += '<h3 class="result-title">Document</h3>';
             if (data.document.fields && data.document.fields.length) {
-                html += '<div class="space-y-2">';
+                html += '<dl class="kv">';
                 data.document.fields.forEach(function (field) {
-                    html += '<div class="text-sm bg-slate-800/50 rounded px-3 py-2"><span class="font-medium">' + escHtml(field.label) + '</span>: ' + escHtml(field.value) + '</div>';
+                    html += "<dt>" + escHtml(field.label) + "</dt><dd>" + escHtml(field.value) + "</dd>";
                 });
-                html += '</div>';
+                html += "</dl>";
+            } else {
+                html += '<p class="small muted">No document fields returned.</p>';
             }
-            html += '</div>';
+            html += "</div>";
         }
 
-        // API playground
-        html += '<details class="mt-4 rounded-lg border border-slate-700 bg-slate-900/50">';
-        html += '<summary class="cursor-pointer px-4 py-3 text-sm font-semibold text-slate-300">API Playground</summary>';
-        html += '<div class="px-4 pb-4">';
-        html += '<p class="text-xs text-slate-500 mb-2">Raw normalized JSON response</p>';
-        html += '<pre class="overflow-x-auto whitespace-pre-wrap text-xs text-slate-200">' + escHtml(JSON.stringify(data, null, 2)) + '</pre>';
-        html += '</div></details>';
+        html += '<details class="api-details">';
+        html += '<summary>Raw response</summary>';
+        html += '<div class="api-body">';
+        html += '<pre class="code">' + escHtml(JSON.stringify(data, null, 2)) + "</pre>";
+        html += "</div></details>";
 
-        // Footer
-        html += '<div class="text-xs text-slate-500 mt-4">';
-        html += "Elapsed: " + (data.elapsed_seconds || 0).toFixed(3) + "s";
+        const elapsed = (data.elapsed_seconds || 0).toFixed(3);
+        html += '<div class="meta-line">' + elapsed + "s";
         if (data.available_features && data.available_features.length) {
-            html += " &bull; Features: " + data.available_features.join(", ");
+            html += " · " + escHtml(data.available_features.join(" · "));
         }
         html += "</div>";
 
-        return html || '<p class="text-slate-500">No results returned.</p>';
+        if (resultStatus) {
+            resultStatus.textContent = "analysis · " + elapsed + "s";
+        }
+
+        return html || '<p class="small muted">No results returned.</p>';
     }
 
-    window.__ociVisionSetOverlay = function (base64Payload) {
+    window.__ociVisionSetOverlay = function (base64Payload, button) {
         const img = document.getElementById("analysis-overlay");
         if (img) {
             img.src = "data:image/png;base64," + base64Payload;
+        }
+        if (button) {
+            document.querySelectorAll(".feature-tabs .chip").forEach(function (chip) {
+                chip.classList.remove("active");
+            });
+            button.classList.add("active");
         }
     };
 
