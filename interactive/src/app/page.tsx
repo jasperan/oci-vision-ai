@@ -150,7 +150,7 @@ export default function Home() {
         <section id="classify" className="scroll-mt-16">
           <div className="flex items-baseline gap-3 mb-2">
             <span className="text-muted-foreground font-mono text-sm">01</span>
-            <h2>Image classification</h2>
+            <h2>Image Classification</h2>
           </div>
           <h3>Assign confidence-scored labels to any image</h3>
           <p>
@@ -178,7 +178,7 @@ export default function Home() {
         <section id="detect" className="scroll-mt-16">
           <div className="flex items-baseline gap-3 mb-2">
             <span className="text-muted-foreground font-mono text-sm">02</span>
-            <h2>Object detection</h2>
+            <h2>Object Detection</h2>
           </div>
           <h3>Locate and classify objects with bounding polygons</h3>
           <p>
@@ -235,7 +235,7 @@ export default function Home() {
         <section id="faces" className="scroll-mt-16">
           <div className="flex items-baseline gap-3 mb-2">
             <span className="text-muted-foreground font-mono text-sm">04</span>
-            <h2>Face detection</h2>
+            <h2>Face Detection</h2>
           </div>
           <h3>Detect faces and facial landmarks</h3>
           <p>
