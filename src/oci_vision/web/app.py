@@ -13,6 +13,7 @@ import tempfile
 from typing import Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -39,6 +40,118 @@ _STATIC_DIR = _WEB_DIR / "static"
 _ALLOWED_FEATURES = {"classification", "detection", "text", "faces", "document"}
 _MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 _UPLOAD_CHUNK_BYTES = 1024 * 1024
+
+
+_MAX_JSON_BODY_BYTES = 64 * 1024
+# Multipart framing (boundaries, headers, the ``features`` field) on top of the file cap.
+_MULTIPART_OVERHEAD_BYTES = 1024 * 1024
+# Pillow decodes before it warns (its own limit is ~179 Mpx); skip the best-effort overlay above this.
+_MAX_OVERLAY_PIXELS = 40_000_000
+# Formats the overlay decoder may open. Pillow's auto-detection would also hand EPS to Ghostscript.
+_OVERLAY_FORMATS = ["PNG", "JPEG", "WEBP", "GIF", "BMP", "TIFF"]
+
+
+class _BodyLimitMiddleware:
+    """Reject request bodies over a per-path cap before the framework spools them.
+
+    A ``Content-Length`` over the cap is refused outright; chunked or understated bodies are cut
+    off as soon as the received bytes pass the cap. The handler never sees the over-limit body.
+    """
+
+    def __init__(self, app, limits: dict[str, int]) -> None:
+        self.app = app
+        self.limits = limits
+
+    async def __call__(self, scope, receive, send):
+        limit = self.limits.get(scope.get("path")) if scope["type"] == "http" else None
+        if limit is None or scope.get("method") != "POST":
+            await self.app(scope, receive, send)
+            return
+
+        declared = dict(scope["headers"]).get(b"content-length")
+        if declared is not None and declared.isdigit() and int(declared) > limit:
+            await self._reject(send)
+            return
+
+        received = 0
+        exceeded = False
+
+        async def limited_receive():
+            nonlocal received, exceeded
+            if exceeded:
+                return {"type": "http.disconnect"}
+            message = await receive()
+            if message["type"] == "http.request":
+                received += len(message.get("body", b""))
+                if received > limit:
+                    exceeded = True
+                    return {"type": "http.disconnect"}
+            return message
+
+        async def guarded_send(message):
+            if not exceeded:
+                await send(message)
+
+        try:
+            await self.app(scope, limited_receive, guarded_send)
+        except Exception:
+            if not exceeded:
+                raise
+        if exceeded:
+            await self._reject(send)
+
+    @staticmethod
+    async def _reject(send) -> None:
+        body = b'{"detail":"Request body too large."}'
+        await send({
+            "type": "http.response.start",
+            "status": 413,
+            "headers": [(b"content-type", b"application/json"), (b"content-length", str(len(body)).encode())],
+        })
+        await send({"type": "http.response.body", "body": body})
+
+
+def _gallery_target(client: VisionClient, name: str) -> str:
+    """Map a request-supplied image name to something safe to analyse.
+
+    Live mode forwards the string to the OCI request builders, which read any local path or
+    ``oci://`` object. The HTTP surface only ever offers curated gallery assets (uploads have their
+    own route), so anything else is refused. Demo mode only looks the name up in fixtures.
+    """
+    if client.is_demo:
+        return name
+    from oci_vision.gallery import get_gallery_path
+
+    filename = Path(name).name
+    if filename != name or not any(image["filename"] == filename for image in load_manifest()["images"]):
+        raise HTTPException(status_code=404, detail="Unknown gallery image")
+    return str(get_gallery_path() / "images" / filename)
+
+
+def _render_upload_overlays(contents: bytes, report) -> tuple[str, dict[str, str]]:
+    """Render the combined and per-feature overlays for an upload (blocking; run in a thread)."""
+    from PIL import Image
+    from oci_vision.core.renderer import render_overlay
+
+    with Image.open(io.BytesIO(contents), formats=_OVERLAY_FORMATS) as img:
+        width, height = img.size
+        if width * height > _MAX_OVERLAY_PIXELS:
+            raise ValueError("image too large for overlay rendering")
+        overlay = render_overlay(img, report)
+        buf = io.BytesIO()
+        overlay.save(buf, format="PNG")
+        overlay_base64 = base64.b64encode(buf.getvalue()).decode()
+
+        feature_overlays: dict[str, str] = {}
+        for feature_name in [
+            feature for feature in report.available_features
+            if feature in {"classification", "detection", "text", "faces"}
+        ]:
+            feature_img = render_overlay(img, report, selected_features={feature_name})
+            feature_buf = io.BytesIO()
+            feature_img.save(feature_buf, format="PNG")
+            feature_overlays[feature_name] = base64.b64encode(feature_buf.getvalue()).decode()
+    return overlay_base64, feature_overlays
 
 
 async def _read_capped(
@@ -133,6 +246,14 @@ def create_app(demo: bool = False) -> FastAPI:
         description="Web dashboard for OCI Vision AI analysis",
     )
 
+    app.add_middleware(
+        _BodyLimitMiddleware,
+        limits={
+            "/api/analyze": _MAX_JSON_BODY_BYTES,
+            "/api/analyze-upload": _MAX_UPLOAD_BYTES + _MULTIPART_OVERHEAD_BYTES,
+        },
+    )
+
     # State ----------------------------------------------------------------
     client = VisionClient(demo=demo)
     templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
@@ -185,9 +306,11 @@ def create_app(demo: bool = False) -> FastAPI:
 
         if left and right:
             try:
-                left_report = client.analyze(left)
-                right_report = client.analyze(right)
+                left_report = client.analyze(_gallery_target(client, left))
+                right_report = client.analyze(_gallery_target(client, right))
                 comparison = compare_reports(left_report, right_report)
+            except HTTPException as exc:
+                error = str(exc.detail)
             except Exception as exc:
                 error = str(exc)
 
@@ -219,7 +342,9 @@ def create_app(demo: bool = False) -> FastAPI:
         from oci_vision.gallery import get_gallery_path
 
         image_path = get_gallery_path() / "images" / Path(image_name).name
-        analysis_target = str(image_path) if image_path.exists() else image_name
+        analysis_target = _gallery_target(client, image_name)
+        if client.is_demo and image_path.exists():
+            analysis_target = str(image_path)
         try:
             report = client.analyze(analysis_target)
         except Exception as exc:
@@ -277,7 +402,10 @@ def create_app(demo: bool = False) -> FastAPI:
         """
         try:
             requested_features = _parse_requested_features(body.features)
-            report = client.analyze(body.image, features=requested_features)
+            target = _gallery_target(client, body.image)
+            report = client.analyze(target, features=requested_features)
+        except HTTPException as exc:
+            return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
         except Exception as exc:
             return _analysis_error_response(exc)
 
@@ -332,28 +460,11 @@ def create_app(demo: bool = False) -> FastAPI:
             result["insights"] = report_insights(report)
 
             try:
-                from PIL import Image
-                from oci_vision.core.renderer import render_overlay
-
-                with Image.open(io.BytesIO(contents)) as img:
-                    overlay = render_overlay(img, report)
-
-                    buf = io.BytesIO()
-                    overlay.save(buf, format="PNG")
-                    buf.seek(0)
-                    result["overlay_base64"] = base64.b64encode(buf.read()).decode()
-
-                    feature_overlays = {}
-                    for feature_name in [
-                        feature for feature in report.available_features
-                        if feature in {"classification", "detection", "text", "faces"}
-                    ]:
-                        feature_img = render_overlay(img, report, selected_features={feature_name})
-                        feature_buf = io.BytesIO()
-                        feature_img.save(feature_buf, format="PNG")
-                        feature_buf.seek(0)
-                        feature_overlays[feature_name] = base64.b64encode(feature_buf.read()).decode()
-                    result["feature_overlays"] = feature_overlays
+                overlay_base64, feature_overlays = await run_in_threadpool(
+                    _render_upload_overlays, contents, report
+                )
+                result["overlay_base64"] = overlay_base64
+                result["feature_overlays"] = feature_overlays
             except Exception:
                 # Overlay generation is best-effort
                 result["overlay_base64"] = None

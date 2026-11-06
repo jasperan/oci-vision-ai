@@ -314,3 +314,93 @@ async def test_static_files(app):
         htmx = await client.get("/static/htmx-2.0.0.min.js")
         assert htmx.status_code == 200
         assert "javascript" in htmx.headers.get("content-type", "")
+
+
+class _RecordingClient:
+    """Stands in for the live SDK client: records what the HTTP layer asks it to analyse."""
+
+    def __init__(self):
+        self.targets = []
+
+    def analyze(self, image, features="all", **kwargs):
+        from oci_vision.core.models import AnalysisReport
+
+        self.targets.append(image)
+        return AnalysisReport(image_path=image)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("name", ["/etc/hostname", "oci://bucket/secret.png", "../../etc/hostname", "nope.png"])
+async def test_live_mode_refuses_non_gallery_locators(monkeypatch, name):
+    recorder = _RecordingClient()
+    app = create_app(demo=False)
+    monkeypatch.setattr("oci_vision.core.client.VisionClient.analyze", lambda self, *a, **k: recorder.analyze(*a, **k))
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/api/analyze", json={"image": name, "features": ["classification"]})
+        assert resp.status_code == 404
+        resp = await client.get("/compare", params={"left": name, "right": "dog_closeup.jpg"})
+        assert "Unknown gallery image" in resp.text
+        resp = await client.get("/report/" + name.replace("/", "%2F"))
+        assert resp.status_code == 404
+    assert recorder.targets == []
+
+
+@pytest.mark.asyncio
+async def test_live_mode_analyses_gallery_images_by_gallery_path(monkeypatch):
+    from oci_vision.gallery import get_gallery_path
+
+    recorder = _RecordingClient()
+    app = create_app(demo=False)
+    monkeypatch.setattr("oci_vision.core.client.VisionClient.analyze", lambda self, *a, **k: recorder.analyze(*a, **k))
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/api/analyze", json={"image": "dog_closeup.jpg", "features": ["classification"]})
+        assert resp.status_code == 200
+    assert recorder.targets == [str(get_gallery_path() / "images" / "dog_closeup.jpg")]
+
+
+@pytest.mark.asyncio
+async def test_oversized_bodies_are_refused_before_the_handler(app):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        big = b"0" * (25 * 1024 * 1024)
+        resp = await client.post(
+            "/api/analyze-upload",
+            files={"file": ("a.png", big, "image/png")},
+            data={"features": "classification"},
+        )
+        assert resp.status_code == 413
+
+        async def stream():  # chunked, no Content-Length
+            for _ in range(3):
+                yield b"x" * (30 * 1024)
+
+        resp = await client.post("/api/analyze", content=stream(), headers={"content-type": "application/json"})
+        assert resp.status_code == 413
+
+
+@pytest.mark.asyncio
+async def test_upload_overlay_skips_non_allowlisted_formats_and_huge_images(app):
+    from io import BytesIO
+
+    from PIL import Image
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        eps = b"%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 10 10\nshowpage\n"
+        resp = await client.post(
+            "/api/analyze-upload",
+            files={"file": ("dog_closeup.jpg", eps, "image/png")},
+            data={"features": "classification"},
+        )
+        assert resp.json()["overlay_base64"] is None
+
+        buf = BytesIO()
+        Image.new("1", (7000, 7000)).save(buf, format="PNG")  # 49 Mpx, tiny on the wire
+        resp = await client.post(
+            "/api/analyze-upload",
+            files={"file": ("dog_closeup.jpg", buf.getvalue(), "image/png")},
+            data={"features": "classification"},
+        )
+        assert resp.json()["overlay_base64"] is None
