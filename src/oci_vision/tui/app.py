@@ -101,7 +101,7 @@ class VisionCockpitApp(App[None]):
                     yield Button("Archive Search", id="workflow-archive-search-button", classes="workflow-button")
                 yield Static("A analyze\nJ JSON\nH HTML\nO overlay\nQ quit", id="help-block")
             with Vertical(id="main-column"):
-                yield Static(id="target-panel", classes="panel")
+                yield Static(id="target-panel", classes="panel", markup=False)
                 with Horizontal(id="feature-row", classes="panel"):
                     yield Checkbox("Classification", id="feature-classification")
                     yield Checkbox("Detection", id="feature-detection")
@@ -113,26 +113,26 @@ class VisionCockpitApp(App[None]):
                     yield Button("Export JSON", id="export-json-button")
                     yield Button("Export HTML", id="export-html-button")
                     yield Button("Export Overlay", id="export-overlay-button")
-                yield Static(id="summary-panel", classes="panel")
+                yield Static(id="summary-panel", classes="panel", markup=False)
                 with TabbedContent(id="results-tabs"):
                     with TabPane("Classification"):
-                        yield Static(id="classification-output", classes="result-output")
+                        yield Static(id="classification-output", classes="result-output", markup=False)
                     with TabPane("Detection"):
-                        yield Static(id="detection-output", classes="result-output")
+                        yield Static(id="detection-output", classes="result-output", markup=False)
                     with TabPane("OCR"):
-                        yield Static(id="text-output", classes="result-output")
+                        yield Static(id="text-output", classes="result-output", markup=False)
                     with TabPane("Faces"):
-                        yield Static(id="faces-output", classes="result-output")
+                        yield Static(id="faces-output", classes="result-output", markup=False)
                     with TabPane("Document"):
-                        yield Static(id="document-output", classes="result-output")
+                        yield Static(id="document-output", classes="result-output", markup=False)
             with Vertical(id="right-rail"):
                 with Vertical(classes="panel"):
                     yield Static("Archive query", classes="section-title")
                     yield Input(placeholder="INV-1001", id="archive-query")
-                yield Static(id="workflow-panel", classes="panel")
-                yield Static(id="compare-panel", classes="panel")
-                yield Static(id="history-panel", classes="panel")
-                yield Static(id="status-panel", classes="panel")
+                yield Static(id="workflow-panel", classes="panel", markup=False)
+                yield Static(id="compare-panel", classes="panel", markup=False)
+                yield Static(id="history-panel", classes="panel", markup=False)
+                yield Static(id="status-panel", classes="panel", markup=False)
         if not self.config.screenshot_path:
             yield Footer()
 

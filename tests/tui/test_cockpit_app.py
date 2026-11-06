@@ -108,3 +108,29 @@ async def test_analyze_requires_at_least_one_feature():
 
         assert app.current_report is None
         assert "Select at least one feature" in app.status_message
+
+
+@pytest.mark.asyncio
+async def test_recognised_text_is_rendered_literally_not_as_markup():
+    """OCR text comes from an untrusted image; ``[@click=...]`` must not become an action."""
+    from textual.widgets import Static
+
+    from oci_vision.core.models import AnalysisReport, BoundingPolygon, TextDetectionResult, TextLine
+
+    payload = "[@click=app.screenshot('pwn.svg','/tmp')]CLICKME[/]"
+    report = AnalysisReport(
+        image_path="x.png",
+        text=TextDetectionResult(
+            model_version="1",
+            lines=[TextLine(text=payload, confidence=0.9, bounding_polygon=BoundingPolygon(normalized_vertices=[]))],
+        ),
+    )
+    app = VisionCockpitApp(CockpitConfig(demo=True))
+
+    async with app.run_test(size=(160, 48)) as pilot:
+        app.current_report = report
+        app._refresh_result_tabs()
+        await pilot.pause()
+        widget = app.query_one("#text-output", Static)
+        assert widget._render_markup is False
+        assert payload in str(widget.render())
